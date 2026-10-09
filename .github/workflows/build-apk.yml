@@ -75,9 +75,24 @@ jobs:
         if: env.HAS_KEYSTORE == 'true'
         env:
           KEYSTORE_B64: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
-          printf '%s' "$KEYSTORE_B64" | base64 --decode > my-upload-key.jks
-          echo "keystore restored"
+          set -euo pipefail
+          # 붙여넣기 과정에서 줄바꿈/공백이 섞여도 복구되도록 정리합니다.
+          CLEAN=$(printf '%s' "$KEYSTORE_B64" | tr -d '\r\n\t ')
+          printf '%s' "$CLEAN" | base64 --decode > my-upload-key.jks
+          SIZE=$(stat -c%s my-upload-key.jks)
+          echo "keystore restored: ${SIZE} bytes"
+          if [ "$SIZE" -lt 500 ]; then
+            echo "::error::keystore 크기가 비정상($SIZE bytes). base64가 잘렸을 수 있습니다."
+            exit 1
+          fi
+          # keystore는 ZIP 형식(PK 헤더)이라 이것만으로 복원 성공을 확인할 수 있습니다
+          if [ "$(head -c2 my-upload-key.jks)" != "PK" ]; then
+            echo "::error::keystore 헤더가 올바르지 않습니다."
+            exit 1
+          fi
+          keytool -list -keystore my-upload-key.jks -storepass "$KEYSTORE_PASSWORD" | head -5
 
       - name: Build release APK and AAB
         if: env.HAS_KEYSTORE == 'true'
