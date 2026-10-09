@@ -77,7 +77,13 @@ data class ChargeSettings(
     /** 사용자가 권한 안내를 이미 확인했는지 */
     val overlayPromptSeen: Boolean = false,
     /** 사용자 맞춤 고빈도 설정 (프리미엄 콘텐츠 용량 해제 후 활성화) */
-    val premiumUnlocked: Boolean = false
+    val premiumUnlocked: Boolean = false,
+    /**
+     * 광고 시청으로 지급된 무료 잠금 해제 크레딧.
+     * 커스텀 오디오/영상 적용 후 보상형 광고를 시청하면 1개씩 쌓입니다.
+     * [PremiumCatalog.ADS_REQUIRED_PER_UNLOCK] 회 대신 이 크레딧으로 잠금을 열 수 있습니다.
+     */
+    val freeUnlockCredits: Int = 0
 ) {
     val durationLabel: String
         get() = when (videoDurationSeconds) {
@@ -92,7 +98,8 @@ data class ChargeSettings(
     fun remainingAdsToUnlock(premiumId: String): Int {
         if (premiumId in unlockedPremiumIds) return 0
         val seen = rewardProgress[premiumId] ?: 0
-        return (com.example.data.PremiumCatalog.ADS_REQUIRED_PER_UNLOCK - seen).coerceAtLeast(0)
+        val required = com.example.data.PremiumCatalog.ADS_REQUIRED_PER_UNLOCK
+        return (required - seen - freeUnlockCredits).coerceAtLeast(0)
     }
 
     fun adFreeRemainingMinutes(nowMillis: Long): Int {

@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -108,20 +109,30 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch { _userMessage.value = "이미 해제된 콘텐츠입니다." }
             return
         }
-        AdManager.showRewarded(
-            activity = act,
-            onReward = { onRewardEarned(premiumId) },
-            onDismiss = { },
-            onNotAvailable = {
-                viewModelScope.launch {
-                    val name = PremiumCatalog.soundById(premiumId)?.name
-                        ?: PremiumCatalog.animationById(premiumId)?.name
-                        ?: "해당 콘텐츠"
-                    _userMessage.value = "광고를 불러오지 못했습니다. 다른 프리셋은 광고 없이 사용하실 수 있습니다."
-                }
+        // 보유한 무료 크레딧으로 먼저 해제를 시도합니다 (광고 불필요)
+        viewModelScope.launch {
+            if (repository.tryUnlockWithFreeCredit(premiumId)) {
+                _userMessage.value = "'${displayNameOf(premiumId)}' 잠금이 해제되었습니다!"
+                SoundManager.ensurePremiumSound(getApplication(), premiumId)
+                return@launch
             }
-        )
+            with(act) {
+                AdManager.showRewarded(
+                    activity = this,
+                    onReward = { onRewardEarned(premiumId) },
+                    onDismiss = { },
+                    onNotAvailable = {
+                        _userMessage.value = "광고를 불러오지 못했습니다. 다른 프리셋은 광고 없이 사용하실 수 있습니다."
+                    }
+                )
+            }
+        }
     }
+
+    private fun displayNameOf(premiumId: String): String =
+        PremiumCatalog.soundById(premiumId)?.name
+            ?: PremiumCatalog.animationById(premiumId)?.name
+            ?: "프리미엄 콘텐츠"
 
     // ─────────────────────── 프리미엄 콘텐츠 ───────────────────────
 
@@ -226,18 +237,61 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun isAdFreeActive(): Boolean =
         settings.value.adFreeUntil > System.currentTimeMillis()
 
-    // ─────────────────────── 오디오 / 영상 파일 선택 (광고 강제 없음) ───────────────────────
+    // ─────────────────────── 오디오 / 영상 파일 선택 ───────────────────────
 
+    /**
+     * 커스텀 오디오를 적용하고, 보상형 광고 *제안*을 띄웁니다.
+     *
+     * 정책: 파일 적용 자체는 광고와 무관하게 즉시 완료됩니다.
+     * 광고는 사용자가 선택하는 추가 보상(무료 잠금 해제 크레딧)이며,
+     * 거부해도 기능에 아무 영향이 없습니다.
+     */
     fun selectCustomAudio(uri: Uri) {
         viewModelScope.launch {
             val result = repository.saveCustomAudio(uri)
             if (result.isSuccess) {
                 _userMessage.value = "커스텀 MP3가 적용되었습니다."
                 previewPlayCurrentSound()
+                _offerFreeUnlockCredit.value = "커스텀 오디오"
             } else {
                 _userMessage.value = "오디오 파일을 불러오지 못했습니다: ${result.exceptionOrNull()?.message}"
             }
         }
+    }
+
+    /** 크스텀 영상 적용 후 보상형 광고 제안 트리거 */
+    private val _offerFreeUnlockCredit = MutableStateFlow<String?>(null)
+    val offerFreeUnlockCredit: StateFlow<String?> = _offerFreeUnlockCredit.asStateFlow()
+
+    fun dismissFreeUnlockOffer() {
+        _offerFreeUnlockCredit.value = null
+    }
+
+    /**
+     * 보상형 광고를 시청하고 무료 잠금 해제 크레딧을 받습니다.
+     * 광고를 거부하면 아무것도 일어나지 않습니다(기능에 영향 없음).
+     */
+    fun watchAdForFreeCredit(activity: Activity?) {
+        val act = activity ?: run { dismissFreeUnlockOffer(); return }
+        val label = _offerFreeUnlockCredit.value
+        AdManager.showRewarded(
+            activity = act,
+            onReward = {
+                viewModelScope.launch {
+                    repository.grantFreeUnlockCredit()
+                    _userMessage.value =
+                        "프리미엄 잠금 해제 크레딧 1개를 받았습니다. (${repository.settingsFlow.first().freeUnlockCredits}개 보유)"
+                    _offerFreeUnlockCredit.value = null
+                }
+            },
+            onDismiss = { _offerFreeUnlockCredit.value = null },
+            onNotAvailable = {
+                viewModelScope.launch {
+                    _userMessage.value = "광고를 불러오지 못했습니다. 나중에 다시 시도해 주세요."
+                    _offerFreeUnlockCredit.value = null
+                }
+            }
+        )
     }
 
     fun toggleServiceEnabled(enabled: Boolean) {
@@ -290,6 +344,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val result = repository.saveCustomVideo(uri)
             if (result.isSuccess) {
                 _userMessage.value = "커스텀 영상이 등록되었습니다: ${result.getOrNull()}"
+                _offerFreeUnlockCredit.value = "커스텀 영상"
             } else {
                 _userMessage.value = "비디오 파일을 불러오지 못했습니다: ${result.exceptionOrNull()?.message}"
             }

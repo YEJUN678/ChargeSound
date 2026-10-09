@@ -56,7 +56,9 @@
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:excludeFromRecents="true"
-            android:launchMode="singleTop" />
+            android:noHistory="true"
+            android:launchMode="singleTop"
+            android:taskAffinity="" />
 
         <service
             android:name=".service.ChargingMonitorService"

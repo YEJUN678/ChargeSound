@@ -21,8 +21,10 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -40,7 +42,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
+import com.example.ui.theme.Slate400
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.ad.AdUnits
@@ -517,3 +522,89 @@ fun OverlayPermissionCard(
 /** 프리미엄 콘텐츠 잠금 해제 안내 문구 (정책: 보상을 명확히 고지) */
 fun premiumUnlockLabel(name: String): String =
     "광고 ${PremiumCatalog.ADS_REQUIRED_PER_UNLOCK}회 시청 시 '$name' 잠금 해제"
+
+/**
+ * 커스텀 오디오/영상 적용 후 표시하는 보상형 광고 "제안" 카드.
+ *
+ * 정책 준수:
+ * - 광고를 거부해도 아무 일도 일어나지 않습니다 (기능에 영향 없음).
+ * - 보상(무료 잠금 해제 크레딧)이 무엇인지 명확히 고지합니다.
+ * - 강제 표시가 아니므로 사용자가 직접 선택해야 합니다.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FreeUnlockOfferDialog(
+    appliedLabel: String,
+    onWatchAd: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    BasicAlertDialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true)
+    ) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = Slate900,
+            border = BorderStroke(1.dp, ElectricAmber.copy(alpha = 0.5f)),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    tint = ElectricAmber,
+                    modifier = Modifier.size(36.dp)
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "$appliedLabel 적용 완료!",
+                    color = Color.White,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "광고 1회 시청하면 프리미엄 잠금 해제 크레딧 1개를 받아 " +
+                        "사운드/테마 하나를 광고 없이 바로 열 수 있습니다.",
+                    color = Slate600,
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(Modifier.height(20.dp))
+
+                Button(
+                    onClick = onWatchAd,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ElectricAmber,
+                        contentColor = Color.Black
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text("광고 보고 크레딧 받기", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "나중에",
+                    color = Slate400,
+                    fontSize = 13.sp,
+                    modifier = Modifier
+                        .clickable { onDismiss() }
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
+                )
+            }
+        }
+    }
+}

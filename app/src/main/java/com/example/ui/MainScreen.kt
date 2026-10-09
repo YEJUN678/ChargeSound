@@ -427,6 +427,16 @@ fun MainScreen(viewModel: MainViewModel) {
         }
     }
 
+    // 커스텀 오디오/영상 적용 후 보상형 광고 "제안" (거부해도 기능에 영향 없음)
+    val freeUnlockOffer by viewModel.offerFreeUnlockCredit.collectAsState()
+    if (freeUnlockOffer != null) {
+        FreeUnlockOfferDialog(
+            appliedLabel = freeUnlockOffer ?: "",
+            onWatchAd = { viewModel.watchAdForFreeCredit(activity) },
+            onDismiss = { viewModel.dismissFreeUnlockOffer() }
+        )
+    }
+
     // "광고 없는 시간" 선택 다이얼로그
     if (showAdFreeDialog) {
         AdFreeDurationDialog(

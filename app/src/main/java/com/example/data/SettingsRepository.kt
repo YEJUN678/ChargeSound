@@ -48,6 +48,7 @@ class SettingsRepository(private val context: Context) {
         val KEY_OVERLAY_GRANTED = booleanPreferencesKey("overlay_granted")
         val KEY_OVERLAY_PROMPT_SEEN = booleanPreferencesKey("overlay_prompt_seen")
         val KEY_PREMIUM_UNLOCKED = booleanPreferencesKey("premium_unlocked")
+        val KEY_FREE_UNLOCK_CREDITS = intPreferencesKey("free_unlock_credits")
     }
 
     /** "id:count,id:count" 형태의 직렬화 */
@@ -100,7 +101,8 @@ class SettingsRepository(private val context: Context) {
             adFreeUntil = prefs[KEY_AD_FREE_UNTIL] ?: 0L,
             overlayPermissionGranted = prefs[KEY_OVERLAY_GRANTED] ?: false,
             overlayPromptSeen = prefs[KEY_OVERLAY_PROMPT_SEEN] ?: false,
-            premiumUnlocked = prefs[KEY_PREMIUM_UNLOCKED] ?: false
+            premiumUnlocked = prefs[KEY_PREMIUM_UNLOCKED] ?: false,
+            freeUnlockCredits = prefs[KEY_FREE_UNLOCK_CREDITS] ?: 0
         )
     }
 
@@ -184,6 +186,9 @@ class SettingsRepository(private val context: Context) {
      * 정책: 광고가 미노출(fill 실패)되어도 기능이 막히지 않아야 하므로,
      * 이 함수는 **광고를 끝까지 시청했을 때만** 호출됩니다.
      *
+     * 누적 [KEY_FREE_UNLOCK_CREDITS] 크레딧은 광고 1회와 동일한 가치로 취급하며,
+     * 잠금 해제 시 1개 소비됩니다.
+     *
      * 완료 횟수에 도달하면 잠금을 해제하고 진행도를 초기화합니다.
      * 초기화하지 않으면 이미 해제된 항목을 무한정 반복 시청할 수 있어
      * 보상형 광고 정책 위반이 됩니다.
@@ -194,27 +199,72 @@ class SettingsRepository(private val context: Context) {
         var watchCount = 0
         val required = PremiumCatalog.ADS_REQUIRED_PER_UNLOCK
         context.dataStore.edit { prefs ->
+            if ((prefs[KEY_UNLOCKED_PREMIUM] ?: emptySet()).contains(premiumId)) return@edit
             val current = decodeProgress(prefs[KEY_REWARD_PROGRESS])
             val next = (current[premiumId] ?: 0) + 1
             watchCount = next
 
-            val unlocked = prefs[KEY_UNLOCKED_PREMIUM] ?: emptySet()
-            if (next >= required) {
-                prefs[KEY_UNLOCKED_PREMIUM] = unlocked + premiumId
+            val freeCredits = prefs[KEY_FREE_UNLOCK_CREDITS] ?: 0
+            if (next + freeCredits >= required) {
+                prefs[KEY_UNLOCKED_PREMIUM] = (prefs[KEY_UNLOCKED_PREMIUM] ?: emptySet()) + premiumId
                 prefs[KEY_PREMIUM_UNLOCKED] = true
-                // 해제 완료 → 진행도 초기화 (무한 반복 시청 방지)
+                // 광고 시청분을 소모했으므로 무료 크레딧은 그대로 두고 진행도만 초기화
                 val remaining = current.toMutableMap()
                 remaining.remove(premiumId)
-                if (remaining.isEmpty()) {
-                    prefs.remove(KEY_REWARD_PROGRESS)
-                } else {
-                    prefs[KEY_REWARD_PROGRESS] = encodeProgress(remaining)
-                }
+                if (remaining.isEmpty()) prefs.remove(KEY_REWARD_PROGRESS)
+                else prefs[KEY_REWARD_PROGRESS] = encodeProgress(remaining)
+                watchCount = required
             } else {
                 prefs[KEY_REWARD_PROGRESS] = encodeProgress(current + (premiumId to next))
             }
         }
         return watchCount
+    }
+
+    /**
+     * 무료 크레딧으로 즉시 잠금을 해제합니다.
+     *
+     * 누적 광고 시청 횟수 + 보유 크레딧이 필요한 횟수 이상이면 광고를 보지 않고
+     * 바로 해제합니다. 크레딧은 1개 소비됩니다.
+     *
+     * @return 해제되었으면 true, 크레딧이 부족하면 false (광고를 보여줘야 함)
+     */
+    suspend fun tryUnlockWithFreeCredit(premiumId: String): Boolean {
+        var unlocked = false
+        val required = PremiumCatalog.ADS_REQUIRED_PER_UNLOCK
+        context.dataStore.edit { prefs ->
+            if ((prefs[KEY_UNLOCKED_PREMIUM] ?: emptySet()).contains(premiumId)) {
+                unlocked = true
+                return@edit
+            }
+            val freeCredits = prefs[KEY_FREE_UNLOCK_CREDITS] ?: 0
+            val current = decodeProgress(prefs[KEY_REWARD_PROGRESS])
+            val seen = current[premiumId] ?: 0
+            if (freeCredits <= 0 || seen + freeCredits < required) return@edit
+
+            prefs[KEY_UNLOCKED_PREMIUM] = (prefs[KEY_UNLOCKED_PREMIUM] ?: emptySet()) + premiumId
+            prefs[KEY_PREMIUM_UNLOCKED] = true
+            prefs[KEY_FREE_UNLOCK_CREDITS] = freeCredits - 1
+            val remaining = current.toMutableMap()
+            remaining.remove(premiumId)
+            if (remaining.isEmpty()) prefs.remove(KEY_REWARD_PROGRESS)
+            else prefs[KEY_REWARD_PROGRESS] = encodeProgress(remaining)
+            unlocked = true
+        }
+        return unlocked
+    }
+
+    /**
+     * 무료 잠금 해제 크레딧을 1개 지급합니다.
+     * 커스텀 오디오/영상 적용 후 보상형 광고를 시청했을 때 호출됩니다.
+     */
+    suspend fun grantFreeUnlockCredit() {
+        context.dataStore.edit { prefs ->
+            val current = prefs[KEY_FREE_UNLOCK_CREDITS] ?: 0
+            // 무한 축적을 막기 위해 상한을 둡니다
+            prefs[KEY_FREE_UNLOCK_CREDITS] = (current + 1)
+                .coerceAtMost(PremiumCatalog.ADS_REQUIRED_PER_UNLOCK)
+        }
     }
 
     /**

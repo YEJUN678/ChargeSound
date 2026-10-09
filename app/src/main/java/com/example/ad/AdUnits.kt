@@ -58,8 +58,11 @@ object AdUnits {
  * - 보상형 광고는 사용자가 명시적으로 선택해야 하며, 거부해도 앱 사용이 막히면 안 됩니다.
  */
 object AdPolicy {
-    /** 앱오픈 광고 최소 간격 (4시간). 이보다 자주 열면 사용자 이탈이 급증합니다. */
-    const val APP_OPEN_MIN_INTERVAL_MS = 4L * 60L * 60L * 1000L
+    /**
+     * 앱오픈 광고 최소 간격.
+     * 앱을 열 때마다 띄우되, 연속으로 빠르게 열면 피로감이 생겨 최소 간격을 둡니다.
+     */
+    const val APP_OPEN_MIN_INTERVAL_MS = 30L * 60L * 1000L
 
     /** 세션 내 앱오픈 광고 최대 노출 횟수 */
     const val APP_OPEN_MAX_PER_SESSION = 1

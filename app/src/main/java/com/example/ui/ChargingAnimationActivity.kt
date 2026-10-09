@@ -5,6 +5,7 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager
 import android.widget.VideoView
 import androidx.activity.ComponentActivity
@@ -87,6 +88,7 @@ import kotlin.math.sin
 class ChargingAnimationActivity : ComponentActivity() {
 
     companion object {
+        private const val TAG = "ChargingAnimationActivity"
         const val EXTRA_BATTERY_LEVEL = "extra_battery_level"
         const val EXTRA_PLUG_NAME = "extra_plug_name"
         const val EXTRA_ANIM_MODE = "extra_anim_mode"
@@ -126,7 +128,7 @@ class ChargingAnimationActivity : ComponentActivity() {
                     isLoop = isLoop,
                     onDismiss = {
                         SoundManager.fadeOutAndStop(500L)
-                        finish()
+                        finishAndReturnToPreviousApp()
                     }
                 )
             }
@@ -137,6 +139,25 @@ class ChargingAnimationActivity : ComponentActivity() {
         super.onDestroy()
         AdManager.setCoreFeatureBusy(false)
         SoundManager.fadeOutAndStop(300L)
+    }
+
+    /**
+     * 충전 애니메이션을 끝내고 사용자가 보던 앱으로 돌아갑니다.
+     *
+     * 이 화면은 백그라운드(BAL)에서 시작되므로 별도 태스크로 뜹니다.
+     * 그냥 finish()만 하면 홈 화면으로 떨어질 수 있어, 태스크를 뒤로 보내서
+     * 직전에 보고 있던 앱이 다시 보이도록 합니다.
+     */
+    private fun finishAndReturnToPreviousApp() {
+        try {
+            // Activity.moveTaskToBack()를 쓰면 직전에 보고 있던 앱이 다시 앞으로 옵니다.
+            if (isTaskRoot) {
+                moveTaskToBack(true)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "moveTaskToBack failed", e)
+        }
+        finish()
     }
 
     override fun onPause() {
