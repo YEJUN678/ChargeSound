@@ -87,12 +87,15 @@ jobs:
             echo "::error::keystore 크기가 비정상($SIZE bytes). base64가 잘렸을 수 있습니다."
             exit 1
           fi
-          # keystore는 ZIP 형식(PK 헤더)이라 이것만으로 복원 성공을 확인할 수 있습니다
-          if [ "$(head -c2 my-upload-key.jks)" != "PK" ]; then
-            echo "::error::keystore 헤더가 올바르지 않습니다."
-            exit 1
-          fi
-          keytool -list -keystore my-upload-key.jks -storepass "$KEYSTORE_PASSWORD" | head -5
+          # keystore는 PKCS12(DER, 0x30 82로 시작) 또는 JKS(0xFE 0xED) 형식입니다.
+          # ZIP(PK) 형식이 아니므로 헤더 판정 기준을 맞춰야 합니다.
+          MAGIC=$(head -c2 my-upload-key.jks | od -An -tx1 | tr -d ' \n')
+          echo "magic: $MAGIC"
+          case "$MAGIC" in
+            3082|feed|feed*) : ;;                      # PKCS12 / JKS
+            *) echo "::error::keystore 매직 바이트가 알 수 없는 형식($MAGIC)입니다."; exit 1 ;;
+          esac
+          keytool -list -keystore my-upload-key.jks -storepass "$KEYSTORE_PASSWORD"
 
       - name: Build release APK and AAB
         if: env.HAS_KEYSTORE == 'true'
