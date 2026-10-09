@@ -1,0 +1,6 @@
+{
+  "name": "ChargeSound",
+  "description": "충전 연결 시 커스텀 MP3 사운드와 MP4/AVI 애니메이션 영상을 재생하는 충전 알림 및 커스텀 테마 앱",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

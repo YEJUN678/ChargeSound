@@ -1,0 +1,37 @@
+*.iml
+.gradle
+.kotlin
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# ── 시크릿 (절대 커밋 금지) ──
+.env
+
+# 서명 키: 유출되면任何人가 당신 이름으로 Play에 업로드할 수 있습니다
+debug.keystore
+*.jks
+*.keystore
+*.p12
+*.pem
+
+# 빌드 산출물
+*.apk
+*.aab
+/apk/
+/app/build/
+/build/
+
+# Firebase — AI Studio가 주입합니다
+app/google-services.json
+app/src/*/google-services.json
