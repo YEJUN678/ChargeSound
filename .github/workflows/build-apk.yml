@@ -44,6 +44,17 @@ jobs:
           key: android-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml', '**/*.gradle.kts') }}
           restore-keys: android-${{ runner.os }}-
 
+      # debug.keystore는 .gitignore 대상이라 리포지토리에 없습니다.
+      # app/build.gradle.kts의 debugConfig가 이 파일을 요구하므로 CI에서 생성합니다.
+      - name: Generate debug keystore
+        run: |
+          keytool -genkeypair -v \
+            -keystore debug.keystore \
+            -alias androiddebugkey \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass android -keypass android \
+            -dname "CN=Android Debug,O=Android,C=US"
+
       # ────────────────────────────────────────────────────────
       # 디버그 APK — 항상 빌드. 서명키 불필요, 테스트 광고 단위.
       # ────────────────────────────────────────────────────────
