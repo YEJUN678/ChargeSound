@@ -8,9 +8,16 @@ on:
   workflow_dispatch:
     inputs:
       release:
-        description: "릴리스(서명) APK 빌드 — Play 업로드용"
+        description: "릴리스(서명) APK 빌드 — 스토어 배포용"
         type: boolean
         default: false
+
+# 서명키가 설정된 경우에만 릴리스 단계를 돌린다.
+# github.event.inputs는 push 이벤트에서 안전하게 null을 반환한다.
+# (inputs 컨텍스트는 workflow_dispatch에서만 존재하므로 push에서 참조하면
+#  워크플로우 파싱 단계에서 "Unrecognized named-value" 오류로 Job이 생성되지 않는다)
+env:
+  HAS_KEYSTORE: ${{ secrets.UPLOAD_KEYSTORE_BASE64 != '' }}
 
 jobs:
   build:
@@ -27,20 +34,21 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Cache Android SDK
+      - name: Cache Gradle and Android SDK
         uses: actions/cache@v4
         with:
           path: |
-            ~/.android/sdk
             ~/.gradle/caches
-          key: android-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/libs.versions.toml') }}
+            ~/.gradle/wrapper
+            ~/.android/sdk
+          key: android-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml', '**/*.gradle.kts') }}
           restore-keys: android-${{ runner.os }}-
 
-      # ─────────────────────────────────────────────────────────────
-      # 디버그 APK — 항상 빌드. 서명키 불필요, 테스트 광고 단위 사용.
-      # ─────────────────────────────────────────────────────────────
+      # ────────────────────────────────────────────────────────
+      # 디버그 APK — 항상 빌드. 서명키 불필요, 테스트 광고 단위.
+      # ────────────────────────────────────────────────────────
       - name: Build debug APK
-        run: ./gradlew :app:assembleDebug
+        run: ./gradlew :app:assembleDebug --stacktrace
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -49,41 +57,28 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 14
 
-      # ─────────────────────────────────────────────────────────────
-      # 릴리스 APK — 서명키가 있을 때만. 없으면 건너뜁니다.
-      # ─────────────────────────────────────────────────────────────
-      - name: Decode upload keystore
-        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.release) || secrets.UPLOAD_KEYSTORE_BASE64 != '' }}
+      # ────────────────────────────────────────────────────────
+      # 릴리스 — 서명키가 있을 때만
+      # ────────────────────────────────────────────────────────
+      - name: Restore upload keystore
+        if: env.HAS_KEYSTORE == 'true'
         env:
           KEYSTORE_B64: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
         run: |
-          if [ -z "$KEYSTORE_B64" ]; then
-            echo "::notice::UPLOAD_KEYSTORE_BASE64 secret 이 없어 릴리스 빌드를 건너뜁니다."
-            exit 0
-          fi
           printf '%s' "$KEYSTORE_B64" | base64 --decode > my-upload-key.jks
           echo "keystore restored"
 
-      - name: Build release APK
-        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.release) || secrets.UPLOAD_KEYSTORE_BASE64 != '' }}
+      - name: Build release APK and AAB
+        if: env.HAS_KEYSTORE == 'true'
         env:
-          KEYSTORE_PATH: ${{ format('{0}/my-upload-key.jks', github.workspace) }}
+          KEYSTORE_PATH: ${{ github.workspace }}/my-upload-key.jks
           STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        run: |
-          if [ ! -f my-upload-key.jks ]; then
-            echo "::notice::keystore 없음 — 릴리스 빌드 스킵"
-            exit 0
-          fi
-          ./gradlew :app:assembleRelease
-
-      - name: Build release AAB
-        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.release) && secrets.UPLOAD_KEYSTORE_BASE64 != '' }}
-        run: ./gradlew :app:bundleRelease
+        run: ./gradlew :app:assembleRelease :app:bundleRelease --stacktrace
 
       - name: Upload release artifacts
-        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.release) && secrets.UPLOAD_KEYSTORE_BASE64 != '' }}
+        if: env.HAS_KEYSTORE == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: app-release
@@ -91,3 +86,7 @@ jobs:
             app/build/outputs/apk/release/*.apk
             app/build/outputs/bundle/release/*.aab
           retention-days: 30
+
+      - name: Skip notice
+        if: env.HAS_KEYSTORE != 'true'
+        run: echo "::notice::서명키 secret 이 없어 릴리스 빌드를 건너뜁니다. 디버그 APK만 생성됩니다."
