@@ -3,17 +3,20 @@ package com.example.ad
 /**
  * 빌드 변형별로 실제 사용할 광고 단위를 결정합니다.
  *
- * - debug 소스 세트: 테스트 ID (실 트래픽에 노출되면 계정 정지이므로 절대 배포 금지)
- * - release 소스 세트: 실 ID
+ * - debug 소스 세트: Google 테스트 ID (실 트래픽에 노출되면 계정 정지)
+ * - release 소스 세트: 실제 AdMob ID
  *
- * 출처별로 갈라둠으로써 release 빌드에 테스트 ID 문자열이 아예 포함되지 않게 합니다.
- * Kotlin `const val`은 컴파일 시 인라인되므로, 조건 분기(getter)로는 제거되지 않습니다.
+ * `AdUnitIds`를 debug/release 양쪽에 같은 이름으로 정의해,
+ * release APK에 테스트 ID 문자열이 아예 포함되지 않게 합니다.
+ *
+ * ※ Kotlin `const val`은 컴파일 시 인라인되므로, 조건 분기(getter)로는
+ *    release 빌드에서 테스트 ID를 제거할 수 없습니다. 소스 세트 분리가 유일한 방법입니다.
  */
 internal object ActiveAdUnits {
-    val BANNER: String get() = AdUnitsRelease.BANNER
-    val NATIVE: String get() = AdUnitsRelease.NATIVE
-    val REWARDED: String get() = AdUnitsRelease.REWARDED
-    val APP_OPEN: String get() = AdUnitsRelease.APP_OPEN
+    val BANNER: String get() = AdUnitIds.BANNER
+    val NATIVE: String get() = AdUnitIds.NATIVE
+    val REWARDED: String get() = AdUnitIds.REWARDED
+    val APP_OPEN: String get() = AdUnitIds.APP_OPEN
 }
 
 /**
@@ -22,9 +25,7 @@ internal object ActiveAdUnits {
  * 앱 ID : ca-app-pub-4709628417690363~2909050501
  *
  * ⚠️ Google 테스트 단위(ca-app-pub-3940256099942544/...)는 이 파일에 두지 않습니다.
- *    실 트래픽에 테스트 단위를 쓰면 계정이 정지되며, 상수 인lining 때문에
- *    조건 분기만으로도 release APK에서 제거되지 않기 때문입니다.
- *    테스트 단위는 app/src/debug 소스 세트의 AdUnitsDebug.kt에만 존재합니다.
+ *    테스트 단위는 app/src/debug/.../AdUnitIds.kt 에만 존재합니다.
  *
  * 발급된 단위 목록
  * ------------------------------------------------------------------
@@ -37,8 +38,8 @@ internal object ActiveAdUnits {
  * AdMob 정책은 "명확한 시작/종료 지점이 있는 앱"에만 전면 광고를 권장하며,
  * 전 화면 애니메이션 앱(유틸리티)은 전면 대신 배너·네이티브·보상형을 쓰도록 안내합니다.
  *
- * 패키지 네임이 com.chargesound.app 로 변경되었으므로, AdMob 콘솔에서
- * 패키지 네임을 일치시키고 이 단위들을 재발급해야 합니다.
+ * ※ 패키지 네임이 com.chargesound.app 로 변경되었으므로, AdMob 콘솔에서
+ *   패키지 네임을 일치시키고 이 단위들을 재발급해야 광고가 게재됩니다.
  */
 object AdUnits {
     const val BANNER = "ca-app-pub-4709628417690363/8993123458"
@@ -57,12 +58,12 @@ object AdUnits {
  */
 object AdPolicy {
     /**
-     * 앱오픈 광고 최소 간격.
+     * 앱오펜 광고 최소 간격.
      * 앱을 열 때마다 띄우되, 연속으로 빠르게 열면 피로감이 생겨 최소 간격을 둡니다.
      */
     const val APP_OPEN_MIN_INTERVAL_MS = 30L * 60L * 1000L
 
-    /** 세션 내 앱오픈 광고 최대 노출 횟수 */
+    /** 세션 내 앱오펜 광고 최대 노출 횟수 */
     const val APP_OPEN_MAX_PER_SESSION = 1
 
     /** 보상형 광고: 연속 실패 시 노출을 중단하는 최대 시도 횟수 */
