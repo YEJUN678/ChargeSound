@@ -31,10 +31,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
 
-        <!-- Google AdMob Application ID -->
+        <!-- Google AdMob Application ID (com.chargesound.app 로 등록한 앱) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-4709628417690363~2909050501" />
+            android:value="ca-app-pub-4709628417690363~2426649445" />
 
         <activity
             android:name=".MainActivity"
