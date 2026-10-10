@@ -1,16 +1,30 @@
 package com.example.ad
 
-import com.example.BuildConfig
+/**
+ * 빌드 변형별로 실제 사용할 광고 단위를 결정합니다.
+ *
+ * - debug 소스 세트: 테스트 ID (실 트래픽에 노출되면 계정 정지이므로 절대 배포 금지)
+ * - release 소스 세트: 실 ID
+ *
+ * 출처별로 갈라둠으로써 release 빌드에 테스트 ID 문자열이 아예 포함되지 않게 합니다.
+ * Kotlin `const val`은 컴파일 시 인라인되므로, 조건 분기(getter)로는 제거되지 않습니다.
+ */
+internal object ActiveAdUnits {
+    val BANNER: String get() = AdUnitsRelease.BANNER
+    val NATIVE: String get() = AdUnitsRelease.NATIVE
+    val REWARDED: String get() = AdUnitsRelease.REWARDED
+    val APP_OPEN: String get() = AdUnitsRelease.APP_OPEN
+}
 
 /**
- * AdMob 광고 단위 ID.
+ * AdMob 광고 단위 ID (배포용).
  *
  * 앱 ID : ca-app-pub-4709628417690363~2909050501
  *
- * ⚠️ 실 트래픽에 Google 테스트 단위를 쓰면 계정이 정지될 수 있습니다.
- * 아래 TEST_* 상수는 로컬에서 광고 노출 흐름을 확인할 때만 사용하며,
- * [bannerId] / [nativeId] / [rewardedId] / [appOpenId] 를 통해 빌드 타입에 맞게
- * 자동으로 선택됩니다. 코드에서 테스트 ID를 직접 참조하지 마세요.
+ * ⚠️ Google 테스트 단위(ca-app-pub-3940256099942544/...)는 이 파일에 두지 않습니다.
+ *    실 트래픽에 테스트 단위를 쓰면 계정이 정지되며, 상수 인lining 때문에
+ *    조건 분기만으로도 release APK에서 제거되지 않기 때문입니다.
+ *    테스트 단위는 app/src/debug 소스 세트의 AdUnitsDebug.kt에만 존재합니다.
  *
  * 발급된 단위 목록
  * ------------------------------------------------------------------
@@ -22,31 +36,15 @@ import com.example.BuildConfig
  * 전면(Interstitial) 단위는 의도적으로 만들지 않았습니다.
  * AdMob 정책은 "명확한 시작/종료 지점이 있는 앱"에만 전면 광고를 권장하며,
  * 전 화면 애니메이션 앱(유틸리티)은 전면 대신 배너·네이티브·보상형을 쓰도록 안내합니다.
+ *
+ * 패키지 네임이 com.chargesound.app 로 변경되었으므로, AdMob 콘솔에서
+ * 패키지 네임을 일치시키고 이 단위들을 재발급해야 합니다.
  */
 object AdUnits {
-
-    // ── 실제 광고 단위 (배포용) ──
     const val BANNER = "ca-app-pub-4709628417690363/8993123458"
     const val NATIVE = "ca-app-pub-4709628417690363/2708674292"
     const val REWARDED = "ca-app-pub-4709628417690363/8801551767"
     const val APP_OPEN = "ca-app-pub-4709628417690363/2023470551"
-
-    // ── Google 공식 테스트 단위 (디버그 빌드 전용) ──
-    const val TEST_BANNER = "ca-app-pub-3940256099942544/6300978111"
-    const val TEST_NATIVE = "ca-app-pub-3940256099942544/2247696110"
-    const val TEST_REWARDED = "ca-app-pub-3940256099942544/5224354917"
-    const val TEST_APP_OPEN = "ca-app-pub-3940256099942544/9257395921"
-
-    /**
-     * 빌드 타입에 맞는 광고 단위 ID.
-     * 디버그 빌드 = 테스트 단위, 릴리스 빌드 = 실제 단위.
-     *
-     * 앱 체크에서 실 광고 단위를 실수로 띄워 계정이 정지되는 사고를 막기 위한 장치입니다.
-     */
-    val bannerId: String get() = if (BuildConfig.DEBUG) TEST_BANNER else BANNER
-    val nativeId: String get() = if (BuildConfig.DEBUG) TEST_NATIVE else NATIVE
-    val rewardedId: String get() = if (BuildConfig.DEBUG) TEST_REWARDED else REWARDED
-    val appOpenId: String get() = if (BuildConfig.DEBUG) TEST_APP_OPEN else APP_OPEN
 }
 
 /**

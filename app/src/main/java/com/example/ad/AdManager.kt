@@ -79,7 +79,7 @@ object AdManager {
         try {
             RewardedAd.load(
                 context,
-                AdUnits.rewardedId,
+                ActiveAdUnits.REWARDED,
                 buildRequest(),
                 object : RewardedAdLoadCallback() {
                     override fun onAdLoaded(ad: RewardedAd) {
@@ -167,7 +167,7 @@ object AdManager {
         try {
             AppOpenAd.load(
                 context,
-                AdUnits.appOpenId,
+                ActiveAdUnits.APP_OPEN,
                 buildRequest(),
                 object : AppOpenAd.AppOpenAdLoadCallback() {
                     override fun onAdLoaded(ad: AppOpenAd) {

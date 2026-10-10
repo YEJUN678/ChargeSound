@@ -13,7 +13,9 @@ android {
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "com.aistudio.chargesound.vkyrt"
+    // 스토어 등록용 앱 식별자. 한 번 등록하면 변경 불가하므로 신중히 결정할 것.
+    // namespace(위)는 내부 R/BuildConfig 패키지라 스토어에 노출되지 않습니다.
+    applicationId = "com.chargesound.app"
     minSdk = 24
     targetSdk = 36
     versionCode = 1

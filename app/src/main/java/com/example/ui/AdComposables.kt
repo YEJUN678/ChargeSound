@@ -30,6 +30,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import com.example.ad.ActiveAdUnits
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -48,7 +49,6 @@ import androidx.compose.ui.window.DialogProperties
 import com.example.ui.theme.Slate400
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.example.ad.AdUnits
 import com.example.data.PremiumCatalog
 import com.example.ui.theme.ElectricAmber
 import com.example.ui.theme.ElectricCyan
@@ -87,7 +87,7 @@ fun AdBannerSlot(
                 // 세션당 과다 노출을 막기 위해 높이 50dp에 맞춘 adaptive 배너를 사용합니다.
                 val adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(ctx, 360)
                 setAdSize(adSize)
-                adUnitId = AdUnits.bannerId
+                adUnitId = ActiveAdUnits.BANNER
 
                 val heightPx = (ctx.resources.displayMetrics.density * 50).toInt()
                 layoutParams = FrameLayout.LayoutParams(
@@ -129,7 +129,7 @@ fun AdNativeCard(isAdFreeActive: Boolean) {
     var nativeAd by remember { mutableStateOf<NativeAd?>(null) }
 
     LaunchedEffect(Unit) {
-        val loader = AdLoader.Builder(context, AdUnits.nativeId)
+        val loader = AdLoader.Builder(context, ActiveAdUnits.NATIVE)
             .forNativeAd { loaded ->
                 // 이전 광고가 남아 있으면 먼저 정리합니다 (메모리 누수 방지)
                 nativeAd?.destroy()
