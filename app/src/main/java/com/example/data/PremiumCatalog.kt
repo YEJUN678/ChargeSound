@@ -1,5 +1,8 @@
 package com.example.data
 
+import androidx.annotation.StringRes
+import com.example.R
+
 /**
  * 보상형 광고로 해제되는 프리미엄 콘텐츠 카탈로그.
  *
@@ -27,48 +30,48 @@ object PremiumCatalog {
     val sounds: List<PremiumSound> = listOf(
         PremiumSound(
             id = "prm_synthwave",
-            name = "신스웨이브 레이즈",
-            description = "80년대 신스웨이브 아르페지오",
+            nameRes = R.string.prm_synthwave_name,
+            descriptionRes = R.string.prm_synthwave_desc,
             iconName = "bolt",
             accentArgb = 0xFFFF6BA8,
             remoteUrl = null
         ),
         PremiumSound(
             id = "prm_chiptune",
-            name = "칩튠 마블링",
-            description = "레트로 8비트 게임 BGM",
+            nameRes = R.string.prm_chiptune_name,
+            descriptionRes = R.string.prm_chiptune_desc,
             iconName = "music",
             accentArgb = 0xFF4ADE80,
             remoteUrl = null
         ),
         PremiumSound(
             id = "prm_ambient",
-            name = "앰비언트 드론",
-            description = "깊은 패드 화음의 잔잔한 울림",
+            nameRes = R.string.prm_ambient_name,
+            descriptionRes = R.string.prm_ambient_desc,
             iconName = "waves",
             accentArgb = 0xFF60A5FA,
             remoteUrl = null
         ),
         PremiumSound(
             id = "prm_brass",
-            name = "브라스 팡파르",
-            description = "장엄한 금속관 팡파르 fanfare",
+            nameRes = R.string.prm_brass_name,
+            descriptionRes = R.string.prm_brass_desc,
             iconName = "trumpet",
             accentArgb = 0xFFFBBF24,
             remoteUrl = null
         ),
         PremiumSound(
             id = "prm_rainbow",
-            name = "레인보우 벨",
-            description = "7음 종소리 캐스케이드",
+            nameRes = R.string.prm_rainbow_name,
+            descriptionRes = R.string.prm_rainbow_desc,
             iconName = "bell",
             accentArgb = 0xFFC084FC,
             remoteUrl = null
         ),
         PremiumSound(
             id = "prm_vaporwave",
-            name = "베이퍼웨이브 그라운드",
-            description = "느린 템포의 드림펑크 비트",
+            nameRes = R.string.prm_vaporwave_name,
+            descriptionRes = R.string.prm_vaporwave_desc,
             iconName = "speed",
             accentArgb = 0xFF22D3EE,
             remoteUrl = null
@@ -78,48 +81,48 @@ object PremiumCatalog {
     val animations: List<PremiumAnimation> = listOf(
         PremiumAnimation(
             id = "prm_anim_nebula",
-            name = "성운 (Nebula)",
-            description = "회전하는 성운 입자 필드",
+            nameRes = R.string.mode_nebula_name,
+            descriptionRes = R.string.mode_nebula_desc,
             accentArgb = 0xFFA78BFA,
             mode = AnimationMode.PREMIUM_NEBULA,
             remoteUrl = null
         ),
         PremiumAnimation(
             id = "prm_anim_matrix",
-            name = "매트릭스 레인",
-            description = "글리치처럼 떨어지는 코드 열",
+            nameRes = R.string.mode_matrix_name,
+            descriptionRes = R.string.mode_matrix_desc,
             accentArgb = 0xFF4ADE80,
             mode = AnimationMode.PREMIUM_MATRIX,
             remoteUrl = null
         ),
         PremiumAnimation(
             id = "prm_anim_ocean",
-            name = "심해 (Abyss)",
-            description = "깊은 파도와 부유하는 산호",
+            nameRes = R.string.mode_abyss_name,
+            descriptionRes = R.string.mode_abyss_desc,
             accentArgb = 0xFF38BDF8,
             mode = AnimationMode.PREMIUM_ABYSS,
             remoteUrl = null
         ),
         PremiumAnimation(
             id = "prm_anim_prism",
-            name = "프리즘 (Prism)",
-            description = "빛을 분해하는 다각형 굴절",
+            nameRes = R.string.mode_prism_name,
+            descriptionRes = R.string.mode_prism_desc,
             accentArgb = 0xFFF472B6,
             mode = AnimationMode.PREMIUM_PRISM,
             remoteUrl = null
         ),
         PremiumAnimation(
             id = "prm_anim_fireworks",
-            name = "불꽃 (Fireworks)",
-            description = "정기적으로 터지는 불꽃",
+            nameRes = R.string.mode_fireworks_name,
+            descriptionRes = R.string.mode_fireworks_desc,
             accentArgb = 0xFFFB923C,
             mode = AnimationMode.PREMIUM_FIREWORKS,
             remoteUrl = null
         ),
         PremiumAnimation(
             id = "prm_anim_blackhole",
-            name = "블랙홀",
-            description = "소용돌이 빨려 들어가는 사건의 경계",
+            nameRes = R.string.mode_blackhole_name,
+            descriptionRes = R.string.mode_blackhole_desc,
             accentArgb = 0xFF818CF8,
             mode = AnimationMode.PREMIUM_BLACKHOLE,
             remoteUrl = null
@@ -142,13 +145,13 @@ object PremiumCatalog {
      * 프리미엄 사운드는 [com.example.sound.SoundManager]가 합성 WAV를 생성합니다.
      */
     fun soundToPreset(sound: PremiumSound): SoundPreset =
-        SoundPreset(sound.id, sound.name, sound.description, sound.iconName)
+        SoundPreset(sound.id, sound.nameRes, sound.descriptionRes, sound.iconName)
 }
 
 data class PremiumSound(
     val id: String,
-    val name: String,
-    val description: String,
+    @StringRes val nameRes: Int,
+    @StringRes val descriptionRes: Int,
     val iconName: String,
     val accentArgb: Long,
     /** 합법적으로 라이선스한 원본 WAV URL (없으면 로컬 합성 사용) */
@@ -157,8 +160,8 @@ data class PremiumSound(
 
 data class PremiumAnimation(
     val id: String,
-    val name: String,
-    val description: String,
+    @StringRes val nameRes: Int,
+    @StringRes val descriptionRes: Int,
     val accentArgb: Long,
     val mode: AnimationMode,
     /** 합법적으로 라이선스한 원본 MP4 URL (없으면 실시간 렌더링 사용) */

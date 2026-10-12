@@ -5,26 +5,34 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import androidx.annotation.StringRes
+import com.example.R
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
+/**
+ * 배터리 스냅샷.
+ *
+ * 표시용 텍스트는 컴포저블 밖에서 만들어지므로 문자열이 아니라 리소스 ID로
+ * 들고 있습니다. UI는 `stringResource(info.statusRes)` 로 해석합니다.
+ */
 data class BatteryInfo(
     val level: Int = 0,
     val isCharging: Boolean = false,
     val plugType: PlugType = PlugType.NONE,
-    val statusText: String = "알 수 없음",
+    @StringRes val statusRes: Int = R.string.battery_status_unknown,
     val temperatureC: Float = 0f,
     val voltageV: Float = 0f,
-    val healthText: String = "양호",
+    @StringRes val healthRes: Int = R.string.battery_health_good,
     val technology: String = "Li-ion"
 )
 
-enum class PlugType(val displayName: String) {
-    AC("고속 유선 충전 (AC)"),
-    USB("USB 포트 연결"),
-    WIRELESS("무선 충전 (Wireless)"),
-    NONE("배터리 방전 중 (연결 안 됨)")
+enum class PlugType(@StringRes val displayNameRes: Int) {
+    AC(R.string.plug_ac),
+    USB(R.string.plug_usb),
+    WIRELESS(R.string.plug_wireless),
+    NONE(R.string.plug_none)
 }
 
 object BatteryInfoHelper {
@@ -67,12 +75,12 @@ object BatteryInfoHelper {
         val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                 status == BatteryManager.BATTERY_STATUS_FULL
 
-        val statusText = when (status) {
-            BatteryManager.BATTERY_STATUS_CHARGING -> "충전 진행 중"
-            BatteryManager.BATTERY_STATUS_FULL -> "충전 완료 (100%)"
-            BatteryManager.BATTERY_STATUS_DISCHARGING -> "배터리 사용 중"
-            BatteryManager.BATTERY_STATUS_NOT_CHARGING -> "충전 중 아님"
-            else -> "대기 중"
+        val statusRes = when (status) {
+            BatteryManager.BATTERY_STATUS_CHARGING -> R.string.battery_status_charging
+            BatteryManager.BATTERY_STATUS_FULL -> R.string.battery_status_full
+            BatteryManager.BATTERY_STATUS_DISCHARGING -> R.string.battery_status_discharging
+            BatteryManager.BATTERY_STATUS_NOT_CHARGING -> R.string.battery_status_not_charging
+            else -> R.string.battery_status_standby
         }
 
         val chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)
@@ -90,14 +98,14 @@ object BatteryInfoHelper {
         val voltageV = voltRaw / 1000.0f
 
         val health = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN)
-        val healthText = when (health) {
-            BatteryManager.BATTERY_HEALTH_GOOD -> "양호 (정상)"
-            BatteryManager.BATTERY_HEALTH_OVERHEAT -> "과열 주의"
-            BatteryManager.BATTERY_HEALTH_DEAD -> "수명 종료"
-            BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE -> "과전압 주의"
-            BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE -> "점검 필요"
-            BatteryManager.BATTERY_HEALTH_COLD -> "저온 주의"
-            else -> "정상"
+        val healthRes = when (health) {
+            BatteryManager.BATTERY_HEALTH_GOOD -> R.string.battery_health_good
+            BatteryManager.BATTERY_HEALTH_OVERHEAT -> R.string.battery_health_overheat
+            BatteryManager.BATTERY_HEALTH_DEAD -> R.string.battery_health_dead
+            BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE -> R.string.battery_health_overvoltage
+            BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE -> R.string.battery_health_fail
+            BatteryManager.BATTERY_HEALTH_COLD -> R.string.battery_health_cold
+            else -> R.string.battery_health_ok
         }
 
         val technology = intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY) ?: "Li-ion"
@@ -106,10 +114,10 @@ object BatteryInfoHelper {
             level = batteryPct,
             isCharging = isCharging,
             plugType = plugType,
-            statusText = statusText,
+            statusRes = statusRes,
             temperatureC = temperatureC,
             voltageV = voltageV,
-            healthText = healthText,
+            healthRes = healthRes,
             technology = technology
         )
     }

@@ -1,21 +1,34 @@
 package com.example.data
 
+import android.content.Context
+import androidx.annotation.StringRes
+import com.example.R
+
 enum class SoundMode {
     PRESET,
     CUSTOM
 }
 
-enum class AnimationMode(val displayName: String, val description: String) {
-    BUILTIN_LIGHTNING("일렉트릭 라이트닝", "전기 스파크와 네온 전류 효과"),
-    BUILTIN_REACTOR("사이버 리액터", "아크 원자로 충전 회전 코어"),
-    BUILTIN_PLASMA("퀀텀 플라즈마", "네온 에너지 방울 및 입자 효과"),
-    PREMIUM_NEBULA("성운 (Nebula)", "회전하는 성운 입자 필드"),
-    PREMIUM_MATRIX("매트릭스 레인", "글리치처럼 떨어지는 코드 열"),
-    PREMIUM_ABYSS("심해 (Abyss)", "깊은 파도와 부유하는 산호"),
-    PREMIUM_PRISM("프리즘 (Prism)", "빛을 분해하는 다각형 굴절"),
-    PREMIUM_FIREWORKS("불꽃 (Fireworks)", "정기적으로 터지는 불꽃"),
-    PREMIUM_BLACKHOLE("블랙홀", "소용돌이 빨려 들어가는 사건의 경계"),
-    CUSTOM_VIDEO("커스텀 영상 (MP4/AVI)", "사용자가 직접 선택한 비디오 파일");
+/**
+ * 애니메이션 테마.
+ *
+ * 표시 이름/설명은 컴포저블이 아닌 여기서 만들어지므로 문자열이 아니라
+ * 리소스 ID로 들고 있습니다. 실제 문자열은 UI에서 `stringResource()`로 꺼냅니다.
+ */
+enum class AnimationMode(
+    @StringRes val nameRes: Int,
+    @StringRes val descRes: Int
+) {
+    BUILTIN_LIGHTNING(R.string.mode_lightning_name, R.string.mode_lightning_desc),
+    BUILTIN_REACTOR(R.string.mode_reactor_name, R.string.mode_reactor_desc),
+    BUILTIN_PLASMA(R.string.mode_plasma_name, R.string.mode_plasma_desc),
+    PREMIUM_NEBULA(R.string.mode_nebula_name, R.string.mode_nebula_desc),
+    PREMIUM_MATRIX(R.string.mode_matrix_name, R.string.mode_matrix_desc),
+    PREMIUM_ABYSS(R.string.mode_abyss_name, R.string.mode_abyss_desc),
+    PREMIUM_PRISM(R.string.mode_prism_name, R.string.mode_prism_desc),
+    PREMIUM_FIREWORKS(R.string.mode_fireworks_name, R.string.mode_fireworks_desc),
+    PREMIUM_BLACKHOLE(R.string.mode_blackhole_name, R.string.mode_blackhole_desc),
+    CUSTOM_VIDEO(R.string.mode_custom_video_name, R.string.mode_custom_video_desc);
 
     /** 프리미엄 테마는 광고 시청으로 해제해야 사용할 수 있습니다. */
     val isPremium: Boolean
@@ -44,8 +57,8 @@ object PremiumAnimationModes {
 
 data class SoundPreset(
     val id: String,
-    val name: String,
-    val description: String,
+    @StringRes val nameRes: Int,
+    @StringRes val descriptionRes: Int,
     val iconName: String
 )
 
@@ -85,12 +98,15 @@ data class ChargeSettings(
      */
     val freeUnlockCredits: Int = 0
 ) {
-    val durationLabel: String
-        get() = when (videoDurationSeconds) {
-            -1 -> "영상 전체 재생"
-            0 -> "터치할 때까지 계속 재생"
-            else -> "${videoDurationSeconds}초"
-        }
+    /**
+     * 영상 재생 시간 라벨.
+     * 컴포저블 밖에서 호출될 수 있어 Context를 직접 받습니다.
+     */
+    fun durationLabel(context: Context): String = when (videoDurationSeconds) {
+        -1 -> context.getString(R.string.duration_label_full)
+        0 -> context.getString(R.string.duration_label_touch)
+        else -> context.getString(R.string.duration_label_seconds, videoDurationSeconds)
+    }
 
     fun isUnlocked(premiumId: String): Boolean = premiumId in unlockedPremiumIds
 

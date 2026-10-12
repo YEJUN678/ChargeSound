@@ -5,6 +5,7 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.Uri
 import android.util.Log
+import com.example.R
 import com.example.data.SoundPreset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,11 +28,11 @@ object SoundManager {
     private val scope = CoroutineScope(Dispatchers.Main + Job())
 
     val PRESETS = listOf(
-        SoundPreset("cyber_chime", "사이버 차임 (Cyber Chime)", "미래지향적인 3단 상승 차임음", "bolt"),
-        SoundPreset("lightning_spark", "일렉트릭 스파크 (Spark)", "짜릿한 전기 스파크 및 펄스 사운드", "flash_on"),
-        SoundPreset("super_charge", "슈퍼 차저 (Super Level Up)", "경쾌한 게임 레벨업 스타일 상승 멜로디", "upgrade"),
-        SoundPreset("gentle_ding", "젠틀 딩 (Gentle Bell)", "은은하고 부드러운 맑은 크리스탈 종소리", "notifications"),
-        SoundPreset("turbo_surge", "터보 엔진 서지 (Turbo Surge)", "우주선 부스터 가동 사운드", "speed")
+        SoundPreset("cyber_chime", R.string.preset_cyber_chime_name, R.string.preset_cyber_chime_desc, "bolt"),
+        SoundPreset("lightning_spark", R.string.preset_lightning_spark_name, R.string.preset_lightning_spark_desc, "flash_on"),
+        SoundPreset("super_charge", R.string.preset_super_charge_name, R.string.preset_super_charge_desc, "upgrade"),
+        SoundPreset("gentle_ding", R.string.preset_gentle_ding_name, R.string.preset_gentle_ding_desc, "notifications"),
+        SoundPreset("turbo_surge", R.string.preset_turbo_surge_name, R.string.preset_turbo_surge_desc, "speed")
     )
 
     /**

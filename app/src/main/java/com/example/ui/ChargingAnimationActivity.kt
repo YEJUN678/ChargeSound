@@ -69,6 +69,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import com.example.ad.AdManager
 import com.example.battery.BatteryInfoHelper
 import com.example.data.AnimationMode
@@ -105,7 +107,7 @@ class ChargingAnimationActivity : ComponentActivity() {
         AdManager.setCoreFeatureBusy(true)
 
         val initialLevel = intent.getIntExtra(EXTRA_BATTERY_LEVEL, 75)
-        val plugName = intent.getStringExtra(EXTRA_PLUG_NAME) ?: "충전기 연결됨"
+        val plugName = intent.getStringExtra(EXTRA_PLUG_NAME) ?: getString(R.string.anim_plug_connected)
         val animModeStr = intent.getStringExtra(EXTRA_ANIM_MODE) ?: AnimationMode.BUILTIN_LIGHTNING.name
         val videoPath = intent.getStringExtra(EXTRA_VIDEO_PATH)
         val durationSec = intent.getIntExtra(EXTRA_DURATION_SEC, 5)
@@ -324,7 +326,7 @@ fun ChargingScreenContent(
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "닫기",
+                    contentDescription = stringResource(R.string.a11y_close),
                     tint = Color.White
                 )
             }
@@ -356,7 +358,7 @@ fun ChargingScreenContent(
                     border = androidx.compose.foundation.BorderStroke(1.dp, ElectricCyan.copy(alpha = 0.4f))
                 ) {
                     Text(
-                        text = "⏱ ${remainingSeconds}초 후 자동 종료 (사운드 페이드아웃)",
+                        text = stringResource(R.string.anim_auto_close, remainingSeconds),
                         color = ElectricCyan,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -370,7 +372,7 @@ fun ChargingScreenContent(
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(
-                        text = "화면 터치 시까지 연속 재생",
+                        text = stringResource(R.string.anim_loop_forever),
                         color = ElectricGreen,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
@@ -381,7 +383,7 @@ fun ChargingScreenContent(
             }
 
             Text(
-                text = "화면 아무 곳이나 터치하면 즉시 닫힙니다",
+                text = stringResource(R.string.anim_tap_to_close),
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 12.sp,
                 textAlign = TextAlign.Center

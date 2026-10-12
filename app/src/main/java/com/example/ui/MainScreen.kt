@@ -105,6 +105,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -263,7 +264,11 @@ fun MainScreen(viewModel: MainViewModel) {
                                 }
                             }
                             Text(
-                                text = if (settings.isServiceEnabled) "충전 감지 모니터링 실행 중" else "모니터링 대기 모드",
+                                text = if (settings.isServiceEnabled) {
+                                    stringResource(R.string.status_monitoring_active)
+                                } else {
+                                    stringResource(R.string.status_monitoring_idle)
+                                },
                                 fontSize = 11.sp,
                                 color = if (settings.isServiceEnabled) ElectricGreen else Slate400
                             )
@@ -329,7 +334,7 @@ fun MainScreen(viewModel: MainViewModel) {
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text(text = "효과음 (MP3)", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text(text = stringResource(R.string.tab_sound), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
                     },
                     selectedContentColor = ElectricCyan,
@@ -346,7 +351,7 @@ fun MainScreen(viewModel: MainViewModel) {
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text(text = "애니메이션", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text(text = stringResource(R.string.tab_animation), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
                     },
                     selectedContentColor = ElectricCyan,
@@ -363,7 +368,7 @@ fun MainScreen(viewModel: MainViewModel) {
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text(text = "배터리 정보", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text(text = stringResource(R.string.tab_battery_info), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
                     },
                     selectedContentColor = ElectricCyan,
@@ -552,7 +557,11 @@ fun BatteryLiveHeaderCard(
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = if (batteryInfo.isCharging) "충전 중 ⚡" else "배터리",
+                                    text = if (batteryInfo.isCharging) {
+                                        stringResource(R.string.battery_charging_short)
+                                    } else {
+                                        stringResource(R.string.battery_idle_short)
+                                    },
                                     fontSize = 13.sp,
                                     color = if (batteryInfo.isCharging) ElectricGreen else Slate400,
                                     fontWeight = FontWeight.SemiBold,
@@ -560,7 +569,11 @@ fun BatteryLiveHeaderCard(
                                 )
                             }
                             Text(
-                                text = "${batteryInfo.plugType.displayName} • ${batteryInfo.temperatureC}°C",
+                                text = stringResource(
+                                    R.string.battery_header_plug,
+                                    stringResource(batteryInfo.plugType.displayNameRes),
+                                    batteryInfo.temperatureC
+                                ),
                                 fontSize = 12.sp,
                                 color = Slate400
                             )
@@ -585,7 +598,7 @@ fun BatteryLiveHeaderCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "충전 테스트",
+                            text = stringResource(R.string.btn_test_charging),
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         )
@@ -666,13 +679,13 @@ fun SoundSettingsTab(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "충전 효과음 활성화",
+                                text = stringResource(R.string.sound_enable_title),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp,
                                 color = Color.White
                             )
                             Text(
-                                text = "케이블 연결 시 설정한 사운드를 재생합니다",
+                                text = stringResource(R.string.sound_enable_sub),
                                 fontSize = 12.sp,
                                 color = Slate400
                             )
@@ -721,7 +734,7 @@ fun SoundSettingsTab(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "사운드 볼륨 조절",
+                                text = stringResource(R.string.sound_volume_title),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp,
                                 color = Color.White
@@ -780,7 +793,11 @@ fun SoundSettingsTab(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = if (isPlayingPreview) "소리 멈추기" else "볼륨 미리듣기",
+                                text = if (isPlayingPreview) {
+                                    stringResource(R.string.btn_stop_sound)
+                                } else {
+                                    stringResource(R.string.btn_preview_volume)
+                                },
                                 color = ElectricCyan,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
@@ -808,14 +825,14 @@ fun SoundSettingsTab(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "내 MP3 / 오디오 직접 선택",
+                            text = stringResource(R.string.sound_custom_title),
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                             color = Color.White
                         )
                     }
                     Text(
-                        text = "원하는 오디오를 고르면 테스트 광고 후 즉시 적용됩니다",
+                        text = stringResource(R.string.sound_custom_sub),
                         fontSize = 12.sp,
                         color = Slate400,
                         modifier = Modifier.padding(top = 4.dp)
@@ -862,7 +879,7 @@ fun SoundSettingsTab(
                                             color = Color.White
                                         )
                                         Text(
-                                            text = "사용자 커스텀 효과음 적용 중",
+                                            text = stringResource(R.string.sound_custom_applied),
                                             fontSize = 11.sp,
                                             color = ElectricGreen
                                         )
@@ -878,7 +895,7 @@ fun SoundSettingsTab(
                                     ) {
                                         Icon(
                                             imageVector = if (isPlayingPreview && activePlayingId == "custom") Icons.Default.Stop else Icons.Default.PlayArrow,
-                                            contentDescription = "재생",
+                                            contentDescription = stringResource(R.string.a11y_play_short),
                                             tint = ElectricCyan
                                         )
                                     }
@@ -888,7 +905,7 @@ fun SoundSettingsTab(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Delete,
-                                            contentDescription = "삭제",
+                                            contentDescription = stringResource(R.string.a11y_delete),
                                             tint = Slate400
                                         )
                                     }
@@ -918,7 +935,11 @@ fun SoundSettingsTab(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (settings.customSoundName != null) "다른 MP3 파일로 변경하기" else "기기에서 MP3 파일 선택하기",
+                            text = if (settings.customSoundName != null) {
+                                stringResource(R.string.btn_change_mp3)
+                            } else {
+                                stringResource(R.string.btn_pick_mp3)
+                            },
                             fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -935,13 +956,13 @@ fun SoundSettingsTab(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "기본 제공 프리셋 사운드",
+                        text = stringResource(R.string.sound_presets_title),
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
                         color = Color.White
                     )
                     Text(
-                        text = "사운드를 터치하면 테스트 광고 후 설정됩니다",
+                        text = stringResource(R.string.sound_presets_sub),
                         fontSize = 12.sp,
                         color = Slate400
                     )
@@ -980,13 +1001,13 @@ fun SoundSettingsTab(
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Column {
                                         Text(
-                                            text = preset.name,
+                                            text = stringResource(preset.nameRes),
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                             fontSize = 14.sp,
                                             color = if (isSelected) ElectricCyan else Color.White
                                         )
                                         Text(
-                                            text = preset.description,
+                                            text = stringResource(preset.descriptionRes),
                                             fontSize = 11.sp,
                                             color = Slate400
                                         )
@@ -1001,7 +1022,7 @@ fun SoundSettingsTab(
                                 ) {
                                     Icon(
                                         imageVector = if (isThisPlaying) Icons.Default.Stop else Icons.Default.PlayArrow,
-                                        contentDescription = "미리듣기",
+                                        contentDescription = stringResource(R.string.a11y_play),
                                         tint = if (isSelected) ElectricCyan else Slate400
                                     )
                                 }
@@ -1029,15 +1050,17 @@ fun SoundSettingsTab(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "프리미엄 사운드 팩",
+                            text = stringResource(R.string.premium_sounds_title),
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                             color = Color.White
                         )
                     }
                     Text(
-                        text = "광고 ${PremiumCatalog.ADS_REQUIRED_PER_UNLOCK}회 시청 시 잠금 해제. " +
-                            "광고를 거부해도 위의 기본 사운드는 그대로 사용하실 수 있습니다.",
+                        text = stringResource(
+                            R.string.premium_sounds_sub,
+                            PremiumCatalog.ADS_REQUIRED_PER_UNLOCK
+                        ),
                         fontSize = 12.sp,
                         color = Slate400,
                         modifier = Modifier.padding(top = 4.dp)
@@ -1052,8 +1075,8 @@ fun SoundSettingsTab(
 
                         if (unlocked) {
                             PremiumUnlockedRow(
-                                name = premium.name,
-                                description = premium.description,
+                                nameRes = premium.nameRes,
+                                descriptionRes = premium.descriptionRes,
                                 accent = accent,
                                 isSelected = settings.soundMode == SoundMode.PRESET &&
                                         settings.presetSoundId == premium.id,
@@ -1061,8 +1084,8 @@ fun SoundSettingsTab(
                             )
                         } else {
                             PremiumLockedRow(
-                                name = premium.name,
-                                description = premium.description,
+                                nameRes = premium.nameRes,
+                                descriptionRes = premium.descriptionRes,
                                 accent = accent,
                                 adsWatched = watched,
                                 adsRequired = PremiumCatalog.ADS_REQUIRED_PER_UNLOCK,
@@ -1121,13 +1144,13 @@ fun SoundSettingsTab(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "충전 연결 시 햅틱 진동",
+                                text = stringResource(R.string.vibration_title),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp,
                                 color = Color.White
                             )
                             Text(
-                                text = "사운드와 함께 진동 피드백을 전달합니다",
+                                text = stringResource(R.string.vibration_sub),
                                 fontSize = 12.sp,
                                 color = Slate400
                             )
@@ -1173,6 +1196,7 @@ fun AnimationSettingsTab(
     onPreviewFullScreen: () -> Unit,
     onWatchAdToUnlock: (String) -> Unit
 ) {
+    val context = LocalContext.current
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -1210,13 +1234,13 @@ fun AnimationSettingsTab(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "충전 애니메이션 화면 표시",
+                                text = stringResource(R.string.anim_enable_title),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp,
                                 color = Color.White
                             )
                             Text(
-                                text = "충전기 연결 시 전체화면 애니메이션 재생",
+                                text = stringResource(R.string.anim_enable_sub),
                                 fontSize = 12.sp,
                                 color = Slate400
                             )
@@ -1255,14 +1279,14 @@ fun AnimationSettingsTab(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "내 동영상 (MP4 / AVI 등) 직접 선택",
+                            text = stringResource(R.string.anim_custom_title),
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                             color = Color.White
                         )
                     }
                     Text(
-                        text = "스마트폰에 있는 애니메이션 또는 비디오를 충전 화면으로 사용하세요",
+                        text = stringResource(R.string.anim_custom_sub),
                         fontSize = 12.sp,
                         color = Slate400,
                         modifier = Modifier.padding(top = 4.dp)
@@ -1309,7 +1333,7 @@ fun AnimationSettingsTab(
                                             color = Color.White
                                         )
                                         Text(
-                                            text = "사용자 비디오 영상 활성화됨",
+                                            text = stringResource(R.string.anim_custom_applied),
                                             fontSize = 11.sp,
                                             color = ElectricAmber
                                         )
@@ -1322,7 +1346,7 @@ fun AnimationSettingsTab(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Delete,
-                                        contentDescription = "삭제",
+                                        contentDescription = stringResource(R.string.a11y_delete),
                                         tint = Slate400
                                     )
                                 }
@@ -1351,7 +1375,11 @@ fun AnimationSettingsTab(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (settings.customVideoName != null) "다른 영상 파일로 변경하기" else "기기에서 비디오 파일 선택 (MP4, AVI)",
+                            text = if (settings.customVideoName != null) {
+                                stringResource(R.string.btn_change_video)
+                            } else {
+                                stringResource(R.string.btn_pick_video)
+                            },
                             fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -1381,7 +1409,7 @@ fun AnimationSettingsTab(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "동영상 실행 시간 (슬라이더 조절)",
+                                text = stringResource(R.string.anim_duration_title),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp,
                                 color = Color.White
@@ -1395,7 +1423,7 @@ fun AnimationSettingsTab(
                             border = BorderStroke(1.dp, ElectricCyan.copy(alpha = 0.5f))
                         ) {
                             Text(
-                                text = settings.durationLabel,
+                                text = settings.durationLabel(context),
                                 color = ElectricCyan,
                                 fontWeight = FontWeight.ExtraBold,
                                 fontSize = 14.sp,
@@ -1406,7 +1434,7 @@ fun AnimationSettingsTab(
 
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "슬라이더를 좌우로 드래그하여 재생 시간(1초~30초)을 정밀하게 조절하세요",
+                        text = stringResource(R.string.anim_duration_sub),
                         fontSize = 12.sp,
                         color = Slate400
                     )
@@ -1422,7 +1450,7 @@ fun AnimationSettingsTab(
                         FilterChip(
                             selected = isSliderMode,
                             onClick = { if (!isSliderMode) onSelectDuration(5) },
-                            label = { Text("슬라이더 시간", fontSize = 12.sp) },
+                            label = { Text(stringResource(R.string.anim_chip_slider), fontSize = 12.sp) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = ElectricCyan,
                                 selectedLabelColor = Slate950
@@ -1432,7 +1460,7 @@ fun AnimationSettingsTab(
                         FilterChip(
                             selected = settings.videoDurationSeconds == -1,
                             onClick = { onSelectDuration(-1) },
-                            label = { Text("영상 전체 재생", fontSize = 12.sp) },
+                            label = { Text(stringResource(R.string.anim_chip_full), fontSize = 12.sp) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = ElectricCyan,
                                 selectedLabelColor = Slate950
@@ -1442,7 +1470,7 @@ fun AnimationSettingsTab(
                         FilterChip(
                             selected = settings.videoDurationSeconds == 0,
                             onClick = { onSelectDuration(0) },
-                            label = { Text("터치 시까지", fontSize = 12.sp) },
+                            label = { Text(stringResource(R.string.anim_chip_touch), fontSize = 12.sp) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = ElectricCyan,
                                 selectedLabelColor = Slate950
@@ -1479,10 +1507,13 @@ fun AnimationSettingsTab(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "1초", color = Slate600, fontSize = 11.sp)
-                        Text(text = "10초", color = Slate600, fontSize = 11.sp)
-                        Text(text = "20초", color = Slate600, fontSize = 11.sp)
-                        Text(text = "30초", color = Slate600, fontSize = 11.sp)
+                        listOf(1, 10, 20, 30).forEach { tick ->
+                        Text(
+                            text = stringResource(R.string.duration_label_seconds, tick),
+                            color = Slate600,
+                            fontSize = 11.sp
+                        )
+                    }
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -1505,7 +1536,7 @@ fun AnimationSettingsTab(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "음악 동기화: 종료 1.5초 전부터 사운드가 점점 작아지며 부드럽게 페이드아웃 됩니다.",
+                                text = stringResource(R.string.anim_fadeout_note),
                                 color = ElectricGreen,
                                 fontSize = 11.sp,
                                 lineHeight = 16.sp
@@ -1523,13 +1554,13 @@ fun AnimationSettingsTab(
                     ) {
                         Column {
                             Text(
-                                text = "짧은 영상 반복 재생 (Loop)",
+                                text = stringResource(R.string.anim_loop_title),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = Color.White
                             )
                             Text(
-                                text = "설정 시간 동안 영상을 끊김 없이 반복합니다",
+                                text = stringResource(R.string.anim_loop_sub),
                                 fontSize = 11.sp,
                                 color = Slate400
                             )
@@ -1558,13 +1589,13 @@ fun AnimationSettingsTab(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "기본 내장 애니메이션 테마",
+                        text = stringResource(R.string.anim_builtin_title),
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
                         color = Color.White
                     )
                     Text(
-                        text = "커스텀 영상이 없거나 네온 그래픽 효과를 원할 때 사용됩니다",
+                        text = stringResource(R.string.anim_builtin_sub),
                         fontSize = 12.sp,
                         color = Slate400
                     )
@@ -1603,13 +1634,13 @@ fun AnimationSettingsTab(
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Column {
                                         Text(
-                                            text = mode.displayName,
+                                            text = stringResource(mode.nameRes),
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                             fontSize = 14.sp,
                                             color = if (isSelected) ElectricAmber else Color.White
                                         )
                                         Text(
-                                            text = mode.description,
+                                            text = stringResource(mode.descRes),
                                             fontSize = 11.sp,
                                             color = Slate400
                                         )
@@ -1639,15 +1670,17 @@ fun AnimationSettingsTab(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "프리미엄 애니메이션 테마",
+                            text = stringResource(R.string.premium_anims_title),
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                             color = Color.White
                         )
                     }
                     Text(
-                        text = "광고 ${PremiumCatalog.ADS_REQUIRED_PER_UNLOCK}회 시청 시 잠금 해제. " +
-                            "거부해도 기본 테마 3종은 계속 사용할 수 있습니다.",
+                        text = stringResource(
+                            R.string.premium_anims_sub,
+                            PremiumCatalog.ADS_REQUIRED_PER_UNLOCK
+                        ),
                         fontSize = 12.sp,
                         color = Slate400,
                         modifier = Modifier.padding(top = 4.dp)
@@ -1662,16 +1695,16 @@ fun AnimationSettingsTab(
 
                         if (unlocked) {
                             PremiumUnlockedRow(
-                                name = premium.name,
-                                description = premium.description,
+                                nameRes = premium.nameRes,
+                                descriptionRes = premium.descriptionRes,
                                 accent = accent,
                                 isSelected = settings.animationMode == premium.mode,
                                 onSelect = { onSelectAnimationMode(premium.mode) }
                             )
                         } else {
                             PremiumLockedRow(
-                                name = premium.name,
-                                description = premium.description,
+                                nameRes = premium.nameRes,
+                                descriptionRes = premium.descriptionRes,
                                 accent = accent,
                                 adsWatched = watched,
                                 adsRequired = PremiumCatalog.ADS_REQUIRED_PER_UNLOCK,
@@ -1704,7 +1737,7 @@ fun AnimationSettingsTab(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "애니메이션 전체화면 미리보기",
+                    text = stringResource(R.string.btn_preview_fullscreen),
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
                 )
@@ -1740,14 +1773,14 @@ fun AdFreeDurationDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "광고 없이 사용하기",
+                    text = stringResource(R.string.adfree_dialog_title),
                     color = Color.White,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 18.sp
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "광고 1회 시청으로 선택한 시간 동안 배너가 숨겨집니다.",
+                    text = stringResource(R.string.adfree_dialog_sub),
                     color = Slate400,
                     fontSize = 12.sp,
                     textAlign = TextAlign.Center
@@ -1771,7 +1804,18 @@ fun AdFreeDurationDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = formatAdFreeDuration(minutes),
+                                text = stringResource(
+                                when {
+                                    minutes < 60 -> R.string.duration_minutes
+                                    minutes < 60 * 24 -> R.string.duration_hours
+                                    else -> R.string.duration_days
+                                },
+                                when {
+                                    minutes < 60 -> minutes
+                                    minutes < 60 * 24 -> minutes / 60
+                                    else -> minutes / (60 * 24)
+                                }
+                            ),
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp
@@ -1789,7 +1833,7 @@ fun AdFreeDurationDialog(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "취소",
+                    text = stringResource(R.string.btn_cancel),
                     color = Slate400,
                     fontSize = 13.sp,
                     modifier = Modifier
@@ -1799,12 +1843,6 @@ fun AdFreeDurationDialog(
             }
         }
     }
-}
-
-private fun formatAdFreeDuration(minutes: Int): String = when {
-    minutes < 60 -> "${minutes}분"
-    minutes < 60 * 24 -> "${minutes / 60}시간"
-    else -> "${minutes / (60 * 24)}일"
 }
 
 /**
@@ -1877,13 +1915,17 @@ fun BatteryInfoTab(batteryInfo: BatteryInfo) {
                     ) {
                         Column {
                             Text(
-                                text = if (batteryInfo.isCharging) "충전 중 ⚡" else "방전 중",
+                                text = if (batteryInfo.isCharging) {
+                                    stringResource(R.string.battery_charging_short)
+                                } else {
+                                    stringResource(R.string.battery_discharging)
+                                },
                                 fontWeight = FontWeight.ExtraBold,
                                 fontSize = 22.sp,
                                 color = if (batteryInfo.isCharging) ElectricGreen else Color.White
                             )
                             Text(
-                                text = batteryInfo.statusText,
+                                text = stringResource(batteryInfo.statusRes),
                                 fontSize = 13.sp,
                                 color = Slate400
                             )
@@ -1919,7 +1961,7 @@ fun BatteryInfoTab(batteryInfo: BatteryInfo) {
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = batteryInfo.plugType.displayName,
+                            text = stringResource(batteryInfo.plugType.displayNameRes),
                             fontSize = 12.sp,
                             color = Slate400
                         )
@@ -1933,28 +1975,28 @@ fun BatteryInfoTab(batteryInfo: BatteryInfo) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 BatteryInfoRow(
                     icon = Icons.Default.Info,
-                    label = "배터리 온도",
-                    value = "%.1f°C".format(batteryInfo.temperatureC)
+                    label = stringResource(R.string.battery_temp_label),
+                    value = stringResource(R.string.value_celsius, batteryInfo.temperatureC)
                 )
                 BatteryInfoRow(
                     icon = Icons.Default.ElectricBolt,
-                    label = "현재 전압",
-                    value = "%.2f V".format(batteryInfo.voltageV)
+                    label = stringResource(R.string.battery_voltage_label),
+                    value = stringResource(R.string.value_volts, batteryInfo.voltageV)
                 )
                 BatteryInfoRow(
                     icon = Icons.Default.Check,
-                    label = "배터리 건강도",
-                    value = batteryInfo.healthText
+                    label = stringResource(R.string.battery_health_label),
+                    value = stringResource(batteryInfo.healthRes)
                 )
                 BatteryInfoRow(
                     icon = Icons.Default.Power,
-                    label = "배터리 기술",
+                    label = stringResource(R.string.battery_technology_label),
                     value = batteryInfo.technology
                 )
                 BatteryInfoRow(
                     icon = Icons.Default.Audiotrack,
-                    label = "충전 상태",
-                    value = batteryInfo.statusText
+                    label = stringResource(R.string.battery_status_label),
+                    value = stringResource(batteryInfo.statusRes)
                 )
             }
         }
@@ -1980,7 +2022,7 @@ fun BatteryInfoTab(batteryInfo: BatteryInfo) {
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "배터리 온도가 높습니다. 화기와 직사광선을 피해주세요.",
+                            text = stringResource(R.string.battery_temp_warning),
                             fontSize = 12.sp,
                             color = ElectricAmber
                         )

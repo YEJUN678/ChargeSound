@@ -12,6 +12,7 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.R
 import com.example.ad.AdManager
 import com.example.ad.AdPolicy
 import com.example.battery.BatteryInfo
@@ -56,6 +57,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _userMessage = MutableStateFlow<String?>(null)
     val userMessage: StateFlow<String?> = _userMessage.asStateFlow()
 
+    /** 스낵바에 띄울 다국어 메시지를 만듭니다. */
+    private fun msg(resId: Int, vararg args: Any): String =
+        getApplication<Application>().getString(resId, *args)
+
     /** "다른 앱 위에 표시" 권한 상태. 설정 화면에서 돌아올 때마다 갱신합니다. */
     private val _overlayGranted = MutableStateFlow(false)
     val overlayGranted: StateFlow<Boolean> = _overlayGranted.asStateFlow()
@@ -92,7 +97,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             onDismiss = { },
             onNotAvailable = {
                 viewModelScope.launch {
-                    _userMessage.value = "지금은 광고를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요."
+                    _userMessage.value = msg(R.string.msg_ad_unavailable)
                 }
             }
         )
@@ -106,13 +111,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun watchAdToUnlock(activity: Activity?, premiumId: String) {
         val act = activity ?: return
         if (settings.value.isUnlocked(premiumId)) {
-            viewModelScope.launch { _userMessage.value = "이미 해제된 콘텐츠입니다." }
+            viewModelScope.launch { _userMessage.value = msg(R.string.msg_already_unlocked) }
             return
         }
         // 보유한 무료 크레딧으로 먼저 해제를 시도합니다 (광고 불필요)
         viewModelScope.launch {
             if (repository.tryUnlockWithFreeCredit(premiumId)) {
-                _userMessage.value = "'${displayNameOf(premiumId)}' 잠금이 해제되었습니다!"
+                _userMessage.value = msg(R.string.msg_unlocked, displayNameOf(premiumId))
                 SoundManager.ensurePremiumSound(getApplication(), premiumId)
                 return@launch
             }
@@ -122,17 +127,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     onReward = { onRewardEarned(premiumId) },
                     onDismiss = { },
                     onNotAvailable = {
-                        _userMessage.value = "광고를 불러오지 못했습니다. 다른 프리셋은 광고 없이 사용하실 수 있습니다."
+                        _userMessage.value = msg(R.string.msg_ad_load_fail)
                     }
                 )
             }
         }
     }
 
-    private fun displayNameOf(premiumId: String): String =
-        PremiumCatalog.soundById(premiumId)?.name
-            ?: PremiumCatalog.animationById(premiumId)?.name
-            ?: "프리미엄 콘텐츠"
+    /** 프리미엄 항목의 현재 언어 표시 이름 (스낵바 메시지용) */
+    private fun displayNameOf(premiumId: String): String {
+        val context = getApplication<Application>()
+        PremiumCatalog.soundById(premiumId)?.let { return context.getString(it.nameRes) }
+        PremiumCatalog.animationById(premiumId)?.let { return context.getString(it.nameRes) }
+        return context.getString(R.string.premium_generic_name)
+    }
 
     // ─────────────────────── 프리미엄 콘텐츠 ───────────────────────
 
@@ -156,19 +164,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 if (!unlocked) {
                     // 광고를 거부해도 사용할 수 있는 경로가 항상 존재해야 합니다.
                     repository.setPresetSoundId("cyber_chime")
-                    _userMessage.value = "'${PremiumCatalog.soundById(presetId)?.name}'은 광고 시청으로 잠금을 해제할 수 있습니다."
+                    val itemName = PremiumCatalog.soundById(presetId)?.nameRes
+                        ?.let { getApplication<Application>().getString(it) }
+                        ?: getApplication<Application>().getString(R.string.premium_generic_name)
+                    _userMessage.value = msg(R.string.msg_locked_sound, itemName)
                     return@launch
                 }
                 // 해제된 사운드: WAV 파일이 필요하면 생성
                 val file = SoundManager.ensurePremiumSound(getApplication(), presetId)
                 if (file == null) {
                     repository.setPresetSoundId("cyber_chime")
-                    _userMessage.value = "프리미엄 사운드를 불러오지 못해 기본 사운드로 돌아갑니다."
+                    _userMessage.value = msg(R.string.msg_premium_sound_fallback)
                     return@launch
                 }
             }
             repository.setPresetSoundId(presetId)
-            _userMessage.value = "효과음이 적용되었습니다."
+            _userMessage.value = msg(R.string.msg_sound_applied)
             previewPlaySound(presetId)
         }
     }
@@ -183,8 +194,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             if (premiumId != null) {
                 if (!settings.value.isUnlocked(premiumId)) {
                     repository.setAnimationMode(AnimationMode.BUILTIN_LIGHTNING)
-                    val name = PremiumCatalog.animationById(premiumId)?.name ?: mode.displayName
-                    _userMessage.value = "'$name' 테마는 광고 시청으로 잠금을 해제할 수 있습니다."
+                    val nameRes = PremiumCatalog.animationById(premiumId)?.nameRes ?: mode.nameRes
+                    val name = getApplication<Application>().getString(nameRes)
+                    _userMessage.value = msg(R.string.msg_locked_anim, name)
                     return@launch
                 }
             }
@@ -202,21 +214,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun onRewardEarned(premiumId: String) {
         viewModelScope.launch {
             if (settings.value.isUnlocked(premiumId)) {
-                _userMessage.value = "이미 해제된 콘텐츠입니다."
+                _userMessage.value = msg(R.string.msg_already_unlocked)
                 return@launch
             }
             val watchCount = repository.addRewardCredit(premiumId)
             val required = PremiumCatalog.ADS_REQUIRED_PER_UNLOCK
-            val itemName = PremiumCatalog.soundById(premiumId)?.name
-                ?: PremiumCatalog.animationById(premiumId)?.name
-                ?: "프리미엄 콘텐츠"
+            val itemName = displayNameOf(premiumId)
 
             if (watchCount >= required) {
                 // addRewardCredit가 잠금을 해제하고 진행도를 초기화했습니다.
-                _userMessage.value = "'$itemName' 잠금이 해제되었습니다!"
+                _userMessage.value = msg(R.string.msg_unlocked, itemName)
                 SoundManager.ensurePremiumSound(getApplication(), premiumId)
             } else {
-                _userMessage.value = "'$itemName' 해제 진행도 $watchCount/$required"
+                _userMessage.value =
+                    msg(R.string.msg_unlock_progress, itemName, watchCount, required)
             }
         }
     }
@@ -228,7 +239,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun startAdFreePeriod(minutes: Int) {
         viewModelScope.launch {
             repository.startAdFreePeriod(minutes)
-            _userMessage.value = "${minutes}분 동안 광고 없이 사용할 수 있습니다."
+            _userMessage.value = msg(R.string.msg_adfree_started, minutes)
         }
     }
 
@@ -250,11 +261,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val result = repository.saveCustomAudio(uri)
             if (result.isSuccess) {
-                _userMessage.value = "커스텀 MP3가 적용되었습니다."
+                _userMessage.value = msg(R.string.msg_custom_audio_applied)
                 previewPlayCurrentSound()
-                _offerFreeUnlockCredit.value = "커스텀 오디오"
+                _offerFreeUnlockCredit.value = getApplication<Application>()
+                    .getString(R.string.offer_label_custom_audio)
             } else {
-                _userMessage.value = "오디오 파일을 불러오지 못했습니다: ${result.exceptionOrNull()?.message}"
+                _userMessage.value = msg(
+                    R.string.msg_audio_load_fail,
+                    result.exceptionOrNull()?.message ?: ""
+                )
             }
         }
     }
@@ -279,15 +294,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             onReward = {
                 viewModelScope.launch {
                     repository.grantFreeUnlockCredit()
-                    _userMessage.value =
-                        "프리미엄 잠금 해제 크레딧 1개를 받았습니다. (${repository.settingsFlow.first().freeUnlockCredits}개 보유)"
+                    _userMessage.value = msg(
+                        R.string.msg_credit_gained,
+                        repository.settingsFlow.first().freeUnlockCredits
+                    )
                     _offerFreeUnlockCredit.value = null
                 }
             },
             onDismiss = { _offerFreeUnlockCredit.value = null },
             onNotAvailable = {
                 viewModelScope.launch {
-                    _userMessage.value = "광고를 불러오지 못했습니다. 나중에 다시 시도해 주세요."
+                    _userMessage.value = msg(R.string.msg_ad_retry_later)
                     _offerFreeUnlockCredit.value = null
                 }
             }
@@ -300,10 +317,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val context = getApplication<Application>()
             if (enabled) {
                 ChargingMonitorService.start(context)
-                _userMessage.value = "충전 감지 모니터링이 시작되었습니다."
+                _userMessage.value = msg(R.string.msg_monitoring_started)
             } else {
                 ChargingMonitorService.stop(context)
-                _userMessage.value = "충전 감지 모니터링이 중지되었습니다."
+                _userMessage.value = msg(R.string.msg_monitoring_stopped)
             }
         }
     }
@@ -323,7 +340,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun clearCustomAudio() {
         viewModelScope.launch {
             repository.clearCustomAudio()
-            _userMessage.value = "기본 프리셋 사운드로 변경되었습니다."
+            _userMessage.value = msg(R.string.msg_preset_restored)
         }
     }
 
@@ -343,10 +360,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val result = repository.saveCustomVideo(uri)
             if (result.isSuccess) {
-                _userMessage.value = "커스텀 영상이 등록되었습니다: ${result.getOrNull()}"
-                _offerFreeUnlockCredit.value = "커스텀 영상"
+                _userMessage.value =
+                    msg(R.string.msg_custom_video_registered, result.getOrNull() ?: "")
+                _offerFreeUnlockCredit.value = getApplication<Application>()
+                    .getString(R.string.offer_label_custom_video)
             } else {
-                _userMessage.value = "비디오 파일을 불러오지 못했습니다: ${result.exceptionOrNull()?.message}"
+                _userMessage.value = msg(
+                    R.string.msg_video_load_fail,
+                    result.exceptionOrNull()?.message ?: ""
+                )
             }
         }
     }
@@ -354,7 +376,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun clearCustomVideo() {
         viewModelScope.launch {
             repository.clearCustomVideo()
-            _userMessage.value = "기본 애니메이션으로 복원되었습니다."
+            _userMessage.value = msg(R.string.msg_anim_restored)
         }
     }
 
@@ -446,7 +468,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val intent = Intent(context, ChargingAnimationActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             putExtra(ChargingAnimationActivity.EXTRA_BATTERY_LEVEL, battery.level)
-            putExtra(ChargingAnimationActivity.EXTRA_PLUG_NAME, "테스트 시뮬레이션 충전 중")
+            putExtra(ChargingAnimationActivity.EXTRA_PLUG_NAME, msg(R.string.plug_test_sim))
             putExtra(ChargingAnimationActivity.EXTRA_ANIM_MODE, currentSettings.animationMode.name)
             putExtra(ChargingAnimationActivity.EXTRA_VIDEO_PATH, currentSettings.customVideoPath)
             putExtra(ChargingAnimationActivity.EXTRA_DURATION_SEC, currentSettings.videoDurationSeconds)
@@ -463,7 +485,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val intent = Intent(context, ChargingAnimationActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             putExtra(ChargingAnimationActivity.EXTRA_BATTERY_LEVEL, battery.level)
-            putExtra(ChargingAnimationActivity.EXTRA_PLUG_NAME, "전체화면 미리보기")
+            putExtra(ChargingAnimationActivity.EXTRA_PLUG_NAME, msg(R.string.plug_preview))
             putExtra(ChargingAnimationActivity.EXTRA_ANIM_MODE, currentSettings.animationMode.name)
             putExtra(ChargingAnimationActivity.EXTRA_VIDEO_PATH, currentSettings.customVideoPath)
             putExtra(ChargingAnimationActivity.EXTRA_DURATION_SEC, currentSettings.videoDurationSeconds)

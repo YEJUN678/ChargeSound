@@ -57,20 +57,17 @@ class ChargingMonitorService : Service() {
                     if (manager.getNotificationChannel(ALERT_CHANNEL_ID) == null) {
                         val channel = NotificationChannel(
                             ALERT_CHANNEL_ID,
-                            "충전 감지 알림",
+                            context.getString(R.string.notif_monitor_channel),
                             NotificationManager.IMPORTANCE_DEFAULT
                         ).apply {
-                            description = "충전 감지 모니터링 상태 변경 안내"
+                            description = context.getString(R.string.notif_monitor_desc)
                         }
                         manager.createNotificationChannel(channel)
                     }
                     val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
                         .setSmallIcon(R.drawable.charge_sound_icon_1791457205401)
-                        .setContentTitle("충전 감지를 시작하려면 앱을 열어주세요 ⚡")
-                        .setContentText(
-                            "시스템 보안 정책으로 자동 실행이 차단되었습니다. " +
-                                "앱을 한 번 열면 다시 켜집니다."
-                        )
+                        .setContentTitle(context.getString(R.string.notif_blocked_title))
+                        .setContentText(context.getString(R.string.notif_blocked_text))
                         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                         .setAutoCancel(true)
                         .setContentIntent(
@@ -147,10 +144,10 @@ class ChargingMonitorService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "충전 감지 모니터링",
+                getString(R.string.notif_service_channel),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "충전기 연결 시 사운드 및 애니메이션 재생을 위해 백그라운드에서 대기합니다."
+                description = getString(R.string.notif_service_desc)
                 setShowBadge(false)
             }
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -168,8 +165,8 @@ class ChargingMonitorService : Service() {
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.charge_sound_icon_1791457205401)
-            .setContentTitle("ChargeSound 활성화됨 ⚡")
-            .setContentText("충전 케이블 연결 시 사운드 & 애니메이션이 실행됩니다")
+            .setContentTitle(getString(R.string.notif_active_title))
+            .setContentText(getString(R.string.notif_active_text))
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentIntent(pendingIntent)

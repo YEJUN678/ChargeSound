@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ChargeSound — Korean.
+
+  values/strings.xml (English) is the DEFAULT. Android picks this folder
+  automatically when the device language is Korean, so Korean users see the
+  original wording they had before.
+
+  Keep the placeholder order (%1$s, %2$d ...) identical to the English file.
+-->
+<resources>
+
+    <!-- ═══════════════ 앱 ═══════════════ -->
+    <string name="status_monitoring_active">충전 감지 모니터링 실행 중</string>
+    <string name="status_monitoring_idle">모니터링 대기 모드</string>
+
+    <!-- ═══════════════ 상단 배터리 카드 ═══════════════ -->
+    <string name="battery_charging_short">충전 중 ⚡</string>
+    <string name="battery_idle_short">배터리</string>
+    <string name="btn_test_charging">충전 테스트</string>
+    <string name="battery_header_plug">%1$s • %2$.1f°C</string>
+
+    <!-- ═══════════════ 탭 ═══════════════ -->
+    <string name="tab_sound">효과음 (MP3)</string>
+    <string name="tab_animation">애니메이션</string>
+    <string name="tab_battery_info">배터리 정보</string>
+
+    <!-- ═══════════════ 사운드 설정 ═══════════════ -->
+    <string name="sound_enable_title">충전 효과음 활성화</string>
+    <string name="sound_enable_sub">케이블 연결 시 설정한 사운드를 재생합니다</string>
+    <string name="sound_volume_title">사운드 볼륨 조절</string>
+    <string name="btn_stop_sound">소리 멈추기</string>
+    <string name="btn_preview_volume">볼륨 미리듣기</string>
+    <string name="sound_custom_title">내 MP3 / 오디오 직접 선택</string>
+    <string name="sound_custom_sub">원하는 오디오를 고르면 즉시 적용됩니다</string>
+    <string name="sound_custom_applied">사용자 커스텀 효과음 적용 중</string>
+    <string name="btn_pick_mp3">기기에서 MP3 파일 선택하기</string>
+    <string name="btn_change_mp3">다른 MP3 파일로 변경하기</string>
+    <string name="sound_presets_title">기본 제공 프리셋 사운드</string>
+    <string name="sound_presets_sub">사운드를 터치하면 미리듣기 후 설정됩니다</string>
+    <string name="a11y_play">미리듣기</string>
+    <string name="a11y_play_short">재생</string>
+    <string name="a11y_delete">삭제</string>
+    <string name="a11y_close">닫기</string>
+
+    <!-- ═══════════════ 프리미엄 사운드 ═══════════════ -->
+    <string name="premium_sounds_title">프리미엄 사운드 팩</string>
+    <string name="premium_sounds_sub">광고 %1$d회 시청 시 잠금 해제. 광고를 거부해도 위의 기본 사운드는 그대로 사용하실 수 있습니다.</string>
+
+    <!-- ═══════════════ 진동 ═══════════════ -->
+    <string name="vibration_title">충전 연결 시 햅틱 진동</string>
+    <string name="vibration_sub">사운드와 함께 진동 피드백을 전달합니다</string>
+
+    <!-- ═══════════════ 애니메이션 설정 ═══════════════ -->
+    <string name="anim_enable_title">충전 애니메이션 화면 표시</string>
+    <string name="anim_enable_sub">충전기 연결 시 전체화면 애니메이션 재생</string>
+    <string name="anim_custom_title">내 동영상 (MP4 / AVI 등) 직접 선택</string>
+    <string name="anim_custom_sub">스마트폰에 있는 애니메이션 또는 비디오를 충전 화면으로 사용하세요</string>
+    <string name="anim_custom_applied">사용자 비디오 영상 활성화됨</string>
+    <string name="btn_pick_video">기기에서 비디오 파일 선택 (MP4, AVI)</string>
+    <string name="btn_change_video">다른 영상 파일로 변경하기</string>
+    <string name="anim_duration_title">동영상 실행 시간 (슬라이더 조절)</string>
+    <string name="anim_duration_sub">슬라이더를 좌우로 드래그하여 재생 시간(1초~30초)을 정밀하게 조절하세요</string>
+    <string name="anim_chip_slider">슬라이더 시간</string>
+    <string name="anim_chip_full">영상 전체 재생</string>
+    <string name="anim_chip_touch">터치 시까지</string>
+    <string name="anim_fadeout_note">음악 동기화: 종료 1.5초 전부터 사운드가 점점 작아지며 부드럽게 페이드아웃 됩니다.</string>
+    <string name="anim_loop_title">짧은 영상 반복 재생 (Loop)</string>
+    <string name="anim_loop_sub">설정 시간 동안 영상을 끊김 없이 반복합니다</string>
+    <string name="anim_builtin_title">기본 내장 애니메이션 테마</string>
+    <string name="anim_builtin_sub">커스텀 영상이 없거나 네온 그래픽 효과를 원할 때 사용됩니다</string>
+    <string name="premium_anims_title">프리미엄 애니메이션 테마</string>
+    <string name="premium_anims_sub">광고 %1$d회 시청 시 잠금 해제. 거부해도 기본 테마 3종은 계속 사용할 수 있습니다.</string>
+    <string name="btn_preview_fullscreen">애니메이션 전체화면 미리보기</string>
+
+    <!-- ═══════════════ 충전 애니메이션 화면 ═══════════════ -->
+    <string name="anim_plug_connected">충전기 연결됨</string>
+    <string name="anim_auto_close">%1$d초 후 자동 종료</string>
+    <string name="anim_loop_forever">화면 터치 시까지 연속 재생</string>
+    <string name="anim_tap_to_close">화면 아무 곳이나 터치하면 즉시 닫힙니다</string>
+
+    <!-- ═══════════════ 배터리 정보 탭 ═══════════════ -->
+    <string name="battery_discharging">방전 중</string>
+    <string name="battery_temp_label">배터리 온도</string>
+    <string name="battery_voltage_label">현재 전압</string>
+    <string name="battery_health_label">배터리 건강도</string>
+    <string name="battery_technology_label">배터리 기술</string>
+    <string name="battery_status_label">충전 상태</string>
+    <string name="battery_temp_warning">배터리 온도가 높습니다. 화기와 직사광선을 피해주세요.</string>
+    <string name="value_celsius">%1$.1f°C</string>
+    <string name="value_volts">%1$.2f V</string>
+
+    <!-- ═══════════════ 충전 상태 / 건강도 ═══════════════ -->
+    <string name="battery_status_unknown">알 수 없음</string>
+    <string name="battery_status_charging">충전 진행 중</string>
+    <string name="battery_status_full">충전 완료 (100%)</string>
+    <string name="battery_status_discharging">배터리 사용 중</string>
+    <string name="battery_status_not_charging">충전 중 아님</string>
+    <string name="battery_status_standby">대기 중</string>
+    <string name="battery_health_good">양호 (정상)</string>
+    <string name="battery_health_overheat">과열 주의</string>
+    <string name="battery_health_dead">수명 종료</string>
+    <string name="battery_health_overvoltage">과전압 주의</string>
+    <string name="battery_health_fail">점검 필요</string>
+    <string name="battery_health_cold">저온 주의</string>
+    <string name="battery_health_ok">정상</string>
+    <string name="plug_ac">고속 유선 충전 (AC)</string>
+    <string name="plug_usb">USB 포트 연결</string>
+    <string name="plug_wireless">무선 충전 (Wireless)</string>
+    <string name="plug_none">배터리 방전 중 (연결 안 됨)</string>
+
+    <!-- ═══════════════ 광고 없는 시간 ═══════════════ -->
+    <string name="adfree_dialog_title">광고 없이 사용하기</string>
+    <string name="adfree_dialog_sub">광고 1회 시청으로 선택한 시간 동안 배너가 숨겨집니다.</string>
+    <string name="adfree_card_title">광고 없이 사용하기</string>
+    <string name="adfree_card_active_title">광고 없는 시간 실행 중</string>
+    <string name="adfree_card_desc">광고 1회 시청으로 원하는 시간 동안 배너와 추천 영역을 숨길 수 있습니다.</string>
+    <string name="adfree_card_active_desc">이 시간이 끝나면 광고가 다시 표시됩니다.</string>
+    <string name="adfree_btn_hide">광고 보고 잠시 숨기기</string>
+    <string name="adfree_btn_choose">시간 선택</string>
+    <string name="btn_cancel">취소</string>
+    <string name="duration_minutes">%1$d분</string>
+    <string name="duration_hours">%1$d시간</string>
+    <string name="duration_days">%1$d일</string>
+
+    <!-- ═══════════════ 프리미엄 잠금 행 ═══════════════ -->
+    <string name="premium_btn_unlock">해제</string>
+    <string name="premium_btn_ads_left">광고 %1$d회</string>
+    <string name="premium_progress">광고 %1$d/%2$d 시청 시 잠금 해제</string>
+    <string name="premium_generic_name">프리미엄 콘텐츠</string>
+
+    <!-- ═══════════════ 오버레이 권한 ═══════════════ -->
+    <string name="overlay_title_granted">다른 앱 위에 표시 권한 허용됨</string>
+    <string name="overlay_title_needed">다른 앱 위에 표시 권한 필요</string>
+    <string name="overlay_desc_granted">충전기를 꽂으면 다른 앱 위에 애니메이션이 표시됩니다.</string>
+    <string name="overlay_desc_needed">Android 10 이상은 보안 정책상 백그라운드 화면 표시를 차단합니다. 설정에서 권한을 허용하면 유튜브 등 다른 앱 위에 충전 애니메이션이 뜹니다. 허용하지 않아도 충전 사운드와 진동은 정상 동작하고, 충전 시작 알림으로 대체됩니다.</string>
+    <string name="overlay_btn_grant">설정에서 권한 허용하기</string>
+
+    <!-- ═══════════════ 무료 잠금 해제 크레딧 제안 ═══════════════ -->
+    <string name="offer_title">%1$s 적용 완료!</string>
+    <string name="offer_desc">광고 1회 시청하면 프리미엄 잠금 해제 크레딧 1개를 받아 사운드/테마 하나를 광고 없이 바로 열 수 있습니다.</string>
+    <string name="offer_btn">광고 보고 크레딧 받기</string>
+    <string name="offer_later">나중에</string>
+    <string name="offer_label_custom_audio">커스텀 오디오</string>
+    <string name="offer_label_custom_video">커스텀 영상</string>
+
+    <!-- ═══════════════ 안내 메시지 ═══════════════ -->
+    <string name="msg_ad_unavailable">지금은 광고를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.</string>
+    <string name="msg_ad_load_fail">광고를 불러오지 못했습니다. 다른 프리셋은 광고 없이 사용하실 수 있습니다.</string>
+    <string name="msg_ad_retry_later">광고를 불러오지 못했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="msg_already_unlocked">이미 해제된 콘텐츠입니다.</string>
+    <string name="msg_unlocked">%1$s 잠금이 해제되었습니다!</string>
+    <string name="msg_locked_sound">광고 시청으로 %1$s 잠금을 해제할 수 있습니다.</string>
+    <string name="msg_locked_anim">광고 시청으로 %1$s 테마 잠금을 해제할 수 있습니다.</string>
+    <string name="msg_premium_sound_fallback">프리미엄 사운드를 불러오지 못해 기본 사운드로 돌아갑니다.</string>
+    <string name="msg_sound_applied">효과음이 적용되었습니다.</string>
+    <string name="msg_unlock_progress">%1$s 해제 진행도 %2$d/%3$d</string>
+    <string name="msg_adfree_started">%1$d분 동안 광고 없이 사용할 수 있습니다.</string>
+    <string name="msg_custom_audio_applied">커스텀 MP3가 적용되었습니다.</string>
+    <string name="msg_audio_load_fail">오디오 파일을 불러오지 못했습니다: %1$s</string>
+    <string name="msg_credit_gained">프리미엄 잠금 해제 크레딧 1개를 받았습니다. (%1$d개 보유)</string>
+    <string name="msg_monitoring_started">충전 감지 모니터링이 시작되었습니다.</string>
+    <string name="msg_monitoring_stopped">충전 감지 모니터링이 중지되었습니다.</string>
+    <string name="msg_preset_restored">기본 프리셋 사운드로 변경되었습니다.</string>
+    <string name="msg_custom_video_registered">커스텀 영상이 등록되었습니다: %1$s</string>
+    <string name="msg_video_load_fail">비디오 파일을 불러오지 못했습니다: %1$s</string>
+    <string name="msg_anim_restored">기본 애니메이션으로 복원되었습니다.</string>
+    <string name="plug_test_sim">테스트 시뮬레이션 충전 중</string>
+    <string name="plug_preview">전체화면 미리보기</string>
+
+    <!-- ═══════════════ 알림 ═══════════════ -->
+    <string name="notif_charge_channel">충전 시작 알림</string>
+    <string name="notif_charge_desc">화면 오버레이 권한이 없을 때 충전 시작을 알려줍니다.</string>
+    <string name="notif_charge_title">충전 시작 ⚡ %1$d%%</string>
+    <string name="notif_charge_text">%1$s에 연결되었습니다</string>
+    <string name="notif_monitor_channel">충전 감지 알림</string>
+    <string name="notif_monitor_desc">충전 감지 모니터링 상태 변경 안내</string>
+    <string name="notif_blocked_title">충전 감지를 시작하려면 앱을 열어주세요 ⚡</string>
+    <string name="notif_blocked_text">시스템 보안 정책으로 자동 실행이 차단되었습니다. 앱을 한 번 열면 다시 켜집니다.</string>
+    <string name="notif_service_channel">충전 감지 모니터링</string>
+    <string name="notif_service_desc">충전기 연결 시 사운드 및 애니메이션 재생을 위해 백그라운드에서 대기합니다.</string>
+    <string name="notif_active_title">ChargeSound 활성화됨 ⚡</string>
+    <string name="notif_active_text">충전 케이블 연결 시 사운드와 애니메이션이 실행됩니다</string>
+
+    <!-- ═══════════════ 기본 사운드 프리셋 ═══════════════ -->
+    <string name="preset_cyber_chime_name">사이버 차임 (Cyber Chime)</string>
+    <string name="preset_cyber_chime_desc">미래지향적인 3단 상승 차임음</string>
+    <string name="preset_lightning_spark_name">일렉트릭 스파크 (Spark)</string>
+    <string name="preset_lightning_spark_desc">짜릿한 전기 스파크 및 펄스 사운드</string>
+    <string name="preset_super_charge_name">슈퍼 차저 (Super Level Up)</string>
+    <string name="preset_super_charge_desc">경쾌한 게임 레벨업 스타일 상승 멜로디</string>
+    <string name="preset_gentle_ding_name">젠틀 딩 (Gentle Bell)</string>
+    <string name="preset_gentle_ding_desc">은은하고 부드러운 맑은 크리스탈 종소리</string>
+    <string name="preset_turbo_surge_name">터보 엔진 서지 (Turbo Surge)</string>
+    <string name="preset_turbo_surge_desc">우주선 부스터 가동 사운드</string>
+
+    <!-- ═══════════════ 프리미엄 사운드 카탈로그 ═══════════════ -->
+    <string name="prm_synthwave_name">신스웨이브 레이즈</string>
+    <string name="prm_synthwave_desc">80년대 신스웨이브 아르페지오</string>
+    <string name="prm_chiptune_name">칩튠 마블링</string>
+    <string name="prm_chiptune_desc">레트로 8비트 게임 BGM</string>
+    <string name="prm_ambient_name">앰비언트 드론</string>
+    <string name="prm_ambient_desc">깊은 패드 화음의 잔잔한 울림</string>
+    <string name="prm_brass_name">브라스 팡파르</string>
+    <string name="prm_brass_desc">장엄한 금속관 팡파르</string>
+    <string name="prm_rainbow_name">레인보우 벨</string>
+    <string name="prm_rainbow_desc">7음 종소리 캐스케이드</string>
+    <string name="prm_vaporwave_name">베이퍼웨이브 그라운드</string>
+    <string name="prm_vaporwave_desc">느린 템포의 드림펑크 비트</string>
+
+    <!-- ═══════════════ 애니메이션 모드 ═══════════════ -->
+    <string name="mode_lightning_name">일렉트릭 라이트닝</string>
+    <string name="mode_lightning_desc">전기 스파크와 네온 전류 효과</string>
+    <string name="mode_reactor_name">사이버 리액터</string>
+    <string name="mode_reactor_desc">아크 원자로 충전 회전 코어</string>
+    <string name="mode_plasma_name">퀀텀 플라즈마</string>
+    <string name="mode_plasma_desc">네온 에너지 방울 및 입자 효과</string>
+    <string name="mode_nebula_name">성운 (Nebula)</string>
+    <string name="mode_nebula_desc">회전하는 성운 입자 필드</string>
+    <string name="mode_matrix_name">매트릭스 레인</string>
+    <string name="mode_matrix_desc">글리치처럼 떨어지는 코드 열</string>
+    <string name="mode_abyss_name">심해 (Abyss)</string>
+    <string name="mode_abyss_desc">깊은 파도와 부유하는 산호</string>
+    <string name="mode_prism_name">프리즘 (Prism)</string>
+    <string name="mode_prism_desc">빛을 분해하는 다각형 굴절</string>
+    <string name="mode_fireworks_name">불꽃 (Fireworks)</string>
+    <string name="mode_fireworks_desc">정기적으로 터지는 불꽃</string>
+    <string name="mode_blackhole_name">블랙홀</string>
+    <string name="mode_blackhole_desc">소용돌이 빨려 들어가는 사건의 경계</string>
+    <string name="mode_custom_video_name">커스텀 영상 (MP4/AVI)</string>
+    <string name="mode_custom_video_desc">사용자가 직접 선택한 비디오 파일</string>
+
+    <!-- ═══════════════ 재생 시간 라벨 ═══════════════ -->
+    <string name="duration_label_full">영상 전체 재생</string>
+    <string name="duration_label_touch">터치할 때까지 계속 재생</string>
+    <string name="duration_label_seconds">%1$d초</string>
+
+</resources>

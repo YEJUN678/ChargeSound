@@ -42,10 +42,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import androidx.annotation.StringRes
+import com.example.R
 import com.example.ui.theme.Slate400
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -227,7 +230,11 @@ fun AdFreeCard(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = if (isAdFreeActive) "광고 없는 시간 실행 중" else "광고 없이 사용하기",
+                        text = if (isAdFreeActive) {
+                            stringResource(R.string.adfree_card_active_title)
+                        } else {
+                            stringResource(R.string.adfree_card_title)
+                        },
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
                         color = Color.White
@@ -235,7 +242,7 @@ fun AdFreeCard(
                 }
                 if (isAdFreeActive && remainingMinutes > 0) {
                     Text(
-                        text = "${remainingMinutes}분 남음",
+                        text = stringResource(R.string.duration_minutes, remainingMinutes),
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 13.sp,
                         color = ElectricCyan
@@ -247,9 +254,9 @@ fun AdFreeCard(
 
             Text(
                 text = if (isAdFreeActive) {
-                    "이 시간이 끝나면 광고가 다시 표시됩니다."
+                    stringResource(R.string.adfree_card_active_desc)
                 } else {
-                    "광고 1회 시청으로 원하는 시간 동안 배너와 추천 영역을 숨길 수 있습니다."
+                    stringResource(R.string.adfree_card_desc)
                 },
                 fontSize = 12.sp,
                 color = Slate600
@@ -274,7 +281,7 @@ fun AdFreeCard(
                         )
                         Spacer(Modifier.width(6.dp))
                         Text(
-                            text = "광고 보고 잠시 숨기기",
+                            text = stringResource(R.string.adfree_btn_hide),
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         )
@@ -287,7 +294,7 @@ fun AdFreeCard(
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("시간 선택", fontSize = 13.sp)
+                        Text(stringResource(R.string.adfree_btn_choose), fontSize = 13.sp)
                     }
                 }
             }
@@ -304,8 +311,8 @@ fun AdFreeCard(
  */
 @Composable
 fun PremiumLockedRow(
-    name: String,
-    description: String,
+    @StringRes nameRes: Int,
+    @StringRes descriptionRes: Int,
     accent: Color,
     adsWatched: Int,
     adsRequired: Int,
@@ -337,13 +344,13 @@ fun PremiumLockedRow(
                 Spacer(Modifier.width(10.dp))
                 Column {
                     Text(
-                        text = name,
+                        text = stringResource(nameRes),
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                         color = Color.White
                     )
                     Text(
-                        text = description,
+                        text = stringResource(descriptionRes),
                         fontSize = 11.sp,
                         color = Slate600
                     )
@@ -359,7 +366,11 @@ fun PremiumLockedRow(
                 modifier = Modifier.padding(start = 8.dp)
             ) {
                 Text(
-                    text = if (remaining <= 0) "해제" else "광고 ${remaining}회",
+                    text = if (remaining <= 0) {
+                        stringResource(R.string.premium_btn_unlock)
+                    } else {
+                        stringResource(R.string.premium_btn_ads_left, remaining)
+                    },
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp
                 )
@@ -378,7 +389,7 @@ fun PremiumLockedRow(
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            text = "광고 $adsWatched/$adsRequired 시청 시 잠금 해제",
+            text = stringResource(R.string.premium_progress, adsWatched, adsRequired),
             fontSize = 11.sp,
             color = Slate600
         )
@@ -388,8 +399,8 @@ fun PremiumLockedRow(
 /** 해제된 프리미엄 콘텐츠 행 (바로 사용 가능) */
 @Composable
 fun PremiumUnlockedRow(
-    name: String,
-    description: String,
+    @StringRes nameRes: Int,
+    @StringRes descriptionRes: Int,
     accent: Color,
     isSelected: Boolean,
     onSelect: () -> Unit,
@@ -422,13 +433,13 @@ fun PremiumUnlockedRow(
                 Spacer(Modifier.width(10.dp))
                 Column {
                     Text(
-                        text = name,
+                        text = stringResource(nameRes),
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                         fontSize = 14.sp,
                         color = if (isSelected) accent else Color.White
                     )
                     Text(
-                        text = description,
+                        text = stringResource(descriptionRes),
                         fontSize = 11.sp,
                         color = Slate600
                     )
@@ -438,7 +449,7 @@ fun PremiumUnlockedRow(
                 IconButton(onClick = onPreview) {
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
-                        contentDescription = "미리듣기",
+                        contentDescription = stringResource(R.string.a11y_play),
                         tint = if (isSelected) accent else Slate600
                     )
                 }
@@ -480,7 +491,11 @@ fun OverlayPermissionCard(
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = if (isGranted) "다른 앱 위에 표시 권한 granted" else "다른 앱 위에 표시 권한 필요",
+                    text = if (isGranted) {
+                        stringResource(R.string.overlay_title_granted)
+                    } else {
+                        stringResource(R.string.overlay_title_needed)
+                    },
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     color = Color.White
@@ -491,11 +506,9 @@ fun OverlayPermissionCard(
 
             Text(
                 text = if (isGranted) {
-                    "충전기를 꽂으면 다른 앱 위에 애니메이션이 표시됩니다."
+                    stringResource(R.string.overlay_desc_granted)
                 } else {
-                    "Android 10 이상은 보안 정책상 백그라운드 화면 표시를 차단합니다. " +
-                        "설정에서 권한을 허용하면 유튜브 등 다른 앱 위에 충전 애니메이션이 뜹니다. " +
-                        "허용하지 않아도 충전 사운드와 진동은 정상 동작하고, 충전 시작 알림으로 대체됩니다."
+                    stringResource(R.string.overlay_desc_needed)
                 },
                 fontSize = 12.sp,
                 color = Slate600
@@ -512,16 +525,16 @@ fun OverlayPermissionCard(
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("설정에서 권한 허용하기", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text(
+                        stringResource(R.string.overlay_btn_grant),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
                 }
             }
         }
     }
 }
-
-/** 프리미엄 콘텐츠 잠금 해제 안내 문구 (정책: 보상을 명확히 고지) */
-fun premiumUnlockLabel(name: String): String =
-    "광고 ${PremiumCatalog.ADS_REQUIRED_PER_UNLOCK}회 시청 시 '$name' 잠금 해제"
 
 /**
  * 커스텀 오디오/영상 적용 후 표시하는 보상형 광고 "제안" 카드.
@@ -560,15 +573,14 @@ fun FreeUnlockOfferDialog(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "$appliedLabel 적용 완료!",
+                    text = stringResource(R.string.offer_title, appliedLabel),
                     color = Color.White,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 18.sp
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "광고 1회 시청하면 프리미엄 잠금 해제 크레딧 1개를 받아 " +
-                        "사운드/테마 하나를 광고 없이 바로 열 수 있습니다.",
+                    text = stringResource(R.string.offer_desc),
                     color = Slate600,
                     fontSize = 12.sp,
                     textAlign = TextAlign.Center
@@ -591,13 +603,17 @@ fun FreeUnlockOfferDialog(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.width(6.dp))
-                    Text("광고 보고 크레딧 받기", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(
+                        stringResource(R.string.offer_btn),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
                 }
 
                 Spacer(Modifier.height(8.dp))
 
                 Text(
-                    text = "나중에",
+                    text = stringResource(R.string.offer_later),
                     color = Slate400,
                     fontSize = 13.sp,
                     modifier = Modifier

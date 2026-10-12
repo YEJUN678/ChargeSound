@@ -14,6 +14,7 @@ import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.MainActivity
+import com.example.R
 import com.example.battery.BatteryInfoHelper
 import com.example.data.AnimationMode
 import com.example.data.SettingsRepository
@@ -119,7 +120,10 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
         val animIntent = Intent(context, ChargingAnimationActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             putExtra(ChargingAnimationActivity.EXTRA_BATTERY_LEVEL, batteryInfo.level)
-            putExtra(ChargingAnimationActivity.EXTRA_PLUG_NAME, batteryInfo.plugType.displayName)
+            putExtra(
+                ChargingAnimationActivity.EXTRA_PLUG_NAME,
+                context.getString(batteryInfo.plugType.displayNameRes)
+            )
             putExtra(ChargingAnimationActivity.EXTRA_ANIM_MODE, settings.animationMode.name)
             putExtra(ChargingAnimationActivity.EXTRA_VIDEO_PATH, settings.customVideoPath)
             putExtra(ChargingAnimationActivity.EXTRA_DURATION_SEC, settings.videoDurationSeconds)
@@ -145,18 +149,25 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
                 if (manager.getNotificationChannel(channelId) == null) {
                     val channel = NotificationChannel(
                         channelId,
-                        "충전 시작 알림",
+                        context.getString(R.string.notif_charge_channel),
                         NotificationManager.IMPORTANCE_LOW
                     ).apply {
-                        description = "화면 오버레이 권한이 없을 때 충전 시작을 알려줍니다."
+                        description = context.getString(R.string.notif_charge_desc)
                         setShowBadge(false)
                     }
                     manager.createNotificationChannel(channel)
                 }
                 val notification = NotificationCompat.Builder(context, channelId)
                     .setSmallIcon(com.example.R.drawable.charge_sound_icon_1791457205401)
-                    .setContentTitle("충전 시작 ⚡ ${batteryInfo.level}%")
-                    .setContentText("${batteryInfo.plugType.displayName}에 연결되었습니다")
+                    .setContentTitle(
+                        context.getString(R.string.notif_charge_title, batteryInfo.level)
+                    )
+                    .setContentText(
+                        context.getString(
+                            R.string.notif_charge_text,
+                            context.getString(batteryInfo.plugType.displayNameRes)
+                        )
+                    )
                     .setPriority(NotificationCompat.PRIORITY_LOW)
                     .setAutoCancel(true)
                     .setContentIntent(

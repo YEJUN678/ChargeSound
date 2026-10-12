@@ -1,4 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ChargeSound — English (default).
+
+  English is the DEFAULT language so that every non-Korean device gets a
+  fully translated UI. Korean users get values-ko/strings.xml automatically
+  (Android picks the resource folder from the device locale).
+
+  Rules for this file:
+  - Do NOT translate proper nouns / brand names (ChargeSound, Nebula, Prism...).
+  - Never use hard apostrophes ('). Use \' or restructure the sentence,
+    otherwise aapt2 turns them into stray quote characters at runtime.
+  - Keep placeholders (%1$s, %2$d) in the SAME order across all locales.
+-->
 <resources>
-    <string name="app_name">ChargeSound</string>
-    <string name="admob_app_id">ca-app-pub-4709628417690363~2909050501</string>
+
+    <!-- ═══════════════ app ═══════════════ -->
+    <string name="app_name" translatable="false">ChargeSound</string>
+    <string name="status_monitoring_active">Charging detection is on</string>
+    <string name="status_monitoring_idle">Monitoring is paused</string>
+
+    <!-- ═══════════════ live header card ═══════════════ -->
+    <string name="battery_charging_short">Charging ⚡</string>
+    <string name="battery_idle_short">Battery</string>
+    <string name="btn_test_charging">Test</string>
+    <string name="battery_header_plug">%1$s • %2$.1f°C</string>
+
+    <!-- ═══════════════ tabs ═══════════════ -->
+    <string name="tab_sound">Sound</string>
+    <string name="tab_animation">Animation</string>
+    <string name="tab_battery_info">Battery</string>
+
+    <!-- ═══════════════ sound settings ═══════════════ -->
+    <string name="sound_enable_title">Charging sound</string>
+    <string name="sound_enable_sub">Play your chosen sound when a charger is connected</string>
+    <string name="sound_volume_title">Sound volume</string>
+    <string name="btn_stop_sound">Stop</string>
+    <string name="btn_preview_volume">Preview</string>
+    <string name="sound_custom_title">Pick your own audio</string>
+    <string name="sound_custom_sub">Choose any audio file from your device</string>
+    <string name="sound_custom_applied">Custom audio is active</string>
+    <string name="btn_pick_mp3">Choose an audio file</string>
+    <string name="btn_change_mp3">Choose a different file</string>
+    <string name="sound_presets_title">Built-in sounds</string>
+    <string name="sound_presets_sub">Tap a sound to preview it</string>
+    <string name="a11y_play">Preview</string>
+    <string name="a11y_play_short">Play</string>
+    <string name="a11y_delete">Remove</string>
+    <string name="a11y_close">Close</string>
+
+    <!-- ═══════════════ premium sounds ═══════════════ -->
+    <string name="premium_sounds_title">Premium sound pack</string>
+    <string name="premium_sounds_sub">Watch %1$d ads to unlock. You can keep using every built-in sound above if you would rather not watch an ad.</string>
+
+    <!-- ═══════════════ vibration ═══════════════ -->
+    <string name="vibration_title">Vibration on plug-in</string>
+    <string name="vibration_sub">Adds haptic feedback alongside the sound</string>
+
+    <!-- ═══════════════ animation settings ═══════════════ -->
+    <string name="anim_enable_title">Charging animation</string>
+    <string name="anim_enable_sub">Play a full-screen animation when a charger is connected</string>
+    <string name="anim_custom_title">Pick your own video</string>
+    <string name="anim_custom_sub">Use any video on your phone as the charging screen</string>
+    <string name="anim_custom_applied">Custom video is active</string>
+    <string name="btn_pick_video">Choose a video file</string>
+    <string name="btn_change_video">Choose a different video</string>
+    <string name="anim_duration_title">Playback duration</string>
+    <string name="anim_duration_sub">Drag the slider to set the playback time from 1 to 30 seconds</string>
+    <string name="anim_chip_slider">Slider</string>
+    <string name="anim_chip_full">Full length</string>
+    <string name="anim_chip_touch">Until I tap</string>
+    <string name="anim_fadeout_note">Audio sync: the sound fades out smoothly over the last 1.5 seconds.</string>
+    <string name="anim_loop_title">Loop short videos</string>
+    <string name="anim_loop_sub">Repeat seamlessly for the duration you set</string>
+    <string name="anim_builtin_title">Built-in animation themes</string>
+    <string name="anim_builtin_sub">Used when no custom video is set, or when you want a neon look</string>
+    <string name="premium_anims_title">Premium animation themes</string>
+    <string name="premium_anims_sub">Watch %1$d ads to unlock. You can keep using the 3 built-in themes if you would rather not watch an ad.</string>
+    <string name="btn_preview_fullscreen">Full-screen preview</string>
+
+    <!-- ═══════════════ animation activity ═══════════════ -->
+    <string name="anim_plug_connected">Charger connected</string>
+    <string name="anim_auto_close">Closing in %1$d s</string>
+    <string name="anim_loop_forever">Playing until you tap</string>
+    <string name="anim_tap_to_close">Tap anywhere to close</string>
+
+    <!-- ═══════════════ battery info tab ═══════════════ -->
+    <string name="battery_discharging">Not charging</string>
+    <string name="battery_temp_label">Temperature</string>
+    <string name="battery_voltage_label">Voltage</string>
+    <string name="battery_health_label">Battery health</string>
+    <string name="battery_technology_label">Technology</string>
+    <string name="battery_status_label">Status</string>
+    <string name="battery_temp_warning">Battery is hot. Keep it away from heat and direct sunlight.</string>
+    <string name="unit_celsius" translatable="false">°C</string>
+    <string name="unit_volts" translatable="false"> V</string>
+    <string name="value_celsius">%1$.1f°C</string>
+    <string name="value_volts">%1$.2f V</string>
+
+    <!-- ═══════════════ battery status / health ═══════════════ -->
+    <string name="battery_status_unknown">Unknown</string>
+    <string name="battery_status_charging">Charging</string>
+    <string name="battery_status_full">Fully charged (100%)</string>
+    <string name="battery_status_discharging">On battery</string>
+    <string name="battery_status_not_charging">Not charging</string>
+    <string name="battery_status_standby">Idle</string>
+    <string name="battery_health_good">Good</string>
+    <string name="battery_health_overheat">Overheating</string>
+    <string name="battery_health_dead">Worn out</string>
+    <string name="battery_health_overvoltage">Over voltage</string>
+    <string name="battery_health_fail">Needs service</string>
+    <string name="battery_health_cold">Too cold</string>
+    <string name="battery_health_ok">Normal</string>
+    <string name="plug_ac">AC wired charging</string>
+    <string name="plug_usb">USB connection</string>
+    <string name="plug_wireless">Wireless charging</string>
+    <string name="plug_none">Not connected</string>
+
+    <!-- ═══════════════ ad-free period ═══════════════ -->
+    <string name="adfree_dialog_title">Go ad-free</string>
+    <string name="adfree_dialog_sub">Watch one ad to hide the banner for your chosen time.</string>
+    <string name="adfree_card_title">Go ad-free</string>
+    <string name="adfree_card_active_title">Ad-free time is running</string>
+    <string name="adfree_card_desc">Watch one ad to hide the banner and the sponsored card for a while.</string>
+    <string name="adfree_card_active_desc">Ads come back when this timer runs out.</string>
+    <string name="adfree_btn_hide">Watch ad to hide ads</string>
+    <string name="adfree_btn_choose">Pick a duration</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="duration_minutes">%1$d min</string>
+    <string name="duration_hours">%1$d h</string>
+    <string name="duration_days">%1$d d</string>
+
+    <!-- ═══════════════ premium rows ═══════════════ -->
+    <string name="premium_btn_unlock">Unlock</string>
+    <string name="premium_btn_ads_left">%1$d ads</string>
+    <string name="premium_progress">Watch %1$d of %2$d ads to unlock</string>
+    <string name="premium_generic_name">Premium item</string>
+
+    <!-- ═══════════════ overlay permission ═══════════════ -->
+    <string name="overlay_title_granted">Display over other apps: on</string>
+    <string name="overlay_title_needed">Display over other apps: off</string>
+    <string name="overlay_desc_granted">Plug in a charger and the animation appears over your other apps.</string>
+    <string name="overlay_desc_needed">Android 10 and later block background screens for security. If you allow this permission, the charging animation can appear over apps like YouTube. If you do not allow it, the charging sound and vibration keep working and a notification is shown instead.</string>
+    <string name="overlay_btn_grant">Open settings</string>
+
+    <!-- ═══════════════ free unlock offer ═══════════════ -->
+    <string name="offer_title">%1$s applied</string>
+    <string name="offer_desc">Watch one ad to earn 1 unlock credit. One credit opens any premium sound or theme straight away, no ads needed.</string>
+    <string name="offer_btn">Watch ad, get credit</string>
+    <string name="offer_later">Maybe later</string>
+    <string name="offer_label_custom_audio">Custom audio</string>
+    <string name="offer_label_custom_video">Custom video</string>
+
+    <!-- ═══════════════ in-app messages ═══════════════ -->
+    <string name="msg_ad_unavailable">No ad available right now. Please try again in a moment.</string>
+    <string name="msg_ad_load_fail">Could not load an ad. You can still use every built-in sound without watching one.</string>
+    <string name="msg_ad_retry_later">Could not load an ad. Please try again later.</string>
+    <string name="msg_already_unlocked">Already unlocked.</string>
+    <string name="msg_unlocked">%1$s is unlocked!</string>
+    <string name="msg_locked_sound">Watch an ad to unlock %1$s.</string>
+    <string name="msg_locked_anim">Watch an ad to unlock the %1$s theme.</string>
+    <string name="msg_premium_sound_fallback">Could not load that premium sound, so the default one is back.</string>
+    <string name="msg_sound_applied">Sound applied.</string>
+    <string name="msg_unlock_progress">%1$s: %2$d of %3$d ads watched</string>
+    <string name="msg_adfree_started">No ads for %1$d minutes.</string>
+    <string name="msg_custom_audio_applied">Custom audio applied.</string>
+    <string name="msg_audio_load_fail">Could not load that audio file: %1$s</string>
+    <string name="msg_credit_gained">You earned 1 unlock credit (%1$d total).</string>
+    <string name="msg_monitoring_started">Charging detection is on.</string>
+    <string name="msg_monitoring_stopped">Charging detection is off.</string>
+    <string name="msg_preset_restored">Switched back to the built-in sounds.</string>
+    <string name="msg_custom_video_registered">Custom video registered: %1$s</string>
+    <string name="msg_video_load_fail">Could not load that video file: %1$s</string>
+    <string name="msg_anim_restored">Switched back to the default animation.</string>
+    <string name="plug_test_sim">Test simulation</string>
+    <string name="plug_preview">Full-screen preview</string>
+
+    <!-- ═══════════════ notifications ═══════════════ -->
+    <string name="notif_charge_channel">Charging started</string>
+    <string name="notif_charge_desc">Tells you when charging starts when the overlay permission is not granted</string>
+    <string name="notif_charge_title">Charging started — %1$d%%</string>
+    <string name="notif_charge_text">Connected to %1$s</string>
+    <string name="notif_monitor_channel">Charging detection</string>
+    <string name="notif_monitor_desc">Status updates for charging detection</string>
+    <string name="notif_blocked_title">Open ChargeSound to start charging detection</string>
+    <string name="notif_blocked_text">A system security policy blocked automatic start. Opening the app once turns it back on.</string>
+    <string name="notif_service_channel">Charging detection</string>
+    <string name="notif_service_desc">Stays in the background so the sound and animation can play when you plug in</string>
+    <string name="notif_active_title">ChargeSound is active</string>
+    <string name="notif_active_text">Your sound and animation will play when you connect a charger</string>
+
+    <!-- ═══════════════ built-in sound presets ═══════════════ -->
+    <string name="preset_cyber_chime_name">Cyber Chime</string>
+    <string name="preset_cyber_chime_desc">Futuristic three-note rising chime</string>
+    <string name="preset_lightning_spark_name">Electric Spark</string>
+    <string name="preset_lightning_spark_desc">Crisp electric crackle and pulse</string>
+    <string name="preset_super_charge_name">Super Level Up</string>
+    <string name="preset_super_charge_desc">Bright game-style level up melody</string>
+    <string name="preset_gentle_ding_name">Gentle Bell</string>
+    <string name="preset_gentle_ding_desc">Soft clear crystal bell</string>
+    <string name="preset_turbo_surge_name">Turbo Surge</string>
+    <string name="preset_turbo_surge_desc">Starship booster ignition</string>
+
+    <!-- ═══════════════ premium sound catalog ═══════════════ -->
+    <string name="prm_synthwave_name">Synthwave Rays</string>
+    <string name="prm_synthwave_desc">80s synthwave arpeggio</string>
+    <string name="prm_chiptune_name">Chiptune Murmur</string>
+    <string name="prm_chiptune_desc">Retro 8-bit game loop</string>
+    <string name="prm_ambient_name">Ambient Drone</string>
+    <string name="prm_ambient_desc">Deep pad chord, calm and steady</string>
+    <string name="prm_brass_name">Brass Fanfare</string>
+    <string name="prm_brass_desc">Grand brass fanfare</string>
+    <string name="prm_rainbow_name">Rainbow Bells</string>
+    <string name="prm_rainbow_desc">Cascade of seven bell tones</string>
+    <string name="prm_vaporwave_name">Vaporwave Ground</string>
+    <string name="prm_vaporwave_desc">Slow tempo dreampunk beat</string>
+
+    <!-- ═══════════════ animation modes ═══════════════ -->
+    <string name="mode_lightning_name">Electric Lightning</string>
+    <string name="mode_lightning_desc">Electric sparks and neon current</string>
+    <string name="mode_reactor_name">Cyber Reactor</string>
+    <string name="mode_reactor_desc">Arc reactor charging core</string>
+    <string name="mode_plasma_name">Quantum Plasma</string>
+    <string name="mode_plasma_desc">Neon energy droplets and particles</string>
+    <string name="mode_nebula_name">Nebula</string>
+    <string name="mode_nebula_desc">Swirling nebula particle field</string>
+    <string name="mode_matrix_name">Matrix Rain</string>
+    <string name="mode_matrix_desc">Columns of code falling like rain</string>
+    <string name="mode_abyss_name">Abyss</string>
+    <string name="mode_abyss_desc">Deep waves and drifting coral</string>
+    <string name="mode_prism_name">Prism</string>
+    <string name="mode_prism_desc">Polygonal light refraction</string>
+    <string name="mode_fireworks_name">Fireworks</string>
+    <string name="mode_fireworks_desc">Bursts of light on a timer</string>
+    <string name="mode_blackhole_name">Black Hole</string>
+    <string name="mode_blackhole_desc">Swirling event horizon</string>
+    <string name="mode_custom_video_name">Custom video</string>
+    <string name="mode_custom_video_desc">A video file you chose yourself</string>
+
+    <!-- ═══════════════ duration label ═══════════════ -->
+    <string name="duration_label_full">Full video</string>
+    <string name="duration_label_touch">Until I tap</string>
+    <string name="duration_label_seconds">%1$d s</string>
+
 </resources>
