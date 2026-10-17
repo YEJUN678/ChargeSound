@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+import java.lang.ref.WeakReference
+
 /**
  * 광고 관리 싱글턴 (ironSource / Unity LevelPlay).
  *
@@ -36,14 +38,23 @@ object AdManager {
     private var rewardedFailures = 0
     private var rewardedShowing = false
 
-    private var lastAppOpenShownAt = 0L
-    private var appOpenCountThisSession = 0
-
     /** 마지막 보상형 광고 노출 시각 → 재로드 쿨다운 제어 */
     @Volatile
     private var lastRewardedShownAt = 0L
 
-    private var pendingActivity: Activity? = null
+    /**
+     * 광고 표시 중 사용할 Activity.
+     *
+     * WeakReference 로 들고 있는 이유: AdManager 는 object(프로세스 수명)라서
+     * 강한 참조를 두면 회전하거나 종료된 Activity 가 그대로 남습니다.
+     * 광고가 실제로 보이는 동안에는 그 Activity 가 resumed 상태이므로
+     * GC 되기 전에 참조가 유효합니다.
+     */
+    private var pendingActivityRef = WeakReference<Activity>(null)
+
+    private var pendingActivity: Activity?
+        get() = pendingActivityRef.get()
+        set(value) { pendingActivityRef = WeakReference(value) }
 
     /** SDK 초기화 완료 플래그 */
     @Volatile
@@ -106,6 +117,8 @@ object AdManager {
     }
 
     fun onPause(activity: Activity) {
+        // 광고가 보이는 동안에는 유지해야 하므로 여기서 비우지 않습니다.
+        // WeakReference 이므로 Activity 가 끝나면 자동으로 사라집니다.
         if (AdUnits.isConfigured) {
             try { IronSource.onPause(activity) } catch (_: Exception) { }
         }
@@ -194,7 +207,6 @@ object AdManager {
         ) return
 
         try {
-            if (pendingActivity == null) pendingActivity = null
             IronSource.loadRewardedVideo()
         } catch (e: Exception) {
             rewardedFailures++
@@ -312,11 +324,12 @@ object AdManager {
 
     // ─────────────────────── 세션 관리 ───────────────────────
 
-    fun resetSessionCounters() {
-        appOpenCountThisSession = 0
-    }
-
-    /** 테스트/디버그용: 실패 카운터 초기화 */
+    /**
+     * 테스트/디버그용: 실패 카운터 초기화.
+     *
+     * 앱오픈 광고가 철회되면서 세션 카운터는 더 이상 존재하지 않습니다.
+     * 전면류 광고를 다시 도입할 때 세션 초기화 훅을 여기에 되살리면 됩니다.
+     */
     fun resetFailures() {
         rewardedFailures = 0
     }

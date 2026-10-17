@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -119,6 +120,7 @@ import com.example.data.AnimationMode
 import com.example.data.ChargeSettings
 import com.example.data.PremiumCatalog
 import com.example.data.SoundMode
+import com.example.service.ChargingSessionTracker
 import com.example.service.UpdateChecker
 import com.example.sound.SoundManager
 import com.example.ui.theme.ElectricAmber
@@ -153,6 +155,7 @@ fun MainScreen(viewModel: MainViewModel) {
     var showAlarmSheet by remember { mutableStateOf(false) }
     var showAlertsSheet by remember { mutableStateOf(false) }
     var showSoundContextSheet by remember { mutableStateOf(false) }
+    var showThemeSheet by remember { mutableStateOf(false) }
     var latestVersionName by remember { mutableStateOf<String?>(null) }
 
     // 앱을 열 때마다 업데이트를 확인합니다.
@@ -162,7 +165,9 @@ fun MainScreen(viewModel: MainViewModel) {
     }
 
     // 보상형 광고를 표시하려면 Activity가 필요합니다 (Compose Context로는 부족).
-    val activity = LocalContext.current as? Activity
+    // LocalActivity 는 "가장 가까운 Activity" 를 안전하게 찾아주므로
+    // Context 를 Activity 로 캐스팅하는 것보다 안전합니다.
+    val activity = LocalActivity.current
 
     // 광고 없는 시간 활성 여부 (1분마다 재평가)
     var isAdFreeActive by remember { mutableStateOf(viewModel.isAdFreeActive()) }
@@ -235,6 +240,17 @@ fun MainScreen(viewModel: MainViewModel) {
         adFreeMinutes = 0
     }
 
+    // 충전 속도 배지 — 충전 중일 때만 폴링합니다.
+    // 배터리는 1% 단위로 올라가므로 20초마다 갱신하면 충분합니다.
+    var session by remember { mutableStateOf(ChargingSessionTracker.Snapshot(0L, null, null, false)) }
+    LaunchedEffect(batteryInfo.isCharging) {
+        while (batteryInfo.isCharging) {
+            session = ChargingSessionTracker.snapshot(context, batteryInfo)
+            delay(20_000L)
+        }
+        session = ChargingSessionTracker.Snapshot(0L, null, null, false)
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -297,6 +313,7 @@ fun MainScreen(viewModel: MainViewModel) {
                         onOpenPremiumSounds = { showPremiumSounds = true },
                         onOpenPremiumAnimations = { showPremiumAnimations = true },
                         onOpenAdFree = { showAdFreeDialog = true },
+                        onOpenTheme = { showThemeSheet = true },
                         onOpenAbout = { showAbout = true },
                         adFreeMinutesRemaining = adFreeMinutes
                     )
@@ -331,6 +348,12 @@ fun MainScreen(viewModel: MainViewModel) {
             BatteryLiveHeaderCard(
                 batteryInfo = batteryInfo,
                 isServiceEnabled = settings.isServiceEnabled,
+                rateBadge = {
+                    ChargingRateBadge(
+                        percentPerHour = session.percentPerHour,
+                        elapsedMillis = session.elapsedMillis
+                    )
+                },
                 onTestClick = { viewModel.simulateCharging(context) }
             )
 
@@ -575,12 +598,21 @@ fun MainScreen(viewModel: MainViewModel) {
             onSetQuietHours = { start, end -> viewModel.setQuietHours(start, end) }
         )
     }
+
+    if (showThemeSheet) {
+        ThemeSettingsSheet(
+            settings = settings,
+            onDismiss = { showThemeSheet = false },
+            onSelectAccent = { viewModel.setAccentKey(it) }
+        )
+    }
 }
 
 @Composable
 fun BatteryLiveHeaderCard(
     batteryInfo: BatteryInfo,
     isServiceEnabled: Boolean,
+    rateBadge: @Composable () -> Unit = {},
     onTestClick: () -> Unit
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -688,6 +720,8 @@ fun BatteryLiveHeaderCard(
                                 fontSize = 12.sp,
                                 color = Slate400
                             )
+                            // 충전 속도 배지 (충전 중 + 측정 가능할 때만 그려짐)
+                            rateBadge()
                         }
                     }
 
@@ -1876,7 +1910,7 @@ private fun PlayingIndicator() {
  *
  * 배터리 상태, 온도, 전압, 건강도, 충전 방식 등 기기 정보를 표시합니다.
  * 여기에는 광고를 배치하지 않습니다. 이 탭은 정보 조회 기능으로,
- * AdMob 정책상 광고로 기능 사용을 방해하면 안 됩니다.
+ * 광고 정책상 광고로 기능 사용을 방해하면 안 됩니다.
  */
 @Composable
 fun BatteryInfoTab(batteryInfo: BatteryInfo) {

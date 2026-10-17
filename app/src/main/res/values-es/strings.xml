@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ChargeSound — Español.
+
+  values/ (inglés) es el idioma por defecto. Este archivo se usa
+  automáticamente en dispositivos configurados en español.
+
+  México y otros países hispanohablantes son un público importante en
+  el tráfico de AppLovin e ironSource.
+
+  Convenciones:
+  · "tuy / tu" informal — el público de tiendas usa español neutro,
+    pero el tono informal funciona mejor en la ficha de la app.
+  · Los marcadores de posición (%1$s, %2$d…) deben coincidir exactamente
+    con values/strings.xml. Si no coinciden, la compilación falla.
+  · Los nombres de sonido y de animación son marcas del producto: se
+    traducen solo la descripción, no el nombre propio.
+-->
+<resources>
+
+    <!-- ═══════════════ app ═══════════════ -->
+    <string name="status_monitoring_active">Detección de carga activa</string>
+    <string name="status_monitoring_idle">Detección en pausa</string>
+
+    <!-- ═══════════════ tarjeta de batería ═══════════════ -->
+    <string name="battery_charging_short">Cargando</string>
+    <string name="battery_idle_short">Batería</string>
+    <string name="btn_test_charging">Probar</string>
+    <string name="battery_header_plug">%1$s • %2$.1f °C</string>
+
+    <!-- ═══════════════ pestañas ═══════════════ -->
+    <string name="tab_sound">Sonido</string>
+    <string name="tab_animation">Animación</string>
+    <string name="tab_battery_info">Batería</string>
+
+    <!-- ═══════════════ permiso de superposición ═══════════════ -->
+    <string name="overlay_title_granted">Mostrar sobre otras apps: activado</string>
+    <string name="overlay_title_needed">Mostrar sobre otras apps: desactivado</string>
+    <string name="overlay_desc_granted">Enchufa un cargador y la animación aparece sobre tus otras apps.</string>
+    <string name="overlay_desc_needed">Android 10 y versiones posteriores bloquean las pantallas en segundo plano por seguridad. Si concedes este permiso, la animación de carga puede aparecer sobre apps como YouTube. Si no lo concedes, el sonido y la vibración siguen funcionando y en su lugar se muestra una notificación.</string>
+    <string name="overlay_btn_grant">Abrir ajustes</string>
+
+    <!-- ═══════════════ oferta de crédito ═══════════════ -->
+    <string name="offer_title">%1$s aplicado</string>
+    <string name="offer_desc">Mira un anuncio para ganar 1 crédito de desbloqueo. Un crédito abre cualquier sonido o tema premium al instante, sin anuncios.</string>
+    <string name="offer_btn">Ver anuncio, ganar crédito</string>
+    <string name="offer_later">Quizá más tarde</string>
+    <string name="offer_label_custom_audio">Audio personalizado</string>
+    <string name="offer_label_custom_video">Vídeo personalizado</string>
+
+    <!-- ═══════════════ ajustes de sonido ═══════════════ -->
+    <string name="sound_enable_title">Sonido de carga</string>
+    <string name="sound_enable_sub">Reproduce tu sonido al conectar el cargador</string>
+    <string name="sound_volume_title">Volumen del sonido</string>
+    <string name="btn_stop_sound">Detener</string>
+    <string name="btn_preview_volume">Escuchar</string>
+    <string name="sound_custom_title">Elige tu propio audio</string>
+    <string name="sound_custom_sub">Selecciona cualquier archivo de audio del dispositivo</string>
+    <string name="sound_custom_applied">Audio personalizado activo</string>
+    <string name="btn_pick_mp3">Elegir archivo de audio</string>
+    <string name="btn_change_mp3">Cambiar de archivo</string>
+    <string name="sound_presets_title">Sonidos integrados</string>
+    <string name="sound_presets_sub">Toca un sonido para escucharlo</string>
+    <string name="a11y_play">Escuchar</string>
+    <string name="a11y_play_short">Reproducir</string>
+    <string name="a11y_delete">Eliminar</string>
+    <string name="a11y_close">Cerrar</string>
+
+    <!-- ═══════════════ nombres y descripciones de sonidos ═══════════════ -->
+    <string name="preset_cyber_chime_name">Cyber Chime</string>
+    <string name="preset_cyber_chime_desc">Campanilla futurista de tres notas ascendentes</string>
+    <string name="preset_lightning_spark_name">Electric Spark</string>
+    <string name="preset_lightning_spark_desc">Chisporroteo eléctrico nítido con pulso</string>
+    <string name="preset_super_charge_name">Super Level Up</string>
+    <string name="preset_super_charge_desc">Melodía brillante de subida de nivel, estilo videojuego</string>
+    <string name="preset_gentle_ding_name">Gentle Bell</string>
+    <string name="preset_gentle_ding_desc">Campana de cristal suave y clara</string>
+    <string name="preset_turbo_surge_name">Turbo Surge</string>
+    <string name="preset_turbo_surge_desc">Encendido de un propulsor de nave estelar</string>
+
+    <string name="prm_synthwave_name">Synthwave Rays</string>
+    <string name="prm_synthwave_desc">Arpegio de synthwave de los años 80</string>
+    <string name="prm_chiptune_name">Chiptune Murmur</string>
+    <string name="prm_chiptune_desc">Bucle retro de videojuego de 8 bits</string>
+    <string name="prm_ambient_name">Ambient Drone</string>
+    <string name="prm_ambient_desc">Acorde profundo de fondo, tranquilo y constante</string>
+    <string name="prm_brass_name">Brass Fanfare</string>
+    <string name="prm_brass_desc">Fanfarria-grandiosa de metales</string>
+    <string name="prm_rainbow_name">Rainbow Bells</string>
+    <string name="prm_rainbow_desc">Cascada de siete tonos de campana</string>
+    <string name="prm_vaporwave_name">Vaporwave Ground</string>
+    <string name="prm_vaporwave_desc">Ritmo lento de dreampunk</string>
+
+    <!-- ═══════════════ sonidos premium ═══════════════ -->
+    <string name="premium_sounds_title">Pack de sonidos premium</string>
+    <string name="premium_sounds_sub">Mira %1$d anuncios para desbloquear. Puedes seguir usando todos los sonidos integrados aunque no quieras ver anuncios.</string>
+
+    <!-- ═══════════════ vibración ═══════════════ -->
+    <string name="vibration_title">Vibración al conectar</string>
+    <string name="vibration_sub">Añade respuesta háptica junto al sonido</string>
+
+    <!-- ═══════════════ nombres y descripciones de animaciones ═══════════════ -->
+    <string name="mode_lightning_name">Electric Lightning</string>
+    <string name="mode_lightning_desc">Chispas eléctricas y corriente de neón</string>
+    <string name="mode_reactor_name">Cyber Reactor</string>
+    <string name="mode_reactor_desc">Núcleo de carga tipo reactor de arco</string>
+    <string name="mode_plasma_name">Quantum Plasma</string>
+    <string name="mode_plasma_desc">Gotas de energía de neón y partículas</string>
+    <string name="mode_nebula_name">Nebula</string>
+    <string name="mode_nebula_desc">Campo de partículas de nebulosa en remolino</string>
+    <string name="mode_matrix_name">Matrix Rain</string>
+    <string name="mode_matrix_desc">Columnas de código cayendo como lluvia</string>
+    <string name="mode_abyss_name">Abyss</string>
+    <string name="mode_abyss_desc">Olas profundas y coral a la deriva</string>
+    <string name="mode_prism_name">Prism</string>
+    <string name="mode_prism_desc">Refracción de la luz en polígonos</string>
+    <string name="mode_fireworks_name">Fireworks</string>
+    <string name="mode_fireworks_desc">Ráfagas de luz a intervalos</string>
+    <string name="mode_blackhole_name">Black Hole</string>
+    <string name="mode_blackhole_desc">Horizonte de eventos en remolino</string>
+    <string name="mode_custom_video_name">Vídeo personalizado</string>
+    <string name="mode_custom_video_desc">Un archivo de vídeo que elegiste tú</string>
+
+    <!-- ═══════════════ ajustes de animación ═══════════════ -->
+    <string name="anim_enable_title">Animación de carga</string>
+    <string name="anim_enable_sub">Reproduce una animación a pantalla completa al conectar el cargador</string>
+    <string name="anim_custom_title">Elige tu propio vídeo</string>
+    <string name="anim_custom_sub">Usa cualquier vídeo del teléfono como pantalla de carga</string>
+    <string name="anim_custom_applied">Vídeo personalizado activo</string>
+    <string name="btn_pick_video">Elegir archivo de vídeo</string>
+    <string name="btn_change_video">Cambiar de vídeo</string>
+    <string name="anim_duration_title">Duración de reproducción</string>
+    <string name="anim_duration_sub">Arrastra el control para definir el tiempo de reproducción de 1 a 30 segundos</string>
+    <string name="anim_chip_slider">Control</string>
+    <string name="anim_chip_full">Completo</string>
+    <string name="anim_chip_touch">Hasta tocar</string>
+    <string name="anim_fadeout_note">Sincronización de audio: el sonido se desvanece suavemente durante los últimos 1,5 segundos.</string>
+    <string name="anim_loop_title">Repetir vídeos cortos</string>
+    <string name="anim_loop_sub">Se repite sin cortes durante el tiempo definido</string>
+    <string name="anim_builtin_title">Temas de animación integrados</string>
+    <string name="anim_builtin_sub">Se usan cuando no hay vídeo propio o cuando prefieres el estilo neón</string>
+    <string name="premium_anims_title">Temas de animación premium</string>
+    <string name="premium_anims_sub">Mira %1$d anuncios para desbloquear. Puedes seguir usando los 3 temas integrados aunque no quieras ver anuncios.</string>
+    <string name="btn_preview_fullscreen">Vista previa a pantalla completa</string>
+
+    <!-- ═══════════════ pantalla de animación ═══════════════ -->
+    <string name="anim_plug_connected">Cargador conectado</string>
+    <string name="anim_auto_close">Cierra en %1$d s</string>
+    <string name="anim_loop_forever">Reproduciendo hasta que toques</string>
+    <string name="anim_tap_to_close">Toca en cualquier lugar para cerrar</string>
+
+    <!-- ═══════════════ pestaña de batería ═══════════════ -->
+    <string name="battery_discharging">Sin cargar</string>
+    <string name="battery_temp_label">Temperatura</string>
+    <string name="battery_voltage_label">Voltaje</string>
+    <string name="battery_health_label">Estado de la batería</string>
+    <string name="battery_technology_label">Tecnología</string>
+    <string name="battery_status_label">Estado</string>
+    <string name="battery_temp_warning">La batería está caliente. Mantenla lejos del calor y la luz solar directa.</string>
+    <string name="value_celsius">%1$.1f °C</string>
+    <string name="value_volts">%1$.2f V</string>
+
+    <!-- ═══════════════ estado / salud ═══════════════ -->
+    <string name="battery_status_unknown">Desconocido</string>
+    <string name="battery_status_charging">Cargando</string>
+    <string name="battery_status_full">Completamente cargada (100 %)</string>
+    <string name="battery_status_discharging">Con batería</string>
+    <string name="battery_status_not_charging">Sin cargar</string>
+    <string name="battery_status_standby">En espera</string>
+    <string name="battery_health_good">Buena</string>
+    <string name="battery_health_overheat">Sobrecalentamiento</string>
+    <string name="battery_health_dead">Agotada</string>
+    <string name="battery_health_overvoltage">Sobretensión</string>
+    <string name="battery_health_fail">Necesita revisión</string>
+    <string name="battery_health_cold">Demasiado frío</string>
+    <string name="battery_health_ok">Normal</string>
+    <string name="plug_ac">Carga por cable (CA)</string>
+    <string name="plug_usb">Conexión USB</string>
+    <string name="plug_wireless">Carga inalámbrica</string>
+    <string name="plug_none">Sin conexión</string>
+
+    <!-- ═══════════════ conectores de prueba ═══════════════ -->
+    <string name="plug_test_sim">Simulación de prueba</string>
+    <string name="plug_preview">Vista previa a pantalla completa</string>
+
+    <!-- ═══════════════ periodo sin anuncios ═══════════════ -->
+    <string name="adfree_dialog_title">Usar sin anuncios</string>
+    <string name="adfree_dialog_sub">Mira un anuncio para ocultar el banner durante el tiempo que elijas.</string>
+    <string name="adfree_card_title">Usar sin anuncios</string>
+    <string name="adfree_card_active_title">Periodo sin anuncios activo</string>
+    <string name="adfree_card_desc">Mira un anuncio para ocultar el banner y la tarjeta patrocinada durante un tiempo.</string>
+    <string name="adfree_card_active_desc">Los anuncios volverán cuando termine el tiempo.</string>
+    <string name="adfree_btn_hide">Ver anuncio y ocultar</string>
+    <string name="adfree_btn_choose">Elegir duración</string>
+    <string name="btn_cancel">Cancelar</string>
+    <string name="duration_minutes">%1$d min</string>
+    <string name="duration_hours">%1$d h</string>
+    <string name="duration_days">%1$d d</string>
+
+    <!-- ═══════════════ mensajes ═══════════════ -->
+    <string name="msg_ad_unavailable">Ahora mismo no hay ningún anuncio disponible. Inténtalo de nuevo en un momento.</string>
+    <string name="msg_ad_load_fail">No se pudo cargar un anuncio. Puedes seguir usando todos los sonidos integrados sin ver ninguno.</string>
+    <string name="msg_ad_retry_later">No se pudo cargar un anuncio. Inténtalo más tarde.</string>
+    <string name="msg_already_unlocked">Ya está desbloqueado.</string>
+    <string name="msg_unlocked">¡%1$s desbloqueado!</string>
+    <string name="msg_locked_sound">Mira un anuncio para desbloquear %1$s.</string>
+    <string name="msg_locked_anim">Mira un anuncio para desbloquear el tema %1$s.</string>
+    <string name="msg_premium_sound_fallback">No se pudo cargar ese sonido premium, así que se ha restaurado el sonido predeterminado.</string>
+    <string name="msg_sound_applied">Sonido aplicado.</string>
+    <string name="msg_unlock_progress">%1$s: %2$d de %3$d anuncios vistos</string>
+    <string name="msg_adfree_started">Sin anuncios durante %1$d minutos.</string>
+    <string name="msg_custom_audio_applied">Audio personalizado aplicado.</string>
+    <string name="msg_audio_load_fail">No se pudo cargar ese archivo de audio: %1$s</string>
+    <string name="msg_credit_gained">Has ganado 1 crédito de desbloqueo (%1$d en total).</string>
+    <string name="msg_monitoring_started">Detección de carga activada.</string>
+    <string name="msg_monitoring_stopped">Detección de carga desactivada.</string>
+    <string name="msg_preset_restored">Se ha vuelto a los sonidos integrados.</string>
+    <string name="msg_custom_video_registered">Vídeo personalizado registrado: %1$s</string>
+    <string name="msg_video_load_fail">No se pudo cargar ese archivo de vídeo: %1$s</string>
+    <string name="msg_anim_restored">Se ha vuelto a la animación predeterminada.</string>
+
+    <!-- ═══════════════ notificaciones ═══════════════ -->
+    <string name="notif_charge_channel">Carga iniciada</string>
+    <string name="notif_charge_desc">Te avisa cuando empieza la carga si no se ha concedido el permiso de superposición</string>
+    <string name="notif_charge_title">Carga iniciada · %1$d%%</string>
+    <string name="notif_charge_text">Conectado a %1$s</string>
+    <string name="notif_monitor_channel">Detección de carga</string>
+    <string name="notif_monitor_desc">Actualizaciones de estado de la detección de carga</string>
+    <string name="notif_blocked_title">Abre ChargeSound para iniciar la detección de carga</string>
+    <string name="notif_blocked_text">Una política de seguridad del sistema bloqueó el inicio automático. Abrir la app una vez lo vuelve a activar.</string>
+    <string name="notif_service_channel">Detección de carga</string>
+    <string name="notif_service_desc">Permanece en segundo plano para que el sonido y la animación se reproduzcan al enchufar</string>
+    <string name="notif_active_title">ChargeSound está activo</string>
+    <string name="notif_active_text">Tu sonido y tu animación se reproducirán al conectar un cargador</string>
+
+    <!-- ═══════════════ menú de puntos suspensivos ═══════════════ -->
+    <string name="menu_more">Más opciones</string>
+    <string name="menu_alarm">Alarma de carga</string>
+    <string name="menu_alerts">Alertas de batería</string>
+    <string name="menu_sound_context">Sonido y horario silencioso</string>
+    <string name="menu_premium_sounds">Pack de sonidos premium</string>
+    <string name="menu_premium_animations">Temas de animación premium</string>
+    <string name="menu_about">Acerca de y privacidad</string>
+    <string name="menu_theme">Tema</string>
+
+    <!-- ═══════════════ tema / color de acento ═══════════════ -->
+    <string name="accent_title">Color de acento</string>
+    <string name="accent_sub">Elige el color que se usa en toda la app</string>
+    <string name="accent_cyan">Cian eléctrico</string>
+    <string name="accent_magenta">Magenta</string>
+    <string name="accent_violet">Violeta</string>
+    <string name="accent_lime">Verde lima</string>
+    <string name="accent_ember">Naranja</string>
+    <string name="accent_apply_note">El color de acento se aplica en toda la app, incluida la animación de carga.</string>
+
+    <!-- ═══════════════ sobre la app ═══════════════ -->
+    <string name="about_description">Una app de sonido y animación de carga a pantalla completa. Todos los sonidos y animaciones se generan en tu dispositivo: no incluye archivos multimedia.</string>
+    <string name="about_privacy_title">Política de privacidad</string>
+    <string name="about_privacy_sub">Toca para abrirla en el navegador</string>
+    <string name="about_data_note">ChargeSound no tiene cuenta ni servidor. Tus ajustes se quedan en tu dispositivo. El único dato que sale del dispositivo es el identificador publicitario que gestiona nuestro socio de anuncios.</string>
+
+    <!-- ═══════════════ filas premium ═══════════════ -->
+    <string name="premium_btn_unlock">Desbloquear</string>
+    <string name="premium_btn_ads_left">%1$d anuncios</string>
+    <string name="premium_progress">Mira %1$d de %2$d anuncios para desbloquear</string>
+    <string name="premium_generic_name">Contenido premium</string>
+
+    <!-- ═══════════════ alarma de carga ═══════════════ -->
+    <string name="alarm_enable_title">Alarma de carga</string>
+    <string name="alarm_enable_sub">Suena cuando la batería llega al nivel elegido</string>
+    <string name="alarm_target_title">Nivel objetivo</string>
+    <string name="alarm_target_sub">Suena una vez por sesión de carga</string>
+    <string name="alarm_sound_title">Reproducir un sonido</string>
+    <string name="alarm_sound_sub">Usa la alarma del sistema</string>
+    <string name="alarm_channel_name">Alarma de carga</string>
+    <string name="alarm_channel_desc">Te avisa cuando la batería llega al nivel elegido</string>
+    <string name="alarm_notification_title">La batería llegó al %1$d %%</string>
+    <string name="alarm_notification_text">Tu objetivo de alarma era el %1$d %%</string>
+    <string name="msg_alarm_on">Alarma de carga activada.</string>
+    <string name="msg_alarm_off">Alarma de carga desactivada.</string>
+    <string name="msg_alarm_target">Alarma fijada en el %1$d %%.</string>
+
+    <!-- ═══════════════ contexto del sonido ═══════════════ -->
+    <string name="plug_sound_title">Sonido distinto por cargador</string>
+    <string name="plug_sound_sub">Usa un sonido aparte para CA, USB y carga inalámbrica</string>
+    <string name="quiet_hours_title">Horario silencioso</string>
+    <string name="quiet_hours_sub">Sin sonido durante este horario. La vibración y las notificaciones siguen activas.</string>
+    <string name="quiet_hours_start">Desde</string>
+    <string name="quiet_hours_end">Hasta</string>
+    <string name="quiet_hours_range">Sin sonido de %1$s a %2$s</string>
+    <string name="quiet_hours_pick_title">Elige una hora</string>
+
+    <!-- ═══════════════ batería baja / descarga rápida ═══════════════ -->
+    <string name="temp_alert_title">Temperatura alta</string>
+    <string name="temp_alert_sub">Avísame si la batería se calienta demasiado</string>
+    <string name="temp_alert_body">La batería está a %1$.1f °C, por encima de tu límite de %2$.0f °C. Mantenla lejos del calor.</string>
+    <string name="health_alert_title">Estado de la batería</string>
+    <string name="health_alert_sub">Avísame si la batería informa de un problema</string>
+    <string name="health_channel_name">Estado de la batería</string>
+    <string name="health_channel_desc">Te notifica cuando la batería informa de sobrecalentamiento o daño</string>
+    <string name="low_battery_title">Batería baja</string>
+    <string name="low_battery_sub">Avísame cuando la batería esté baja sin estar cargando</string>
+    <string name="low_battery_body">La batería está al %2$d %%, en o por debajo de tu límite del %1$d %%.</string>
+    <string name="rapid_discharge_title">La batería se agota rápido</string>
+    <string name="rapid_discharge_sub">Avísame cuando la batería se descargue más rápido de lo normal</string>
+    <string name="rapid_discharge_body">La batería bajó un %2$d %% en %1$d minutos sin estar cargando.</string>
+    <string name="rapid_window_title">Ventana de medición</string>
+    <string name="rapid_drop_title">Bajada considerada rápida</string>
+
+    <!-- ═══════════════ widget y acceso rápido ═══════════════ -->
+    <string name="widget_description">Nivel de batería y estado de carga en tu pantalla de inicio</string>
+    <string name="widget_level_fmt">%1$d %%</string>
+    <string name="widget_plug_fmt">%1$s • %2$.1f °C</string>
+    <string name="widget_hint">Consejo: añade el widget de ChargeSound a tu pantalla de inicio y activa el acceso rápido de la barra de notificaciones para controlar la detección sin abrir la app.</string>
+    <string name="tile_label">Detección de carga</string>
+    <string name="tile_label_on">Detección de carga activada</string>
+    <string name="tile_label_off">Detección de carga desactivada</string>
+
+    <!-- ═══════════════ actualizaciones ═══════════════ -->
+    <string name="update_check_title">Buscar actualizaciones</string>
+    <string name="update_check_sub">Abre la página de la tienda</string>
+    <string name="update_dialog_title">Hay una actualización</string>
+    <string name="update_dialog_body">La versión %1$s ya está publicada en la tienda.</string>
+    <string name="update_dialog_btn">Actualizar</string>
+    <string name="update_dialog_later">Más tarde</string>
+    <string name="btn_confirm">Aceptar</string>
+
+    <!-- ═══════════════ accesos directos ═══════════════ -->
+    <string name="shortcut_toggle_short">Alternar</string>
+    <string name="shortcut_toggle_short_on">Activar</string>
+    <string name="shortcut_toggle_short_off">Desactivar</string>
+    <string name="shortcut_toggle_long">Alternar detección de carga</string>
+    <string name="shortcut_preview_short">Vista previa</string>
+    <string name="shortcut_preview_long">Ver la animación de carga</string>
+    <string name="shortcut_alarm_short">Alarma</string>
+    <string name="shortcut_alarm_long">Abrir ajustes de alarma de carga</string>
+
+    <!-- ═══════════════ duración ═══════════════ -->
+    <string name="duration_label_full">Vídeo completo</string>
+    <string name="duration_label_touch">Hasta que toque</string>
+    <string name="duration_label_seconds">%1$d s</string>
+
+    <!-- ═══════════════ sesión de carga ═══════════════ -->
+    <string name="session_elapsed">Cargando desde hace %1$s</string>
+    <string name="session_eta">Objetivo en unos %1$s</string>
+    <string name="session_rate">+%1$s%/h</string>
+
+    <string name="session_elapsed_short">durante %1$s</string>
+</resources>

@@ -90,6 +90,7 @@ class SettingsRepository(private val context: Context) {
     val KEY_QUIET_ENABLED = booleanPreferencesKey("quiet_enabled")
     val KEY_QUIET_START = intPreferencesKey("quiet_start_minute")
     val KEY_QUIET_END = intPreferencesKey("quiet_end_minute")
+    val KEY_ACCENT = stringPreferencesKey("accent_key")
 
     // ── 충전 세션 추적 (ETA) ──
     val KEY_SESSION_STARTED_AT = longPreferencesKey("session_started_at")
@@ -169,7 +170,8 @@ class SettingsRepository(private val context: Context) {
             rapidDischargeDropPercent = (prefs[KEY_RAPID_DROP_PERCENT] ?: 10).coerceIn(3, 40),
             quietHoursEnabled = prefs[KEY_QUIET_ENABLED] ?: false,
             quietStartMinute = (prefs[KEY_QUIET_START] ?: 1320).coerceIn(0, 1440),
-            quietEndMinute = (prefs[KEY_QUIET_END] ?: 420).coerceIn(0, 1440)
+            quietEndMinute = (prefs[KEY_QUIET_END] ?: 420).coerceIn(0, 1440),
+            accentKey = prefs[KEY_ACCENT] ?: "cyan"
         )
     }
 suspend fun readSession(): ChargingSession = context.dataStore.data.first().let { prefs ->
@@ -230,6 +232,10 @@ suspend fun readSession(): ChargingSession = context.dataStore.data.first().let 
     }
 
     // ── 조용한 시간 ──
+
+    suspend fun setAccentKey(key: String) {
+        context.dataStore.edit { it[KEY_ACCENT] = key }
+    }
 
     suspend fun setQuietHoursEnabled(enabled: Boolean) {
         context.dataStore.edit { it[KEY_QUIET_ENABLED] = enabled }

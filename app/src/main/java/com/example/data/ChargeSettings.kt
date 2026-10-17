@@ -147,7 +147,9 @@ data class ChargeSettings(
     /** 시작 시각 (0~1439 분, 0=00:00) */
     val quietStartMinute: Int = 1320,
     /** 종료 시각 (0~1439 분, 1440=24:00) */
-    val quietEndMinute: Int = 420
+    val quietEndMinute: Int = 420,
+    /** 강조색 프리셋 키 (com.example.ui.theme.AccentPalette.keyOf 참조) */
+    val accentKey: String = "cyan"
 ) {
 
     /**

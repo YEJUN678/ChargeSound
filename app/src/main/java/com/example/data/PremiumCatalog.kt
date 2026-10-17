@@ -13,7 +13,7 @@ import com.example.R
  * 서버 배포를 원한다면 [PremiumSound.remoteUrl] / [PremiumAnimation.remoteUrl]에
  * **직접 제작했거나 상업적 이용이 허가된** URL만 채워야 합니다.
  * 유튜브 등 타 플랫폼에서 다운받은 콘텐츠를 재배포하면 Google Play intellectual
- * property 정책 위반으로 앱과 AdMob 계정이 함께 정지됩니다.
+ * property 정책 위반으로 앱과 광고 계정이 함께 정지됩니다.
  *
  * ## 정책 준수
  * 보상형 광고는 사용자가 광고를 거부해도 앱의 기본 기능이 그대로 동작해야 합니다.

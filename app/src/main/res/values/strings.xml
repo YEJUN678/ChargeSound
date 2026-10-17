@@ -169,7 +169,7 @@
     <!-- ═══════════════ charging session (ETA) ═══════════════ -->
     <string name="session_elapsed">Charging for %1$s</string>
     <string name="session_eta">Target in about %1$s</string>
-    <string name="session_rate">%1$s per hour</string>
+    <string name="session_rate">+%1$s%/h</string>
 
     <!-- ═══════════════ charge alarm ═══════════════ -->
     <string name="alarm_enable_title">Charge alarm</string>
@@ -334,4 +334,14 @@
     <string name="quiet_hours_pick_title">Pick a time</string>
     <string name="btn_confirm">OK</string>
     <string name="rapid_discharge_title">Battery draining fast</string>
+    <string name="menu_theme">Theme</string>
+    <string name="accent_magenta">Magenta</string>
+    <string name="accent_cyan">Electric cyan</string>
+    <string name="accent_title">Accent colour</string>
+    <string name="accent_violet">Violet</string>
+    <string name="accent_apply_note">The accent is applied across the whole app, including the charging animation.</string>
+    <string name="accent_ember">Ember</string>
+    <string name="accent_sub">Pick the colour used across the app</string>
+    <string name="accent_lime">Lime</string>
+    <string name="session_elapsed_short">for %1$s</string>
 </resources>

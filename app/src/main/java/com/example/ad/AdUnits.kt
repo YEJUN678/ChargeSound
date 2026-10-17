@@ -49,18 +49,15 @@ object AdUnits {
 object AdPolicy {
 
     /**
-     * 전면(Interstitial) 광고는 사용하지 않습니다.
+     * 전면(Interstitial) · 앱오픈 광고는 사용하지 않습니다.
      *
      * 충전 감지 유틸리티는 명확한 시작/종료 지점이 없어 전면 광고를 쓰기 어렵고,
      * 강제 노출 시 스토어 심사에서 걸릴 수 있습니다.
      * 배너 · 스폰서 카드 · 보상형만 사용합니다.
+     *
+     * 전면 형식을 다시 도입하려면 아래 상수를 되살리고 AdManager 에
+     * 노출 로직을 추가해야 합니다. 현재는 정책적으로 차단되어 있습니다.
      */
-
-    /** 앱오픈(전면) 광고 최소 간격 — 전면 형식은 정책상 사용하지 않지만 보류용 */
-    const val APP_OPEN_MIN_INTERVAL_MS = 30L * 60L * 1000L
-
-    /** 세션 내 앱오픈 광고 최대 노출 횟수 */
-    const val APP_OPEN_MAX_PER_SESSION = 1
 
     /** 보상형 광고: 연속 실패 시 노출을 중단하는 최대 시도 횟수 */
     const val MAX_LOAD_FAILURES = 3

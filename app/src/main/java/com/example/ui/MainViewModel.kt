@@ -475,6 +475,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // ─────────────────────── 조용한 시간 ───────────────────────
 
+    fun setAccentKey(key: String) {
+        viewModelScope.launch { repository.setAccentKey(key) }
+    }
+
     fun setQuietHoursEnabled(enabled: Boolean) {
         viewModelScope.launch { repository.setQuietHoursEnabled(enabled) }
     }

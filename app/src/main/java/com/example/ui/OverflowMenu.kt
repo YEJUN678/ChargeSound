@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.SystemUpdate
@@ -82,6 +83,7 @@ fun OverflowMenu(
     onOpenPremiumSounds: () -> Unit,
     onOpenPremiumAnimations: () -> Unit,
     onOpenAdFree: () -> Unit,
+    onOpenTheme: () -> Unit,
     onOpenAbout: () -> Unit,
     adFreeMinutesRemaining: Int
 ) {
@@ -157,6 +159,14 @@ fun OverflowMenu(
             onClick = {
                 expanded = false
                 onOpenAdFree()
+            }
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.menu_theme)) },
+            leadingIcon = { Icon(Icons.Default.Palette, contentDescription = null) },
+            onClick = {
+                expanded = false
+                onOpenTheme()
             }
         )
         DropdownMenuItem(

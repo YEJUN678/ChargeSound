@@ -8,6 +8,8 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+hs_err_pid*.log
+replay_pid*.log
 .DS_Store
 /build
 /captures

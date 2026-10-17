@@ -15,10 +15,10 @@ plugins {
 //   $env:VERSION_CODE = "5"; gradle :app:assembleRelease
 val appVersionCode =
     ((project.findProperty("VERSION_CODE") as String?) ?: (System.getenv("VERSION_CODE") ?: ""))
-        .toIntOrNull() ?: 2
+        .toIntOrNull() ?: 3
 
 val appVersionName =
-    (project.findProperty("VERSION_NAME") as String?) ?: (System.getenv("VERSION_NAME") ?: "1.1.0")
+    (project.findProperty("VERSION_NAME") as String?) ?: (System.getenv("VERSION_NAME") ?: "1.2.0")
 
 android {
   namespace = "com.example"

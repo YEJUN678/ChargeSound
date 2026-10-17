@@ -5,9 +5,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ad.AdManager
 import com.example.ui.MainScreen
 import com.example.ui.MainViewModel
+import com.example.ui.theme.AccentPalette
 import com.example.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,11 +21,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // AdMob SDK 초기화 (배너/보상형/앱 오픈 프리로드 시작)
+        // ironSource LevelPlay SDK 초기화 (배너/스폰서 카드/보상형 프리로드 시작)
         AdManager.initialize(applicationContext)
 
         setContent {
-            MyApplicationTheme {
+            // 강조색은 설정에서 바꾸므로 상태로 읽어야 테마가 다시 그려집니다.
+            // (전역 색 상수에 반영하는 방식은 MyApplicationTheme 참조)
+            val settings by viewModel.settings.collectAsStateWithLifecycle()
+            MyApplicationTheme(
+                darkTheme = true,
+                accent = AccentPalette.fromKey(settings.accentKey)
+            ) {
                 MainScreen(viewModel = viewModel)
             }
         }
@@ -38,7 +47,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        AdManager.resetSessionCounters()
         // ironSource SDK는 포그라운드/백그라운드 전환을 직접 추적해야 합니다.
         AdManager.onResume(this)
         AdManager.loadRewarded(applicationContext)

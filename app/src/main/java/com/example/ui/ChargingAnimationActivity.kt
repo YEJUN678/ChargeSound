@@ -83,6 +83,7 @@ import com.example.ui.theme.ElectricAmber
 import com.example.ui.theme.ElectricCyan
 import com.example.ui.theme.ElectricGreen
 import com.example.ui.theme.ElectricPurple
+import com.example.ui.theme.AccentPalette
 import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.theme.Slate950
 import kotlinx.coroutines.delay
@@ -92,6 +93,9 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 class ChargingAnimationActivity : ComponentActivity() {
+
+    /** 테마 진입점에서 읽을 강조색 키 (onCreate에서 설정 저장소를 읽어 채웁니다) */
+    private var accentKey: String = "cyan"
 
     companion object {
         private const val TAG = "ChargingAnimationActivity"
@@ -107,6 +111,10 @@ class ChargingAnimationActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         showOnLockScreen = runBlocking {
             SettingsRepository(applicationContext).settingsFlow.first().showOnLockScreen
+        }
+        // 강조색도 한 번만 읽습니다 (세션 동안 바뀔 일은 없습니다).
+        accentKey = runBlocking {
+            SettingsRepository(applicationContext).settingsFlow.first().accentKey
         }
         configureScreenWakeAndLock()
         enableEdgeToEdge()
@@ -127,7 +135,11 @@ class ChargingAnimationActivity : ComponentActivity() {
         }
 
         setContent {
-            MyApplicationTheme {
+            // 충전 애니메이션도 사용자 강조색을 따라갑니다 (onCreate에서 이미 읽은 설정 재사용).
+            MyApplicationTheme(
+                darkTheme = true,
+                accent = AccentPalette.fromKey(accentKey)
+            ) {
                 ChargingScreenContent(
                     initialLevel = initialLevel,
                     plugName = plugName,

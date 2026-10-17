@@ -162,7 +162,7 @@
     <!-- ═══════════════ 충전 세션 (ETA) ═══════════════ -->
     <string name="session_elapsed">%1$s째 충전 중</string>
     <string name="session_eta">목표까지 약 %1$s</string>
-    <string name="session_rate">시간당 %1$s</string>
+    <string name="session_rate">+%1$s%/시간</string>
 
     <!-- ═══════════════ 충전 알람 ═══════════════ -->
     <string name="alarm_enable_title">충전 알람</string>
@@ -327,4 +327,14 @@
     <string name="quiet_hours_pick_title">시간 선택</string>
     <string name="btn_confirm">확인</string>
     <string name="rapid_discharge_title">배터리가 빠르게 소모됩니다</string>
+    <string name="menu_theme">테마</string>
+    <string name="accent_magenta">마젠타</string>
+    <string name="accent_cyan">일렉트릭 시안</string>
+    <string name="accent_title">강조색</string>
+    <string name="accent_violet">바이올렛</string>
+    <string name="accent_apply_note">강조색은 충전 애니메이션을 포함한 앱 전체에 적용됩니다.</string>
+    <string name="accent_ember">엠버 오렌지</string>
+    <string name="accent_sub">앱 전체에 쓰이는 색을 고릅니다</string>
+    <string name="accent_lime">라임 그린</string>
+    <string name="session_elapsed_short">%1$s 경과</string>
 </resources>

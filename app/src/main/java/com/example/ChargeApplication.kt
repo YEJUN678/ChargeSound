@@ -19,7 +19,7 @@ class ChargeApplication : Application() {
         super.onCreate()
         Log.d(TAG, "Application onCreate")
 
-        // AdMob SDK 초기화 (배너/보상형/앱 오픈 프리로드)
+        // ironSource LevelPlay SDK 초기화 (배너/스폰서 카드/보상형 프리로드)
         com.example.ad.AdManager.initialize(this)
 
         // Initialize built-in sound presets on background thread
