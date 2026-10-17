@@ -74,6 +74,11 @@ object BatteryAlertManager {
 
                 if (settings.tempAlertEnabled) evaluateTemperature(appContext, settings, info)
                 if (settings.healthAlertEnabled) evaluateHealth(appContext, settings, info)
+                if (settings.lowBatteryAlertEnabled) evaluateLowBattery(appContext, settings, info)
+                if (settings.rapidDischargeAlertEnabled) evaluateRapidDischarge(appContext, settings, info)
+
+                // 충전 세션 추적 (경과 시간 · ETA 계산용)
+                ChargingSessionTracker.record(appContext, info, settings.alarmTargetPercent)
             } catch (e: Exception) {
                 Log.e(TAG, "evaluate failed", e)
             }
@@ -232,6 +237,80 @@ object BatteryAlertManager {
         )
     }
 
+    // ─────────────────────── 저전력 · 급방전 ───────────────────────
+
+private fun evaluateLowBattery(context: Context, settings: ChargeSettings, info: BatteryInfo) {
+        // 충전 중이거나 이미 경고를 보낸 구간이면 조용합니다.
+        if (info.isCharging) {
+            lowBatteryNotified = false
+            return
+        }
+        if (info.level > settings.lowBatteryThreshold) {
+            lowBatteryNotified = false
+            return
+        }
+        if (lowBatteryNotified) return
+        lowBatteryNotified = true
+
+        postHealthNotification(
+            context,
+            title = context.getString(R.string.low_battery_title),
+            body = context.getString(R.string.low_battery_body, settings.lowBatteryThreshold, info.level)
+        )
+    }
+
+    /**
+     * 급방전 감지.
+     *
+     * 비충전 중 [ChargeSettings.rapidDischargeWindowMinutes] 분 이내에
+     * [ChargeSettings.rapidDischargeDropPercent] % 이상 떨어지면
+     * 고부하(게임/내비/화면 밝기) 등으로 배터리가 빠르게 소모되는 것으로 판단합니다.
+     */
+    private fun evaluateRapidDischarge(context: Context, settings: ChargeSettings, info: BatteryInfo) {
+        if (info.isCharging) {
+            rapidWindowStartAt = 0L
+            rapidWindowStartLevel = info.level
+            rapidDischargeNotified = false
+            return
+        }
+
+        val now = System.currentTimeMillis()
+        val windowMillis = settings.rapidDischargeWindowMinutes * 60_000L
+
+        // 기록이 없거나 너무 오래되면 새로 시작합니다.
+        if (rapidWindowStartAt == 0L || now - rapidWindowStartAt > windowMillis) {
+            rapidWindowStartAt = now
+            rapidWindowStartLevel = info.level
+            rapidDischargeNotified = false
+            return
+        }
+
+        val drop = rapidWindowStartLevel - info.level
+        if (drop < settings.rapidDischargeDropPercent) return
+        if (rapidDischargeNotified) return
+
+        rapidDischargeNotified = true
+        postHealthNotification(
+            context,
+            title = context.getString(R.string.rapid_discharge_title),
+            body = context.getString(
+                R.string.rapid_discharge_body,
+                settings.rapidDischargeWindowMinutes,
+                drop
+            )
+        )
+    }
+
+    @Volatile
+    private var lowBatteryNotified = false
+
+    @Volatile
+    private var rapidDischargeNotified = false
+    @Volatile
+    private var rapidWindowStartAt = 0L
+    @Volatile
+    private var rapidWindowStartLevel = 0
+
     private fun postHealthNotification(context: Context, title: String, body: String) {
         try {
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -297,5 +376,8 @@ object BatteryAlertManager {
     fun resetCooldowns() {
         lastHealthNotifiedAt = 0L
         lastTempNotifiedAt = 0L
+        lowBatteryNotified = false
+        rapidDischargeNotified = false
+        rapidWindowStartAt = 0L
     }
 }

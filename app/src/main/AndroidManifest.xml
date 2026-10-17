@@ -49,7 +49,23 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
+
+        <!-- 런처 롱프레스 바로가기 실행기 -->
+        <receiver
+            android:name=".service.ShortcutActionReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.chargesound.app.action.TOGGLE_SERVICE" />
+                <action android:name="com.chargesound.app.action.PREVIEW_ANIMATION" />
+                <action android:name="com.chargesound.app.action.OPEN_ALARM" />
+            </intent-filter>
+        </receiver>
 
         <activity
             android:name=".ui.ChargingAnimationActivity"

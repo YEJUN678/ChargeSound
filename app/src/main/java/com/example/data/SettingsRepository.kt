@@ -15,11 +15,20 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.File
 import java.io.FileOutputStream
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "charge_settings")
+
+/** 충전 세션 상태 (경과 시간 · ETA 계산용) */
+data class ChargingSession(
+    val startedAt: Long = 0L,
+    val startLevel: Int = 0,
+    val lastLevel: Int = 0,
+    val lastChangedAt: Long = 0L
+)
 
 class SettingsRepository(private val context: Context) {
     companion object {
@@ -63,6 +72,30 @@ class SettingsRepository(private val context: Context) {
 
     // ── 잠금 화면 ──
     val KEY_SHOW_ON_LOCK_SCREEN = booleanPreferencesKey("show_on_lock_screen")
+
+    // ── 충전 방식별 사운드 ──
+    val KEY_PLUG_SPECIFIC = booleanPreferencesKey("plug_specific_sounds")
+    val KEY_AC_PRESET = stringPreferencesKey("ac_preset_id")
+    val KEY_USB_PRESET = stringPreferencesKey("usb_preset_id")
+    val KEY_WIRELESS_PRESET = stringPreferencesKey("wireless_preset_id")
+
+    // ── 저전력 · 급방전 ──
+    val KEY_LOW_BATTERY_ALERT = booleanPreferencesKey("low_battery_alert")
+    val KEY_LOW_BATTERY_THRESHOLD = intPreferencesKey("low_battery_threshold")
+    val KEY_RAPID_DISCHARGE_ALERT = booleanPreferencesKey("rapid_discharge_alert")
+    val KEY_RAPID_WINDOW_MIN = intPreferencesKey("rapid_window_min")
+    val KEY_RAPID_DROP_PERCENT = intPreferencesKey("rapid_drop_percent")
+
+    // ── 조용한 시간 ──
+    val KEY_QUIET_ENABLED = booleanPreferencesKey("quiet_enabled")
+    val KEY_QUIET_START = intPreferencesKey("quiet_start_minute")
+    val KEY_QUIET_END = intPreferencesKey("quiet_end_minute")
+
+    // ── 충전 세션 추적 (ETA) ──
+    val KEY_SESSION_STARTED_AT = longPreferencesKey("session_started_at")
+    val KEY_SESSION_START_LEVEL = intPreferencesKey("session_start_level")
+    val KEY_SESSION_LAST_LEVEL = intPreferencesKey("session_last_level")
+    val KEY_SESSION_LAST_CHANGED_AT = longPreferencesKey("session_last_changed_at")
     }
 
     /** "id:count,id:count" 형태의 직렬화 */
@@ -124,8 +157,89 @@ class SettingsRepository(private val context: Context) {
             tempAlertEnabled = prefs[KEY_TEMP_ALERT_ENABLED] ?: false,
             tempAlertThresholdC = prefs[KEY_TEMP_ALERT_THRESHOLD] ?: 45f,
             healthAlertEnabled = prefs[KEY_HEALTH_ALERT_ENABLED] ?: true,
-            showOnLockScreen = prefs[KEY_SHOW_ON_LOCK_SCREEN] ?: true
+            showOnLockScreen = prefs[KEY_SHOW_ON_LOCK_SCREEN] ?: true,
+            plugSpecificSounds = prefs[KEY_PLUG_SPECIFIC] ?: false,
+            acPresetId = prefs[KEY_AC_PRESET] ?: "cyber_chime",
+            usbPresetId = prefs[KEY_USB_PRESET] ?: "lightning_spark",
+            wirelessPresetId = prefs[KEY_WIRELESS_PRESET] ?: "gentle_ding",
+            lowBatteryAlertEnabled = prefs[KEY_LOW_BATTERY_ALERT] ?: true,
+            lowBatteryThreshold = (prefs[KEY_LOW_BATTERY_THRESHOLD] ?: 20).coerceIn(5, 50),
+            rapidDischargeAlertEnabled = prefs[KEY_RAPID_DISCHARGE_ALERT] ?: true,
+            rapidDischargeWindowMinutes = (prefs[KEY_RAPID_WINDOW_MIN] ?: 30).coerceIn(5, 180),
+            rapidDischargeDropPercent = (prefs[KEY_RAPID_DROP_PERCENT] ?: 10).coerceIn(3, 40),
+            quietHoursEnabled = prefs[KEY_QUIET_ENABLED] ?: false,
+            quietStartMinute = (prefs[KEY_QUIET_START] ?: 1320).coerceIn(0, 1440),
+            quietEndMinute = (prefs[KEY_QUIET_END] ?: 420).coerceIn(0, 1440)
         )
+    }
+suspend fun readSession(): ChargingSession = context.dataStore.data.first().let { prefs ->
+        ChargingSession(
+            startedAt = prefs[KEY_SESSION_STARTED_AT] ?: 0L,
+            startLevel = prefs[KEY_SESSION_START_LEVEL] ?: 0,
+            lastLevel = prefs[KEY_SESSION_LAST_LEVEL] ?: 0,
+            lastChangedAt = prefs[KEY_SESSION_LAST_CHANGED_AT] ?: 0L
+        )
+    }
+
+    suspend fun writeSession(session: ChargingSession) {
+        context.dataStore.edit {
+            it[KEY_SESSION_STARTED_AT] = session.startedAt
+            it[KEY_SESSION_START_LEVEL] = session.startLevel
+            it[KEY_SESSION_LAST_LEVEL] = session.lastLevel
+            it[KEY_SESSION_LAST_CHANGED_AT] = session.lastChangedAt
+        }
+    }
+
+    // ── 충전 방식별 사운드 ──
+
+    suspend fun setPlugSpecificSounds(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_PLUG_SPECIFIC] = enabled }
+    }
+
+    suspend fun setPlugPreset(plugType: com.example.battery.PlugType, presetId: String) {
+        context.dataStore.edit {
+            when (plugType) {
+                com.example.battery.PlugType.AC -> it[KEY_AC_PRESET] = presetId
+                com.example.battery.PlugType.USB -> it[KEY_USB_PRESET] = presetId
+                com.example.battery.PlugType.WIRELESS -> it[KEY_WIRELESS_PRESET] = presetId
+                com.example.battery.PlugType.NONE -> Unit
+            }
+        }
+    }
+
+    // ── 저전력 · 급방전 ──
+
+    suspend fun setLowBatteryAlertEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_LOW_BATTERY_ALERT] = enabled }
+    }
+
+    suspend fun setLowBatteryThreshold(percent: Int) {
+        context.dataStore.edit { it[KEY_LOW_BATTERY_THRESHOLD] = percent }
+    }
+
+    suspend fun setRapidDischargeAlertEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_RAPID_DISCHARGE_ALERT] = enabled }
+    }
+
+    suspend fun setRapidDischargeWindow(minutes: Int) {
+        context.dataStore.edit { it[KEY_RAPID_WINDOW_MIN] = minutes }
+    }
+
+    suspend fun setRapidDischargeDrop(percent: Int) {
+        context.dataStore.edit { it[KEY_RAPID_DROP_PERCENT] = percent }
+    }
+
+    // ── 조용한 시간 ──
+
+    suspend fun setQuietHoursEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_QUIET_ENABLED] = enabled }
+    }
+
+    suspend fun setQuietHours(startMinute: Int, endMinute: Int) {
+        context.dataStore.edit {
+            it[KEY_QUIET_START] = startMinute.coerceIn(0, 1440)
+            it[KEY_QUIET_END] = endMinute.coerceIn(0, 1440)
+        }
     }
 
     suspend fun setServiceEnabled(enabled: Boolean) {

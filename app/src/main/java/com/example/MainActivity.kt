@@ -32,6 +32,8 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         // 사용자가 설정 화면에서 "다른 앱 위에 표시" 권한을 허용하고 돌아올 수 있습니다.
         viewModel.refreshOverlayPermission()
+        // 런처 롱프레스 바로가기를 등록합니다 (앱을 한 번 실행하면 자동 생성).
+        com.example.service.ShortcutsHelper.install(this)
     }
 
     override fun onResume() {

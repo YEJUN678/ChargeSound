@@ -121,8 +121,35 @@ data class ChargeSettings(
 
     // ── 잠금 화면 ──
     /** 잠금 화면에서도 충전 애니메이션을 재생합니다 */
-    val showOnLockScreen: Boolean = true
+    val showOnLockScreen: Boolean = true,
+
+    // ── 충전 방식별 사운드 ──
+    /** AC / USB / 무선에 각각 다른 프리셋 사운드를 지정합니다 */
+    val plugSpecificSounds: Boolean = false,
+    val acPresetId: String = "cyber_chime",
+    val usbPresetId: String = "lightning_spark",
+    val wirelessPresetId: String = "gentle_ding",
+
+    // ── 저전력 · 급방전 경고 ──
+    /** 낮은 배터리(기본 20% 이하) 경고 */
+    val lowBatteryAlertEnabled: Boolean = true,
+    val lowBatteryThreshold: Int = 20,
+    /** 비충전 중 급격한 배터리 감소 감지 */
+    val rapidDischargeAlertEnabled: Boolean = true,
+    /** 급방전으로 판단하는 시간 창(분) */
+    val rapidDischargeWindowMinutes: Int = 30,
+    /** 해당 시간 동안 이 % 이상 떨어지면 급방전으로 판단 */
+    val rapidDischargeDropPercent: Int = 10,
+
+    // ── 조용한 시간 ──
+    /** 지정한 시간대에는 충전 사운드를 재생하지 않습니다 (알림·진동은 유지) */
+    val quietHoursEnabled: Boolean = false,
+    /** 시작 시각 (0~1439 분, 0=00:00) */
+    val quietStartMinute: Int = 1320,
+    /** 종료 시각 (0~1439 분, 1440=24:00) */
+    val quietEndMinute: Int = 420
 ) {
+
     /**
      * 영상 재생 시간 라벨.
      * 컴포저블 밖에서 호출될 수 있어 Context를 직접 받습니다.
@@ -146,5 +173,16 @@ data class ChargeSettings(
     fun adFreeRemainingMinutes(nowMillis: Long): Int {
         if (adFreeUntil <= nowMillis) return 0
         return ((adFreeUntil - nowMillis) / 60_000L).toInt()
+    }
+
+    /** 현재 시각이 조용한 시간대에 해당하는지 */
+    fun isQuietHourNow(nowMinuteOfDay: Int): Boolean {
+        if (!quietHoursEnabled) return false
+        return if (quietStartMinute <= quietEndMinute) {
+            nowMinuteOfDay in quietStartMinute until quietEndMinute
+        } else {
+            // 자정을 넘어가는 범위 (예: 22:00 ~ 07:00)
+            nowMinuteOfDay >= quietStartMinute || nowMinuteOfDay < quietEndMinute
+        }
     }
 }

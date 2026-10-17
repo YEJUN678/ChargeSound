@@ -137,6 +137,39 @@
     <string name="menu_about">About &amp; privacy</string>
     <string name="menu_alarm">Charge alarm</string>
     <string name="menu_alerts">Battery alerts</string>
+    <string name="menu_sound_context">Sound &amp; quiet hours</string>
+
+    <!-- ═══════════════ sound context ═══════════════ -->
+    <string name="plug_sound_title">Different sound per charger</string>
+    <string name="plug_sound_sub">Use a separate sound for AC, USB and wireless charging</string>
+    <string name="quiet_hours_title">Quiet hours</string>
+    <string name="quiet_hours_sub">No sound during this time. Vibration and notifications still work.</string>
+    <string name="quiet_hours_start">From</string>
+    <string name="quiet_hours_end">To</string>
+    <string name="quiet_hours_range">No sound from %1$s to %2$s</string>
+
+    <!-- ═══════════════ low battery / rapid discharge ═══════════════ -->
+    <string name="low_battery_sub">Warn me when the battery gets low while not charging</string>
+    <string name="low_battery_body">Battery is %2$d%%, at or below your %1$d%% limit.</string>
+    <string name="rapid_discharge_sub">Warn me when the battery drains unusually fast</string>
+    <string name="rapid_discharge_body">Battery dropped %2$d%% within %1$d minutes while not charging.</string>
+    <string name="rapid_window_title">Observation window</string>
+    <string name="rapid_drop_title">Drop considered rapid</string>
+
+    <!-- ═══════════════ shortcuts ═══════════════ -->
+    <string name="shortcut_toggle_short">Toggle</string>
+    <string name="shortcut_toggle_short_on">Turn on</string>
+    <string name="shortcut_toggle_short_off">Turn off</string>
+    <string name="shortcut_toggle_long">Toggle charging detection</string>
+    <string name="shortcut_preview_short">Preview</string>
+    <string name="shortcut_preview_long">Preview the charging animation</string>
+    <string name="shortcut_alarm_short">Alarm</string>
+    <string name="shortcut_alarm_long">Open charge alarm settings</string>
+
+    <!-- ═══════════════ charging session (ETA) ═══════════════ -->
+    <string name="session_elapsed">Charging for %1$s</string>
+    <string name="session_eta">Target in about %1$s</string>
+    <string name="session_rate">%1$s per hour</string>
 
     <!-- ═══════════════ charge alarm ═══════════════ -->
     <string name="alarm_enable_title">Charge alarm</string>
@@ -297,4 +330,8 @@
     <string name="duration_label_touch">Until I tap</string>
     <string name="duration_label_seconds">%1$d s</string>
 
+    <string name="low_battery_title">Battery is low</string>
+    <string name="quiet_hours_pick_title">Pick a time</string>
+    <string name="btn_confirm">OK</string>
+    <string name="rapid_discharge_title">Battery draining fast</string>
 </resources>

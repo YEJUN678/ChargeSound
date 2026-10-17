@@ -17,6 +17,7 @@ import com.example.ad.AdManager
 import com.example.ad.AdPolicy
 import com.example.battery.BatteryInfo
 import com.example.battery.BatteryInfoHelper
+import com.example.battery.PlugType
 import com.example.data.AnimationMode
 import com.example.data.ChargeSettings
 import com.example.data.PremiumCatalog
@@ -438,6 +439,48 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setShowOnLockScreen(enabled: Boolean) {
         viewModelScope.launch { repository.setShowOnLockScreen(enabled) }
+    }
+
+    // ─────────────────────── 충전 방식별 사운드 ───────────────────────
+
+    fun setPlugSpecificSounds(enabled: Boolean) {
+        viewModelScope.launch { repository.setPlugSpecificSounds(enabled) }
+    }
+
+    fun setPlugPreset(plugType: PlugType, presetId: String) {
+        viewModelScope.launch { repository.setPlugPreset(plugType, presetId) }
+    }
+
+    // ─────────────────────── 저전력 · 급방전 ───────────────────────
+
+    fun setLowBatteryAlertEnabled(enabled: Boolean) {
+        viewModelScope.launch { repository.setLowBatteryAlertEnabled(enabled) }
+    }
+
+    fun setLowBatteryThreshold(percent: Int) {
+        viewModelScope.launch { repository.setLowBatteryThreshold(percent) }
+    }
+
+    fun setRapidDischargeAlertEnabled(enabled: Boolean) {
+        viewModelScope.launch { repository.setRapidDischargeAlertEnabled(enabled) }
+    }
+
+    fun setRapidDischargeWindow(minutes: Int) {
+        viewModelScope.launch { repository.setRapidDischargeWindow(minutes) }
+    }
+
+    fun setRapidDischargeDrop(percent: Int) {
+        viewModelScope.launch { repository.setRapidDischargeDrop(percent) }
+    }
+
+    // ─────────────────────── 조용한 시간 ───────────────────────
+
+    fun setQuietHoursEnabled(enabled: Boolean) {
+        viewModelScope.launch { repository.setQuietHoursEnabled(enabled) }
+    }
+
+    fun setQuietHours(startMinute: Int, endMinute: Int) {
+        viewModelScope.launch { repository.setQuietHours(startMinute, endMinute) }
     }
 
     fun previewPlaySound(presetId: String? = null) {

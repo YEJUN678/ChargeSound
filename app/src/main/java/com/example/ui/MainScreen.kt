@@ -152,6 +152,7 @@ fun MainScreen(viewModel: MainViewModel) {
     var showAbout by remember { mutableStateOf(false) }
     var showAlarmSheet by remember { mutableStateOf(false) }
     var showAlertsSheet by remember { mutableStateOf(false) }
+    var showSoundContextSheet by remember { mutableStateOf(false) }
     var latestVersionName by remember { mutableStateOf<String?>(null) }
 
     // 앱을 열 때마다 업데이트를 확인합니다.
@@ -292,6 +293,7 @@ fun MainScreen(viewModel: MainViewModel) {
                     OverflowMenu(
                         onOpenAlarm = { showAlarmSheet = true },
                         onOpenAlerts = { showAlertsSheet = true },
+                        onOpenSoundContext = { showSoundContextSheet = true },
                         onOpenPremiumSounds = { showPremiumSounds = true },
                         onOpenPremiumAnimations = { showPremiumAnimations = true },
                         onOpenAdFree = { showAdFreeDialog = true },
@@ -552,7 +554,25 @@ fun MainScreen(viewModel: MainViewModel) {
             onDismiss = { showAlertsSheet = false },
             onToggleTemp = { viewModel.setTempAlertEnabled(it) },
             onSelectTempThreshold = { viewModel.setTempAlertThreshold(it) },
-            onToggleHealth = { viewModel.setHealthAlertEnabled(it) }
+            onToggleHealth = { viewModel.setHealthAlertEnabled(it) },
+            onToggleLowBattery = { viewModel.setLowBatteryAlertEnabled(it) },
+            onSelectLowBatteryThreshold = { viewModel.setLowBatteryThreshold(it) },
+            onToggleRapidDischarge = { viewModel.setRapidDischargeAlertEnabled(it) },
+            onSelectRapidWindow = { viewModel.setRapidDischargeWindow(it) },
+            onSelectRapidDrop = { viewModel.setRapidDischargeDrop(it) }
+        )
+    }
+
+    if (showSoundContextSheet) {
+        SoundContextSettingsSheet(
+            settings = settings,
+            onDismiss = { showSoundContextSheet = false },
+            onTogglePlugSpecific = { viewModel.setPlugSpecificSounds(it) },
+            onSelectPreset = { plugType, presetId ->
+                viewModel.setPlugPreset(plugType, presetId)
+            },
+            onToggleQuiet = { viewModel.setQuietHoursEnabled(it) },
+            onSetQuietHours = { start, end -> viewModel.setQuietHours(start, end) }
         )
     }
 }

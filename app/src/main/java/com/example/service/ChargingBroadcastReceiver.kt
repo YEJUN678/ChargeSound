@@ -66,16 +66,30 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
     }
 
     private fun handlePowerConnected(context: Context, settings: com.example.data.ChargeSettings) {
+        // 조용한 시간대에는 사운드만 끕니다.
+        // 진동 · 애니메이션 · 알림은 그대로 동작합니다 (기능 손실 없음).
+        val quietNow = settings.isQuietHourNow(currentMinuteOfDay())
+        if (quietNow) {
+            Log.i(TAG, "Quiet hours active - suppressing sound")
+        }
+
         // 1. Vibration
         if (settings.vibrationEnabled) {
             triggerVibration(context)
         }
 
         // 2. Play Audio with duration-synchronized fade out
-        if (settings.soundEnabled) {
-            val soundPath = when (settings.soundMode) {
-                SoundMode.CUSTOM -> settings.customSoundPath
-                SoundMode.PRESET -> SoundManager.getPresetFile(context, settings.presetSoundId).absolutePath
+        if (settings.soundEnabled && !quietNow) {
+            // 충전 방식(AC/USB/무선)에 따라 다른 프리셋을 쓸 수 있습니다.
+            val soundPath = when {
+                settings.soundMode == SoundMode.CUSTOM -> settings.customSoundPath
+
+                settings.plugSpecificSounds -> {
+                    val presetId = presetIdForPlug(settings, batteryInfoOf(context))
+                    SoundManager.getPresetFile(context, presetId).absolutePath
+                }
+
+                else -> SoundManager.getPresetFile(context, settings.presetSoundId).absolutePath
             }
             SoundManager.playSound(
                 context = context,
@@ -99,6 +113,25 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
                 notifyAnimationFallback(context, batteryInfo)
             }
         }
+    }
+
+    /** 현재 시각을 하루 기준 분(0~1439)으로 반환 */
+    private fun currentMinuteOfDay(): Int {
+        val cal = java.util.Calendar.getInstance()
+        return cal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + cal.get(java.util.Calendar.MINUTE)
+    }
+
+    private fun batteryInfoOf(context: Context) = BatteryInfoHelper.getBatteryInfo(context)
+
+    /** 충전 방식에 대응하는 프리셋 ID */
+    private fun presetIdForPlug(
+        settings: com.example.data.ChargeSettings,
+        info: com.example.battery.BatteryInfo
+    ): String = when (info.plugType) {
+        com.example.battery.PlugType.AC -> settings.acPresetId
+        com.example.battery.PlugType.USB -> settings.usbPresetId
+        com.example.battery.PlugType.WIRELESS -> settings.wirelessPresetId
+        com.example.battery.PlugType.NONE -> settings.presetSoundId
     }
 
     /**

@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.MoreVert
@@ -77,6 +78,7 @@ private const val PRIVACY_POLICY_URL =
 fun OverflowMenu(
     onOpenAlarm: () -> Unit,
     onOpenAlerts: () -> Unit,
+    onOpenSoundContext: () -> Unit,
     onOpenPremiumSounds: () -> Unit,
     onOpenPremiumAnimations: () -> Unit,
     onOpenAdFree: () -> Unit,
@@ -124,6 +126,14 @@ fun OverflowMenu(
 
         HorizontalDivider()
 
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.menu_sound_context)) },
+            leadingIcon = { Icon(Icons.Default.GraphicEq, contentDescription = null) },
+            onClick = {
+                expanded = false
+                onOpenSoundContext()
+            }
+        )
         DropdownMenuItem(
             text = { Text(stringResource(R.string.menu_alerts)) },
             leadingIcon = { Icon(Icons.Default.Warning, contentDescription = null) },
@@ -456,7 +466,12 @@ fun AlertSettingsSheet(
     onDismiss: () -> Unit,
     onToggleTemp: (Boolean) -> Unit,
     onSelectTempThreshold: (Float) -> Unit,
-    onToggleHealth: (Boolean) -> Unit
+    onToggleHealth: (Boolean) -> Unit,
+    onToggleLowBattery: (Boolean) -> Unit,
+    onSelectLowBatteryThreshold: (Int) -> Unit,
+    onToggleRapidDischarge: (Boolean) -> Unit,
+    onSelectRapidWindow: (Int) -> Unit,
+    onSelectRapidDrop: (Int) -> Unit
 ) {
     SheetScaffold(titleRes = R.string.menu_alerts, onDismiss = onDismiss) {
         ToggleRow(
@@ -507,6 +522,131 @@ fun AlertSettingsSheet(
             onCheckedChange = onToggleHealth
         )
 
+        HorizontalDivider(color = Slate800)
+        Spacer(Modifier.height(16.dp))
+
+        ToggleRow(
+            title = stringResource(R.string.low_battery_title),
+            subtitle = stringResource(R.string.low_battery_sub),
+            checked = settings.lowBatteryAlertEnabled,
+            onCheckedChange = onToggleLowBattery
+        )
+
+        if (settings.lowBatteryAlertEnabled) {
+            Spacer(Modifier.height(10.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                listOf(10, 15, 20, 25, 30).forEach { threshold ->
+                    val selected = settings.lowBatteryThreshold == threshold
+                    Surface(
+                        color = if (selected) ElectricCyan else Slate800,
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, if (selected) ElectricCyan else Slate700),
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { onSelectLowBatteryThreshold(threshold) }
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(vertical = 9.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "$threshold%",
+                                color = if (selected) Color.Black else Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(18.dp))
+
+        ToggleRow(
+            title = stringResource(R.string.rapid_discharge_title),
+            subtitle = stringResource(R.string.rapid_discharge_sub),
+            checked = settings.rapidDischargeAlertEnabled,
+            onCheckedChange = onToggleRapidDischarge
+        )
+
+        if (settings.rapidDischargeAlertEnabled) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = stringResource(R.string.rapid_window_title),
+                fontSize = 11.sp,
+                color = Slate400
+            )
+            Spacer(Modifier.height(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                listOf(15, 30, 60, 120).forEach { minutes ->
+                    val selected = settings.rapidDischargeWindowMinutes == minutes
+                    Surface(
+                        color = if (selected) ElectricCyan else Slate800,
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, if (selected) ElectricCyan else Slate700),
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { onSelectRapidWindow(minutes) }
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(vertical = 9.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(R.string.duration_minutes, minutes),
+                                color = if (selected) Color.Black else Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = stringResource(R.string.rapid_drop_title),
+                fontSize = 11.sp,
+                color = Slate400
+            )
+            Spacer(Modifier.height(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                listOf(5, 10, 15, 20).forEach { drop ->
+                    val selected = settings.rapidDischargeDropPercent == drop
+                    Surface(
+                        color = if (selected) ElectricCyan else Slate800,
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, if (selected) ElectricCyan else Slate700),
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { onSelectRapidDrop(drop) }
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(vertical = 9.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "-$drop%",
+                                color = if (selected) Color.Black else Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         Spacer(Modifier.height(16.dp))
         Text(
             text = stringResource(R.string.widget_hint),
@@ -518,7 +658,7 @@ fun AlertSettingsSheet(
 }
 
 @Composable
-private fun ToggleRow(
+internal fun ToggleRow(
     title: String,
     subtitle: String,
     checked: Boolean,
@@ -637,7 +777,7 @@ fun UpdateAvailableDialog(
 /** 공통 바텀시트 껍데기 — 제목은 리소스 ID로, 닫기는 호출자가 소유한 상태로 처리합니다. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SheetScaffold(
+internal fun SheetScaffold(
     @androidx.annotation.StringRes titleRes: Int,
     onDismiss: () -> Unit,
     content: @Composable () -> Unit

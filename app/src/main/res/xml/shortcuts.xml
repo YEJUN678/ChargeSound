@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  런처 아이콘 롱프레스 시 표시되는 정적 바로가기.
+
+  MainActivity 를 여는 항목과, 앱을 열지 않고 동작하는 항목이 섞여 있습니다.
+  충전 감지 켜기/끄기와 애니메이션 미리보기는
+  ShortcutActionReceiver(수신 전용 BroadcastReceiver) 를 통해
+  백그라운드에서 직접 처리합니다.
+
+  ⚠️ targetSdk 25 이상에서는 이 리소스에 선언된 항목의 targetActivity /
+  targetClass 는 무시되고 Intent(action) 만 사용됩니다.
+  따라서 아래 Intent 는 receivers 속성으로 전달해야 합니다.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="chargesound_toggle"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_toggle_short"
+        android:shortcutLongLabel="@string/shortcut_toggle_long">
+        <intent
+            android:action="com.chargesound.app.action.TOGGLE_SERVICE"
+            android:targetPackage="com.chargesound.app"
+            android:targetClass="com.example.service.ShortcutActionReceiver" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="chargesound_preview"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_preview_short"
+        android:shortcutLongLabel="@string/shortcut_preview_long">
+        <intent
+            android:action="com.chargesound.app.action.PREVIEW_ANIMATION"
+            android:targetPackage="com.chargesound.app"
+            android:targetClass="com.example.service.ShortcutActionReceiver" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="chargesound_alarm"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_alarm_short"
+        android:shortcutLongLabel="@string/shortcut_alarm_long">
+        <intent
+            android:action="com.chargesound.app.action.OPEN_ALARM"
+            android:targetPackage="com.chargesound.app"
+            android:targetClass="com.example.service.ShortcutActionReceiver" />
+    </shortcut>
+
+</shortcuts>
