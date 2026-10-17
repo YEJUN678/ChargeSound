@@ -1,5 +1,7 @@
 package com.example.ui
 
+import android.app.Activity
+import android.content.ContextWrapper
 import android.widget.FrameLayout
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -30,14 +32,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import com.example.ad.ActiveAdUnits
+import com.example.ad.AdManager
+import com.example.ad.AdUnits
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -59,15 +58,6 @@ import com.example.ui.theme.Slate600
 import com.example.ui.theme.Slate700
 import com.example.ui.theme.Slate800
 import com.example.ui.theme.Slate900
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.AdLoader
-import com.google.android.gms.ads.nativead.NativeAd
-import com.google.android.gms.ads.nativead.NativeAdOptions
-import com.google.android.gms.ads.nativead.NativeAdView
 
 /**
  * 배너 광고 (Adaptive).
@@ -84,33 +74,14 @@ fun AdBannerSlot(
 ) {
     if (isAdFreeActive) return
 
+    val activity = LocalContext.current.findActivity() ?: return
+    // 미설정(앱 키/단위 ID 없음)이면 광고 영역 자체를 그리지 않습니다.
+    val adView = remember(activity) {
+        AdManager.createBannerView(activity, AdUnits.BANNER_PLACEMENT)
+    } ?: return
+
     AndroidView(
-        factory = { ctx ->
-            AdView(ctx).apply {
-                // 세션당 과다 노출을 막기 위해 높이 50dp에 맞춘 adaptive 배너를 사용합니다.
-                val adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(ctx, 360)
-                setAdSize(adSize)
-                adUnitId = ActiveAdUnits.BANNER
-
-                val heightPx = (ctx.resources.displayMetrics.density * 50).toInt()
-                layoutParams = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    heightPx
-                )
-
-                setAdListener(object : AdListener() {
-                    override fun onAdFailedToLoad(error: LoadAdError) {
-                        // 실패 시 조용히 무시합니다 (사용자를 방해하지 않음)
-                        visibility = android.view.View.GONE
-                    }
-
-                    override fun onAdLoaded() {
-                        visibility = android.view.View.VISIBLE
-                    }
-                })
-                loadAd(AdRequest.Builder().build())
-            }
-        },
+        factory = { adView },
         modifier = modifier
             .fillMaxWidth()
             .height(52.dp)
@@ -119,7 +90,7 @@ fun AdBannerSlot(
 }
 
 /**
- * 네이티브 광고 카드.
+ * 스폰서 카드.
  *
  * 배너보다 eCPM이 높고 시각적 방해가 적어 유틸리티 앱에 적합합니다.
  * "추천 사운드 팩" 영역 근처에 배치하는 것을 권장합니다.
@@ -128,68 +99,32 @@ fun AdBannerSlot(
 fun AdNativeCard(isAdFreeActive: Boolean) {
     if (isAdFreeActive) return
 
-    val context = LocalContext.current
-    var nativeAd by remember { mutableStateOf<NativeAd?>(null) }
+    val activity = LocalContext.current.findActivity() ?: return
+    val adView = remember(activity) { AdManager.createSponsoredCardView(activity) } ?: return
 
-    LaunchedEffect(Unit) {
-        val loader = AdLoader.Builder(context, ActiveAdUnits.NATIVE)
-            .forNativeAd { loaded ->
-                // 이전 광고가 남아 있으면 먼저 정리합니다 (메모리 누수 방지)
-                nativeAd?.destroy()
-                nativeAd = loaded
-            }
-            .withNativeAdOptions(NativeAdOptions.Builder().build())
-            .build()
-        loader.loadAd(AdRequest.Builder().build())
+    DisposableEffect(adView) {
+        AdManager.loadBanner(adView)
+        onDispose { AdManager.destroyBanner(adView) }
     }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            nativeAd?.destroy()
-            nativeAd = null
-        }
-    }
-
-    val ad = nativeAd ?: return
 
     AndroidView(
-        factory = { ctx ->
-            NativeAdView(ctx).apply {
-                val headline = android.widget.TextView(ctx).apply {
-                    textSize = 14f
-                    setTextColor(android.graphics.Color.WHITE)
-                    maxLines = 1
-                }
-                val body = android.widget.TextView(ctx).apply {
-                    textSize = 11f
-                    setTextColor(android.graphics.Color.parseColor("#94A3B8"))
-                    maxLines = 2
-                }
-                val cta = android.widget.TextView(ctx).apply {
-                    textSize = 11f
-                    setTextColor(android.graphics.Color.parseColor("#00E5FF"))
-                }
-                val icon = android.widget.ImageView(ctx)
-
-                setHeadlineView(headline)
-                setBodyView(body)
-                setCallToActionView(cta)
-                setIconView(icon)
-                setNativeAd(ad)
-
-                headline.text = ad.headline
-                body.text = ad.body
-                cta.text = ad.callToAction
-                ad.icon?.drawable?.let { icon.setImageDrawable(it) }
-            }
-        },
-        update = { view -> view.setNativeAd(ad) },
+        factory = { adView },
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
             .background(Slate900, RoundedCornerShape(14.dp))
             .padding(horizontal = 12.dp, vertical = 10.dp)
     )
+}
+
+/** Compose Context에서 Activity를 찾습니다. ironSource 배너는 Activity가 필요합니다. */
+internal fun android.content.Context.findActivity(): Activity? {
+    var ctx = this
+    while (ctx is ContextWrapper) {
+        if (ctx is Activity) return ctx
+        ctx = ctx.baseContext
+    }
+    return null
 }
 
 /**

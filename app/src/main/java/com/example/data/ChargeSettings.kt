@@ -96,7 +96,32 @@ data class ChargeSettings(
      * 커스텀 오디오/영상 적용 후 보상형 광고를 시청하면 1개씩 쌓입니다.
      * [PremiumCatalog.ADS_REQUIRED_PER_UNLOCK] 회 대신 이 크레딧으로 잠금을 열 수 있습니다.
      */
-    val freeUnlockCredits: Int = 0
+    val freeUnlockCredits: Int = 0,
+
+    // ── 충전 알람 ──
+    /** 설정된 충전율에 도달하면 알람을 울립니다 */
+    val alarmEnabled: Boolean = false,
+    /** 알람을 울릴 충전율 (10~100) */
+    val alarmTargetPercent: Int = 80,
+    /**
+     * 현재 충전 세션에서 이미 울린 알람인지.
+     * 한 번 울리면 전원을 뽑을 때까지 다시 울리지 않습니다.
+     */
+    val alarmFiredThisSession: Boolean = false,
+    /** 알람에 사운드를 함께 재생할지 (off면 진동 + 알림만) */
+    val alarmWithSound: Boolean = true,
+
+    // ── 배터리 경고 ──
+    /** 배터리가 설정 온도를 넘으면 경고 알림을 보냅니다 */
+    val tempAlertEnabled: Boolean = false,
+    /** 경고 온도 (℃) */
+    val tempAlertThresholdC: Float = 45f,
+    /** 배터리 건강이 좋지 않을 때 경고합니다 */
+    val healthAlertEnabled: Boolean = true,
+
+    // ── 잠금 화면 ──
+    /** 잠금 화면에서도 충전 애니메이션을 재생합니다 */
+    val showOnLockScreen: Boolean = true
 ) {
     /**
      * 영상 재생 시간 라벨.

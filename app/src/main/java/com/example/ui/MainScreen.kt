@@ -146,6 +146,11 @@ fun MainScreen(viewModel: MainViewModel) {
     val snackbarHostState = remember { SnackbarHostState() }
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var showAdFreeDialog by remember { mutableStateOf(false) }
+    var showPremiumSounds by remember { mutableStateOf(false) }
+    var showPremiumAnimations by remember { mutableStateOf(false) }
+    var showAbout by remember { mutableStateOf(false) }
+    var showAlarmSheet by remember { mutableStateOf(false) }
+    var showAlertsSheet by remember { mutableStateOf(false) }
 
     // 보상형 광고를 표시하려면 Activity가 필요합니다 (Compose Context로는 부족).
     val activity = LocalContext.current as? Activity
@@ -276,6 +281,15 @@ fun MainScreen(viewModel: MainViewModel) {
                     }
                 },
                 actions = {
+                    OverflowMenu(
+                        onOpenAlarm = { showAlarmSheet = true },
+                        onOpenAlerts = { showAlertsSheet = true },
+                        onOpenPremiumSounds = { showPremiumSounds = true },
+                        onOpenPremiumAnimations = { showPremiumAnimations = true },
+                        onOpenAdFree = { showAdFreeDialog = true },
+                        onOpenAbout = { showAbout = true },
+                        adFreeMinutesRemaining = adFreeMinutes
+                    )
                     Switch(
                         checked = settings.isServiceEnabled,
                         onCheckedChange = { viewModel.toggleServiceEnabled(it) },
@@ -457,11 +471,62 @@ fun MainScreen(viewModel: MainViewModel) {
                         onReward = { viewModel.startAdFreePeriod(minutes) },
                         onDismiss = { },
                         // 광고를 못 불러온 경우에도 시간 시작은 막지 않습니다
-                        // (AdMob 정책: 광고 실패가 앱 사용을 막아서는 안 됨)
+                        // (광고 정책: 광고 실패가 앱 사용을 막아서는 안 됨)
                         onNotAvailable = { viewModel.startAdFreePeriod(minutes) }
                     )
                 }
             }
+        )
+    }
+
+    // 점3개 메뉴에서 연 시트들
+    if (showPremiumSounds) {
+        PremiumSoundsSheet(
+            settings = settings,
+            onDismiss = { showPremiumSounds = false },
+            onSelect = { id ->
+                showPremiumSounds = false
+                selectedTabIndex = 0
+                viewModel.selectPresetSound(id)
+            },
+            onWatchAd = { id -> viewModel.watchAdToUnlock(activity, id) }
+        )
+    }
+
+    if (showPremiumAnimations) {
+        PremiumAnimationsSheet(
+            settings = settings,
+            onDismiss = { showPremiumAnimations = false },
+            onSelect = { mode ->
+                showPremiumAnimations = false
+                selectedTabIndex = 1
+                viewModel.selectAnimationMode(mode)
+            },
+            onWatchAd = { id -> viewModel.watchAdToUnlock(activity, id) }
+        )
+    }
+
+    if (showAbout) {
+        AboutSheet(onDismiss = { showAbout = false })
+    }
+
+    if (showAlarmSheet) {
+        AlarmSettingsSheet(
+            settings = settings,
+            onDismiss = { showAlarmSheet = false },
+            onToggleEnabled = { viewModel.setAlarmEnabled(it) },
+            onSelectPercent = { viewModel.setAlarmTargetPercent(it) },
+            onToggleWithSound = { viewModel.setAlarmWithSound(it) }
+        )
+    }
+
+    if (showAlertsSheet) {
+        AlertSettingsSheet(
+            settings = settings,
+            onDismiss = { showAlertsSheet = false },
+            onToggleTemp = { viewModel.setTempAlertEnabled(it) },
+            onSelectTempThreshold = { viewModel.setTempAlertThreshold(it) },
+            onToggleHealth = { viewModel.setHealthAlertEnabled(it) }
         )
     }
 }
@@ -1033,69 +1098,7 @@ fun SoundSettingsTab(
             }
         }
 
-        // ── 프리미엄 사운드 (보상형 광고 ${PremiumCatalog.ADS_REQUIRED_PER_UNLOCK}회 = 잠금 해제) ──
-        item {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900),
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, ElectricPurple.copy(alpha = 0.35f))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = null,
-                            tint = ElectricPurple,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.premium_sounds_title),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
-                            color = Color.White
-                        )
-                    }
-                    Text(
-                        text = stringResource(
-                            R.string.premium_sounds_sub,
-                            PremiumCatalog.ADS_REQUIRED_PER_UNLOCK
-                        ),
-                        fontSize = 12.sp,
-                        color = Slate400,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    PremiumCatalog.sounds.forEach { premium ->
-                        val accent = Color(premium.accentArgb)
-                        val unlocked = settings.isUnlocked(premium.id)
-                        val watched = settings.rewardProgress[premium.id] ?: 0
-
-                        if (unlocked) {
-                            PremiumUnlockedRow(
-                                nameRes = premium.nameRes,
-                                descriptionRes = premium.descriptionRes,
-                                accent = accent,
-                                isSelected = settings.soundMode == SoundMode.PRESET &&
-                                        settings.presetSoundId == premium.id,
-                                onSelect = { onSelectPreset(premium.id) }
-                            )
-                        } else {
-                            PremiumLockedRow(
-                                nameRes = premium.nameRes,
-                                descriptionRes = premium.descriptionRes,
-                                accent = accent,
-                                adsWatched = watched,
-                                adsRequired = PremiumCatalog.ADS_REQUIRED_PER_UNLOCK,
-                                onWatchAd = { onWatchAdToUnlock(premium.id) }
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        // ── 프리미엄 사운드는 상단 점3개(⋯) 메뉴로 옮겼습니다 ──
 
         // "광고 없이 사용하기" 카드
         item {
@@ -1653,68 +1656,7 @@ fun AnimationSettingsTab(
             }
         }
 
-        // ── 프리미엄 애니메이션 테마 (보상형 광고 ${PremiumCatalog.ADS_REQUIRED_PER_UNLOCK}회 = 잠금 해제) ──
-        item {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900),
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, ElectricPurple.copy(alpha = 0.35f))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = null,
-                            tint = ElectricPurple,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.premium_anims_title),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
-                            color = Color.White
-                        )
-                    }
-                    Text(
-                        text = stringResource(
-                            R.string.premium_anims_sub,
-                            PremiumCatalog.ADS_REQUIRED_PER_UNLOCK
-                        ),
-                        fontSize = 12.sp,
-                        color = Slate400,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    PremiumCatalog.animations.forEach { premium ->
-                        val accent = Color(premium.accentArgb)
-                        val unlocked = settings.isUnlocked(premium.id)
-                        val watched = settings.rewardProgress[premium.id] ?: 0
-
-                        if (unlocked) {
-                            PremiumUnlockedRow(
-                                nameRes = premium.nameRes,
-                                descriptionRes = premium.descriptionRes,
-                                accent = accent,
-                                isSelected = settings.animationMode == premium.mode,
-                                onSelect = { onSelectAnimationMode(premium.mode) }
-                            )
-                        } else {
-                            PremiumLockedRow(
-                                nameRes = premium.nameRes,
-                                descriptionRes = premium.descriptionRes,
-                                accent = accent,
-                                adsWatched = watched,
-                                adsRequired = PremiumCatalog.ADS_REQUIRED_PER_UNLOCK,
-                                onWatchAd = { onWatchAdToUnlock(premium.id) }
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        // ── 프리미엄 애니메이션 테마는 상단 점3개(⋯) 메뉴로 옮겼습니다 ──
 
         // Fullscreen Preview Action Button
         item {

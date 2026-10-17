@@ -398,6 +398,48 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // ─────────────────────── 충전 알람 ───────────────────────
+
+    fun setAlarmEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            repository.setAlarmEnabled(enabled)
+            _userMessage.value = msg(
+                if (enabled) R.string.msg_alarm_on else R.string.msg_alarm_off
+            )
+        }
+    }
+
+    fun setAlarmTargetPercent(percent: Int) {
+        viewModelScope.launch {
+            repository.setAlarmTargetPercent(percent)
+            _userMessage.value = msg(R.string.msg_alarm_target, percent)
+        }
+    }
+
+    fun setAlarmWithSound(enabled: Boolean) {
+        viewModelScope.launch { repository.setAlarmWithSound(enabled) }
+    }
+
+    // ─────────────────────── 배터리 경고 ───────────────────────
+
+    fun setTempAlertEnabled(enabled: Boolean) {
+        viewModelScope.launch { repository.setTempAlertEnabled(enabled) }
+    }
+
+    fun setTempAlertThreshold(celsius: Float) {
+        viewModelScope.launch { repository.setTempAlertThreshold(celsius) }
+    }
+
+    fun setHealthAlertEnabled(enabled: Boolean) {
+        viewModelScope.launch { repository.setHealthAlertEnabled(enabled) }
+    }
+
+    // ─────────────────────── 잠금 화면 ───────────────────────
+
+    fun setShowOnLockScreen(enabled: Boolean) {
+        viewModelScope.launch { repository.setShowOnLockScreen(enabled) }
+    }
+
     fun previewPlaySound(presetId: String? = null) {
         val context = getApplication<Application>()
         val currentSettings = settings.value

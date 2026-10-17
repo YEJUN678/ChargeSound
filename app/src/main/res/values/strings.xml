@@ -130,6 +130,53 @@
     <string name="duration_hours">%1$d h</string>
     <string name="duration_days">%1$d d</string>
 
+    <!-- ═══════════════ overflow menu (⋯) ═══════════════ -->
+    <string name="menu_more">More options</string>
+    <string name="menu_premium_sounds">Premium sound pack</string>
+    <string name="menu_premium_animations">Premium animation themes</string>
+    <string name="menu_about">About &amp; privacy</string>
+    <string name="menu_alarm">Charge alarm</string>
+    <string name="menu_alerts">Battery alerts</string>
+
+    <!-- ═══════════════ charge alarm ═══════════════ -->
+    <string name="alarm_enable_title">Charge alarm</string>
+    <string name="alarm_enable_sub">Ring when your battery reaches the target level</string>
+    <string name="alarm_target_title">Target level</string>
+    <string name="alarm_target_sub">The alarm rings once per charging session</string>
+    <string name="alarm_sound_title">Play a sound</string>
+    <string name="alarm_sound_sub">Uses your system alarm tone</string>
+    <string name="alarm_channel_name">Charge alarm</string>
+    <string name="alarm_channel_desc">Alerts you when your battery reaches the level you chose</string>
+    <string name="alarm_notification_title">Battery reached %1$d%%</string>
+    <string name="alarm_notification_text">Your charge alarm target was %1$d%%</string>
+    <string name="msg_alarm_on">Charge alarm is on.</string>
+    <string name="msg_alarm_off">Charge alarm is off.</string>
+    <string name="msg_alarm_target">Alarm set to %1$d%%.</string>
+
+    <!-- ═══════════════ battery alerts ═══════════════ -->
+    <string name="temp_alert_title">High temperature</string>
+    <string name="temp_alert_sub">Warn me if the battery gets too hot</string>
+    <string name="temp_alert_body">Battery is %1$.1f°C, above your %2$.0f°C limit. Keep it away from heat.</string>
+    <string name="health_alert_title">Battery health</string>
+    <string name="health_alert_sub">Warn me if the battery reports a problem</string>
+    <string name="health_channel_name">Battery health</string>
+    <string name="health_channel_desc">Notifies you when the battery reports overheating or damage</string>
+
+    <!-- ═══════════════ widget & tile ═══════════════ -->
+    <string name="widget_description">Battery level and charging status on your home screen</string>
+    <string name="widget_level_fmt">%1$d%%</string>
+    <string name="widget_plug_fmt">%1$s • %2$.1f°C</string>
+    <string name="widget_hint">Tip: add the ChargeSound widget to your home screen, and turn on the quick settings tile to toggle charging detection without opening the app.</string>
+    <string name="tile_label">Charging detection</string>
+    <string name="tile_label_on">Charging detection on</string>
+    <string name="tile_label_off">Charging detection off</string>
+
+    <!-- ═══════════════ about sheet ═══════════════ -->
+    <string name="about_description">A charging sound and full-screen animation app. Every sound and animation is generated on your device — no bundled media files.</string>
+    <string name="about_privacy_title">Privacy policy</string>
+    <string name="about_privacy_sub">Tap to open in your browser</string>
+    <string name="about_data_note">ChargeSound has no account and no server. Your settings stay on your device. The only data that leaves your device is the advertising identifier handled by our ad partner.</string>
+
     <!-- ═══════════════ premium rows ═══════════════ -->
     <string name="premium_btn_unlock">Unlock</string>
     <string name="premium_btn_ads_left">%1$d ads</string>

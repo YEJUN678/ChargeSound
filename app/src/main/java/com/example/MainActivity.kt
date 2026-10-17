@@ -37,16 +37,14 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         AdManager.resetSessionCounters()
-        // 앱 오픈 광고: 4시간 이상 미접속 + 세션당 1회 + 광고 없는 시간 종료 후에만 표시
-        AdManager.maybeShowAppOpen(
-            activity = this,
-            adFreeUntil = viewModel.settings.value.adFreeUntil,
-            onDismissed = { }
-        )
+        // ironSource SDK는 포그라운드/백그라운드 전환을 직접 추적해야 합니다.
+        AdManager.onResume(this)
+        AdManager.loadRewarded(applicationContext)
     }
 
     override fun onPause() {
         super.onPause()
+        AdManager.onPause(this)
         // 충전 애니메이션 화면(다른 Activity)이 광고를 차단한 상태로 넘어왔을 수 있으므로 해제합니다.
         AdManager.setCoreFeatureBusy(false)
     }

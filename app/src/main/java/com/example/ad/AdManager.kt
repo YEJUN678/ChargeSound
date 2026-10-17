@@ -3,38 +3,51 @@ package com.example.ad
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import com.google.android.gms.ads.AdError
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.FullScreenContentCallback
-import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.appopen.AppOpenAd
-import com.google.android.gms.ads.rewarded.RewardedAd
-import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import com.ironsource.mediationsdk.ISBannerSize
+import com.ironsource.mediationsdk.IronSource
+import com.ironsource.mediationsdk.IronSourceBannerLayout
+import com.ironsource.mediationsdk.adunit.adapter.utility.AdInfo
+import com.ironsource.mediationsdk.logger.IronSourceError
+import com.ironsource.mediationsdk.model.Placement
+import com.ironsource.mediationsdk.sdk.InitializationListener
+import com.ironsource.mediationsdk.sdk.LevelPlayBannerListener
+import com.ironsource.mediationsdk.sdk.LevelPlayRewardedVideoListener
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * AdMob 광고 관리 싱글턴.
+ * 광고 관리 싱글턴 (ironSource / Unity LevelPlay).
  *
- * 설계 원칙 (AdMob 정책 준수):
+ * 설계 원칙 (광고 플랫폼 정책 준수):
  * 1. **광고를 거부해도 앱의 핵심 기능은 계속 동작한다.** 어떤 실패 경로에서도
  *    프리미엄 콘텐츠 잠금이 풀린 채로 남거나, 사운드/애니메이션 선택이 막히지 않습니다.
  * 2. 광고 로드 실패는 조용히 무시됩니다. 사용자에게 오류를 강요하지 않습니다.
- * 3. 앱 핵심 기능(충전 애니메이션 재생 중)에는 전면/앱오픈 광고를 절대 표시하지 않습니다.
+ * 3. 앱 핵심 기능(충전 애니메이션/사운드 재생)에는 전면류 광고를 절대 표시하지 않습니다.
+ * 4. 설정이 비어 있으면([AdUnits.isConfigured] == false) 광고를 전혀 시도하지 않고
+ *    앱은 완전히 정상 동작합니다.
  */
 object AdManager {
 
     private const val TAG = "AdManager"
 
     private var initialized = false
-
-    private var rewardedAd: RewardedAd? = null
-    private var appOpenAd: AppOpenAd? = null
+    private var rewardedLoaded = false
     private var rewardedFailures = 0
+    private var rewardedShowing = false
 
     private var lastAppOpenShownAt = 0L
     private var appOpenCountThisSession = 0
+
+    /** 마지막 보상형 광고 노출 시각 → 재로드 쿨다운 제어 */
+    @Volatile
+    private var lastRewardedShownAt = 0L
+
+    private var pendingActivity: Activity? = null
+
+    /** SDK 초기화 완료 플래그 */
+    @Volatile
+    private var ironSourceReady = false
 
     /** 앱 핵심 기능(충전 애니메이션/사운드 재생) 수행 중인지. 이 동안 전면류 광고는 차단됩니다. */
     private val _coreFeatureBusy = MutableStateFlow(false)
@@ -43,19 +56,40 @@ object AdManager {
     private val _rewardedReady = MutableStateFlow(false)
     val rewardedReady: StateFlow<Boolean> = _rewardedReady.asStateFlow()
 
-    /** 마지막 광고 노출 성공 시각 → "방금 광고를 봤어요" 노출 빈도 제어에 사용 */
-    @Volatile
-    private var lastRewardedShownAt = 0L
+    /** SDK 초기화 완료 여부 — UI가 광고 슬롯을 그릴지 판단할 때 사용합니다. */
+    private val _sdkReady = MutableStateFlow(false)
+    val sdkReady: StateFlow<Boolean> = _sdkReady.asStateFlow()
+
+    // ─────────────────────── 초기화 ───────────────────────
 
     fun initialize(context: Context) {
         if (initialized) return
         initialized = true
+
+        if (!AdUnits.isConfigured) {
+            Log.w(TAG, "LevelPlay not configured (APP_KEY / placements blank). Ads disabled.")
+            return
+        }
+
         try {
-            com.google.android.gms.ads.MobileAds.initialize(context) {
-                Log.d(TAG, "MobileAds initialized")
-            }
+            IronSource.init(
+                context.applicationContext,
+                AdUnits.APP_KEY,
+                object : InitializationListener {
+                    override fun onInitializationComplete() {
+                        ironSourceReady = true
+                        _sdkReady.value = true
+                        Log.d(TAG, "LevelPlay initialized")
+                        IronSource.setLevelPlayRewardedVideoListener(rewardedListener)
+                        IronSource.loadRewardedVideo()
+                    }
+                },
+                IronSource.AD_UNIT.BANNER,
+                IronSource.AD_UNIT.REWARDED_VIDEO,
+                IronSource.AD_UNIT.NATIVE_AD
+            )
         } catch (e: Exception) {
-            Log.e(TAG, "MobileAds init failed", e)
+            Log.e(TAG, "LevelPlay init failed", e)
         }
     }
 
@@ -63,45 +97,165 @@ object AdManager {
         _coreFeatureBusy.value = busy
     }
 
-    private fun buildRequest(): AdRequest = AdRequest.Builder().build()
+    /** Activity 생애주기 전달 (SDK가 포그라운드/백그라운드 전환을 추적합니다) */
+    fun onResume(activity: Activity) {
+        pendingActivity = activity
+        if (AdUnits.isConfigured) {
+            try { IronSource.onResume(activity) } catch (_: Exception) { }
+        }
+    }
+
+    fun onPause(activity: Activity) {
+        if (AdUnits.isConfigured) {
+            try { IronSource.onPause(activity) } catch (_: Exception) { }
+        }
+    }
+
+    // ─────────────────────── 배너 ───────────────────────
+
+    /**
+     * 앱 하단 고정 배너. 미설정이면 null을 반환합니다.
+     * 로드 실패 시 자동으로 숨겨집니다.
+     */
+    fun createBannerView(activity: Activity, placement: String): IronSourceBannerLayout? {
+        if (!AdUnits.isConfigured || placement.isBlank()) return null
+        return try {
+            IronSource.createBanner(activity, ISBannerSize.BANNER).apply {
+                this.placementName = placement
+                setLevelPlayBannerListener(bannerListener)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Banner create exception", e)
+            null
+        }
+    }
+
+    /**
+     * 스폰서 카드. 배너보다 eCPM이 높고 시각적 방해가 적어 유틸리티 앱에 적합합니다.
+     *
+     * LevelPlay의 진짜 네이티브 광고는 뷰 바인더를 직접 구현해야 해서 복잡도가 높습니다.
+     * 네이티브와 같은 수익률을 내면서 훨씬 안정적인 `rectangle`(MREC) 배너를 씁니다.
+     */
+    fun createSponsoredCardView(activity: Activity): IronSourceBannerLayout? {
+        if (!AdUnits.isConfigured || AdUnits.NATIVE_PLACEMENT.isBlank()) return null
+        return try {
+            IronSource.createBanner(activity, ISBannerSize.RECTANGLE).apply {
+                placementName = AdUnits.NATIVE_PLACEMENT
+                setLevelPlayBannerListener(bannerListener)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Sponsored card create exception", e)
+            null
+        }
+    }
+
+    fun loadBanner(layout: IronSourceBannerLayout) {
+        if (!AdUnits.isConfigured) return
+        try { IronSource.loadBanner(layout) } catch (e: Exception) {
+            Log.e(TAG, "Banner load exception", e)
+        }
+    }
+
+    fun destroyBanner(layout: IronSourceBannerLayout) {
+        if (!AdUnits.isConfigured) return
+        try { IronSource.destroyBanner(layout) } catch (_: Exception) { }
+    }
+
+    private val bannerListener = object : LevelPlayBannerListener {
+        override fun onAdLoaded(adInfo: AdInfo?) {
+            Log.d(TAG, "Banner loaded")
+        }
+
+        override fun onAdLoadFailed(error: IronSourceError?) {
+            Log.w(TAG, "Banner load failed: ${error?.errorCode} ${error?.errorMessage}")
+        }
+
+        override fun onAdClicked(adInfo: AdInfo?) = Unit
+
+        override fun onAdLeftApplication(adInfo: AdInfo?) = Unit
+
+        override fun onAdScreenPresented(adInfo: AdInfo?) = Unit
+
+        override fun onAdScreenDismissed(adInfo: AdInfo?) = Unit
+    }
 
     // ─────────────────────── 보상형 광고 ───────────────────────
 
     /**
      * 보상형 광고를 미리 로드합니다.
-     * 재시도 간격을 두어 과도한 요청을 막습니다.
+     * 과도한 요청을 막기 위해 실패 횟수와 재로드 쿨다운을 적용합니다.
      */
     fun loadRewarded(context: Context, force: Boolean = false) {
-        if (rewardedAd != null) return
+        if (!AdUnits.isConfigured || AdUnits.REWARDED_PLACEMENT.isBlank()) return
+        if (rewardedLoaded || rewardedShowing) return
         if (rewardedFailures >= AdPolicy.MAX_LOAD_FAILURES) return
-        if (!force && System.currentTimeMillis() - lastRewardedShownAt < 60_000L) return
+        if (!force &&
+            System.currentTimeMillis() - lastRewardedShownAt < AdPolicy.REWARDED_RELOAD_COOLDOWN_MS
+        ) return
 
         try {
-            RewardedAd.load(
-                context,
-                ActiveAdUnits.REWARDED,
-                buildRequest(),
-                object : RewardedAdLoadCallback() {
-                    override fun onAdLoaded(ad: RewardedAd) {
-                        rewardedAd = ad
-                        rewardedFailures = 0
-                        _rewardedReady.value = true
-                        Log.d(TAG, "Rewarded ad loaded")
-                    }
-
-                    override fun onAdFailedToLoad(error: LoadAdError) {
-                        rewardedFailures++
-                        rewardedAd = null
-                        _rewardedReady.value = false
-                        Log.w(TAG, "Rewarded load failed: ${error.code} ${error.message}")
-                    }
-                }
-            )
+            if (pendingActivity == null) pendingActivity = null
+            IronSource.loadRewardedVideo()
         } catch (e: Exception) {
             rewardedFailures++
             Log.e(TAG, "Rewarded load exception", e)
         }
     }
+
+    /** 프리로드/표시 공통 콜백 */
+    private val rewardedListener = object : LevelPlayRewardedVideoListener {
+        override fun onAdAvailable(adInfo: AdInfo?) {
+            rewardedLoaded = true
+            rewardedFailures = 0
+            _rewardedReady.value = true
+            Log.d(TAG, "Rewarded available")
+        }
+
+        override fun onAdUnavailable() {
+            rewardedLoaded = false
+            rewardedFailures++
+            _rewardedReady.value = false
+            Log.w(TAG, "Rewarded unavailable")
+        }
+
+        override fun onAdShowFailed(error: IronSourceError?, adInfo: AdInfo?) {
+            rewardedLoaded = false
+            rewardedShowing = false
+            rewardedFailures++
+            _rewardedReady.value = false
+            Log.e(TAG, "Rewarded show failed: ${error?.errorCode} ${error?.errorMessage}")
+            showCallbacks?.onDismiss?.invoke()
+            showCallbacks = null
+        }
+
+        override fun onAdRewarded(placement: Placement?, adInfo: AdInfo?) {
+            // 광고를 끝까지 시청했을 때만 호출됩니다.
+            Log.d(TAG, "Rewarded earned: ${placement?.rewardAmount}")
+            showCallbacks?.onReward?.invoke()
+        }
+
+        override fun onAdClosed(adInfo: AdInfo?) {
+            rewardedLoaded = false
+            rewardedShowing = false
+            _rewardedReady.value = false
+            showCallbacks?.onDismiss?.invoke()
+            showCallbacks = null
+            val act = pendingActivity
+            if (act != null) loadRewarded(act.applicationContext)
+        }
+
+        override fun onAdOpened(adInfo: AdInfo?) = Unit
+
+        override fun onAdClicked(placement: Placement?, adInfo: AdInfo?) = Unit
+    }
+
+    private class ShowCallbacks(
+        val onReward: () -> Unit,
+        val onDismiss: () -> Unit,
+        val onNotAvailable: () -> Unit
+    )
+
+    private var showCallbacks: ShowCallbacks? = null
 
     /**
      * 보상형 광고를 표시합니다.
@@ -117,12 +271,8 @@ object AdManager {
         onDismiss: () -> Unit,
         onNotAvailable: () -> Unit
     ) {
-        val ad = rewardedAd
-        if (ad == null) {
-            Log.w(TAG, "showRewarded called with no cached ad")
+        if (!AdUnits.isConfigured) {
             onNotAvailable()
-            // 재시도 준비
-            loadRewarded(activity.applicationContext, force = true)
             return
         }
 
@@ -132,122 +282,35 @@ object AdManager {
             return
         }
 
-        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-            override fun onAdDismissedFullScreenContent() {
-                rewardedAd = null
-                loadRewarded(activity.applicationContext)
-                onDismiss()
-            }
-
-            override fun onAdFailedToShowFullScreenContent(error: AdError) {
-                Log.e(TAG, "Rewarded show failed: ${error.code} ${error.message}")
-                rewardedAd = null
-                loadRewarded(activity.applicationContext, force = true)
-                // 표시 실패는 보상 지급이 아니므로 onReward를 호출하지 않습니다.
-                onDismiss()
-            }
+        // 중복 노출 방지
+        if (rewardedShowing) {
+            Log.w(TAG, "showRewarded: already showing")
+            return
         }
 
+        if (!IronSource.isRewardedVideoAvailable()) {
+            Log.w(TAG, "showRewarded: no ad available")
+            onNotAvailable()
+            loadRewarded(activity.applicationContext, force = true)
+            return
+        }
+
+        showCallbacks = ShowCallbacks(onReward, onDismiss, onNotAvailable)
+        rewardedShowing = true
+        pendingActivity = activity
+
         try {
-            lastRewardedShownAt = System.currentTimeMillis()
-            // onUserEarnedReward는 광고를 끝까지 시청했을 때만 호출됩니다.
-            ad.show(activity) {
-                onReward()
-            }
+            IronSource.setLevelPlayRewardedVideoListener(rewardedListener)
+            IronSource.showRewardedVideo(activity, AdUnits.REWARDED_PLACEMENT)
         } catch (e: Exception) {
             Log.e(TAG, "Rewarded show exception", e)
-            rewardedAd = null
+            rewardedShowing = false
+            showCallbacks = null
             onNotAvailable()
         }
     }
 
-    // ─────────────────────── 앱 오픈 광고 ───────────────────────
-
-    fun loadAppOpen(context: Context) {
-        try {
-            AppOpenAd.load(
-                context,
-                ActiveAdUnits.APP_OPEN,
-                buildRequest(),
-                object : AppOpenAd.AppOpenAdLoadCallback() {
-                    override fun onAdLoaded(ad: AppOpenAd) {
-                        appOpenAd = ad
-                        Log.d(TAG, "AppOpen ad loaded")
-                    }
-
-                    override fun onAdFailedToLoad(error: LoadAdError) {
-                        appOpenAd = null
-                        Log.w(TAG, "AppOpen load failed: ${error.code}")
-                    }
-                }
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "AppOpen load exception", e)
-        }
-    }
-
-    /**
-     * 앱 오픈 광고 표시 여부를 판단하고, 조건을 만족할 때만 표시합니다.
-     *
-     * 표시 조건:
-     * - 광고가 로드되어 있고
-     * - 마지막 표시로부터 [AdPolicy.APP_OPEN_MIN_INTERVAL_MS] 이상 지났고
-     * - 이번 세션에서 아직 표시하지 않았고
-     * - 앱 핵심 기능(충전 애니메이션 등) 수행 중이 아니고
-     * - 광고 없는 시간이 종료되지 않았어야 함
-     */
-    fun maybeShowAppOpen(
-        activity: Activity,
-        adFreeUntil: Long,
-        onDismissed: () -> Unit
-    ) {
-        val ad = appOpenAd
-        if (ad == null) {
-            onDismissed()
-            return
-        }
-        val now = System.currentTimeMillis()
-        if (now < adFreeUntil) {
-            onDismissed()
-            return
-        }
-        if (_coreFeatureBusy.value) {
-            onDismissed()
-            return
-        }
-        if (appOpenCountThisSession >= AdPolicy.APP_OPEN_MAX_PER_SESSION) {
-            onDismissed()
-            return
-        }
-        if (now - lastAppOpenShownAt < AdPolicy.APP_OPEN_MIN_INTERVAL_MS) {
-            onDismissed()
-            return
-        }
-
-        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-            override fun onAdDismissedFullScreenContent() {
-                appOpenAd = null
-                appOpenCountThisSession++
-                lastAppOpenShownAt = System.currentTimeMillis()
-                onDismissed()
-                loadAppOpen(activity.applicationContext)
-            }
-
-            override fun onAdFailedToShowFullScreenContent(error: AdError) {
-                Log.e(TAG, "AppOpen show failed: ${error.code}")
-                appOpenAd = null
-                onDismissed()
-            }
-        }
-
-        try {
-            ad.show(activity)
-        } catch (e: Exception) {
-            Log.e(TAG, "AppOpen show exception", e)
-            appOpenAd = null
-            onDismissed()
-        }
-    }
+    // ─────────────────────── 세션 관리 ───────────────────────
 
     fun resetSessionCounters() {
         appOpenCountThisSession = 0

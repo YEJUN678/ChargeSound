@@ -115,7 +115,14 @@ dependencies {
   implementation(libs.firebase.appcheck.recaptcha)
   implementation(libs.firebase.appcheck.debug)
   // Google Mobile Ads SDK (배너 / 네이티브 / 보상형 / 앱 오픈)
-  implementation(libs.play.services.ads)
+  // Google Mobile Ads(AdMob) and AppLovin were both removed.
+  // AdMob only serves to apps published in a store it supports (Play / Amazon / OPPO /
+  // Samsung / VIVO / Xiaomi), and AppLovin rejects non-Play/App-Store URLs at signup.
+  // This app is published on OneStore only, so ironSource / Unity LevelPlay is used,
+  // which does not gate on a store listing.
+  // implementation(libs.play.services.ads)
+  // implementation(libs.app.lovin.sdk)
+  implementation(libs.unity.levelplay.sdk)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.logging.interceptor)

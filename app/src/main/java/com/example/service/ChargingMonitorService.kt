@@ -89,6 +89,7 @@ class ChargingMonitorService : Service() {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var dynamicReceiver: ChargingBroadcastReceiver? = null
+    private var batteryReceiver: android.content.BroadcastReceiver? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -96,6 +97,7 @@ class ChargingMonitorService : Service() {
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, buildNotification())
         registerDynamicPowerReceiver()
+        registerBatteryLevelReceiver()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -112,6 +114,7 @@ class ChargingMonitorService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterDynamicPowerReceiver()
+        unregisterBatteryLevelReceiver()
         serviceScope.cancel()
         Log.d(TAG, "Service onDestroy")
     }
@@ -138,6 +141,45 @@ class ChargingMonitorService : Service() {
             }
             dynamicReceiver = null
         }
+    }
+
+    /**
+     * 배터리 잔량 변화를 지속적으로 감시합니다.
+     *
+     * 충전기가 꽂혀 있는 동안 1%마다 ACTION_BATTERY_CHANGED 가 발생하며,
+     * 이를 이용해 충전 알람(목표 %)과 온도·건강도 경고를 평가합니다.
+     * 충전기가 빠져 있을 때는 명시적으로 필터링하여 불필요한 연산을 피합니다.
+     */
+    private fun registerBatteryLevelReceiver() {
+        if (batteryReceiver != null) return
+        val receiver = object : android.content.BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                if (intent?.action != Intent.ACTION_BATTERY_CHANGED) return
+                ChargingWidgetProvider.requestUpdate(ctx ?: return)
+                BatteryAlertManager.evaluate(ctx)
+            }
+        }
+        batteryReceiver = receiver
+        // 이 브로드캐스트는 시스템이 보내는 sticky broadcast 이므로, 마지막 상태를
+        // 즉시 받으려면 플래그를 지정해야 합니다.
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(receiver, filter)
+        }
+    }
+
+    private fun unregisterBatteryLevelReceiver() {
+        batteryReceiver?.let {
+            try {
+                unregisterReceiver(it)
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to unregister battery receiver", e)
+            }
+        }
+        batteryReceiver = null
     }
 
     private fun createNotificationChannel() {

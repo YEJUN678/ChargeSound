@@ -49,6 +49,20 @@ class SettingsRepository(private val context: Context) {
         val KEY_OVERLAY_PROMPT_SEEN = booleanPreferencesKey("overlay_prompt_seen")
         val KEY_PREMIUM_UNLOCKED = booleanPreferencesKey("premium_unlocked")
         val KEY_FREE_UNLOCK_CREDITS = intPreferencesKey("free_unlock_credits")
+
+    // ── 충전 알람 ──
+    val KEY_ALARM_ENABLED = booleanPreferencesKey("alarm_enabled")
+    val KEY_ALARM_TARGET = intPreferencesKey("alarm_target_percent")
+    val KEY_ALARM_FIRED = booleanPreferencesKey("alarm_fired_session")
+    val KEY_ALARM_WITH_SOUND = booleanPreferencesKey("alarm_with_sound")
+
+    // ── 배터리 경고 ──
+    val KEY_TEMP_ALERT_ENABLED = booleanPreferencesKey("temp_alert_enabled")
+    val KEY_TEMP_ALERT_THRESHOLD = floatPreferencesKey("temp_alert_threshold")
+    val KEY_HEALTH_ALERT_ENABLED = booleanPreferencesKey("health_alert_enabled")
+
+    // ── 잠금 화면 ──
+    val KEY_SHOW_ON_LOCK_SCREEN = booleanPreferencesKey("show_on_lock_screen")
     }
 
     /** "id:count,id:count" 형태의 직렬화 */
@@ -102,7 +116,15 @@ class SettingsRepository(private val context: Context) {
             overlayPermissionGranted = prefs[KEY_OVERLAY_GRANTED] ?: false,
             overlayPromptSeen = prefs[KEY_OVERLAY_PROMPT_SEEN] ?: false,
             premiumUnlocked = prefs[KEY_PREMIUM_UNLOCKED] ?: false,
-            freeUnlockCredits = prefs[KEY_FREE_UNLOCK_CREDITS] ?: 0
+            freeUnlockCredits = prefs[KEY_FREE_UNLOCK_CREDITS] ?: 0,
+            alarmEnabled = prefs[KEY_ALARM_ENABLED] ?: false,
+            alarmTargetPercent = (prefs[KEY_ALARM_TARGET] ?: 80).coerceIn(10, 100),
+            alarmFiredThisSession = prefs[KEY_ALARM_FIRED] ?: false,
+            alarmWithSound = prefs[KEY_ALARM_WITH_SOUND] ?: true,
+            tempAlertEnabled = prefs[KEY_TEMP_ALERT_ENABLED] ?: false,
+            tempAlertThresholdC = prefs[KEY_TEMP_ALERT_THRESHOLD] ?: 45f,
+            healthAlertEnabled = prefs[KEY_HEALTH_ALERT_ENABLED] ?: true,
+            showOnLockScreen = prefs[KEY_SHOW_ON_LOCK_SCREEN] ?: true
         )
     }
 
@@ -178,6 +200,51 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPremiumUnlocked(unlocked: Boolean) {
         context.dataStore.edit { it[KEY_PREMIUM_UNLOCKED] = unlocked }
+    }
+
+    // ── 충전 알람 ──
+
+    suspend fun setAlarmEnabled(enabled: Boolean) {
+        context.dataStore.edit {
+            it[KEY_ALARM_ENABLED] = enabled
+            // 새로 켜면 발화 기록을 초기화합니다.
+            if (enabled) it[KEY_ALARM_FIRED] = false
+        }
+    }
+
+    suspend fun setAlarmTargetPercent(percent: Int) {
+        context.dataStore.edit {
+            it[KEY_ALARM_TARGET] = percent.coerceIn(10, 100)
+            it[KEY_ALARM_FIRED] = false
+        }
+    }
+
+    suspend fun setAlarmWithSound(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_ALARM_WITH_SOUND] = enabled }
+    }
+
+    suspend fun setAlarmFiredThisSession(fired: Boolean) {
+        context.dataStore.edit { it[KEY_ALARM_FIRED] = fired }
+    }
+
+    // ── 배터리 경고 ──
+
+    suspend fun setTempAlertEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_TEMP_ALERT_ENABLED] = enabled }
+    }
+
+    suspend fun setTempAlertThreshold(celsius: Float) {
+        context.dataStore.edit { it[KEY_TEMP_ALERT_THRESHOLD] = celsius }
+    }
+
+    suspend fun setHealthAlertEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_HEALTH_ALERT_ENABLED] = enabled }
+    }
+
+    // ── 잠금 화면 ──
+
+    suspend fun setShowOnLockScreen(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_SHOW_ON_LOCK_SCREEN] = enabled }
     }
 
     /**

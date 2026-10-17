@@ -3,7 +3,11 @@ package com.example.ui
 import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
+import android.app.KeyguardManager
 import android.os.Build
+import com.example.data.SettingsRepository
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
@@ -101,6 +105,9 @@ class ChargingAnimationActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        showOnLockScreen = runBlocking {
+            SettingsRepository(applicationContext).settingsFlow.first().showOnLockScreen
+        }
         configureScreenWakeAndLock()
         enableEdgeToEdge()
         // 충전 애니메이션이 재생 중에는 전면류 광고를 표시하지 않습니다.
@@ -173,8 +180,25 @@ class ChargingAnimationActivity : ComponentActivity() {
         AdManager.setCoreFeatureBusy(true)
     }
 
-    @Suppress("DEPRECATION")
+    /** 잠금 화면 위 표시를 허용할지 (설정에서 읽어옴) */
+    private var showOnLockScreen: Boolean = true
+
+    /**
+ * 잠금 화면에서도 충전 애니메이션이 보이도록 화면을 깨웁니다.
+ *
+ * 사용자가 [com.example.data.ChargeSettings.showOnLockScreen] 을 껐다면
+ * 잠금 화면 위 표시와 화면 깨우기를 하지 않습니다.
+ * 그래도 사운드·진동과 Foreground 알림은 그대로 동작합니다 (기능 손실 없음).
+ */
+@Suppress("DEPRECATION")
     private fun configureScreenWakeAndLock() {
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        if (!showOnLockScreen) {
+            // 잠금 화면 위에는 표시하지 않되, 화면은 깨우지 않습니다.
+            return
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
@@ -184,10 +208,16 @@ class ChargingAnimationActivity : ComponentActivity() {
                         WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
             )
         }
-        window.addFlags(
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
-                    WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
-        )
+        // 보안 잠금(패턴/비밀번호)을 해제하지는 않습니다.
+        // 잠금 위에 띄우기만 하고, 잠금 자체를 풀지 않습니다.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val keyguard = getSystemService(KeyguardManager::class.java)
+            if (keyguard != null && !keyguard.isKeyguardLocked) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD)
+            }
+        } else {
+            window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD)
+        }
     }
 }
 

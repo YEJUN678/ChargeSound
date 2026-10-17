@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TileService 는 Android 7.0 (API 24) 이상에서만 존재합니다. -->
+    <bool name="tile_enabled">false</bool>
+</resources>
