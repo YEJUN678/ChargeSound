@@ -171,6 +171,14 @@
     <string name="tile_label_on">Charging detection on</string>
     <string name="tile_label_off">Charging detection off</string>
 
+    <!-- ═══════════════ update check ═══════════════ -->
+    <string name="update_check_title">Check for updates</string>
+    <string name="update_check_sub">Opens the store page</string>
+    <string name="update_dialog_title">Update available</string>
+    <string name="update_dialog_body">Version %1$s has been published on the store.</string>
+    <string name="update_dialog_btn">Update</string>
+    <string name="update_dialog_later">Later</string>
+
     <!-- ═══════════════ about sheet ═══════════════ -->
     <string name="about_description">A charging sound and full-screen animation app. Every sound and animation is generated on your device — no bundled media files.</string>
     <string name="about_privacy_title">Privacy policy</string>

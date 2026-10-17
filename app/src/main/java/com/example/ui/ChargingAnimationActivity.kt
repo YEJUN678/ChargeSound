@@ -312,6 +312,13 @@ fun ChargingScreenContent(
                 )
         )
 
+        // HUD 레이어: 상단 상태 / 중앙 배터리 / 하단 안내
+        // (Box 안에서 align 로 위치를 정하는 대신 Column + weight 로 배분해
+        //  배터리가 "상단/하단 HUD 사이의 남은 공간" 정중앙에 오게 합니다.)
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+
         // Top bar with close button & timer info
         Row(
             modifier = Modifier
@@ -363,11 +370,18 @@ fun ChargingScreenContent(
         }
 
         // Center HUD: Battery percentage & neon ring
-        Column(
+        //
+        // 이전에는 `.align(Center).padding(bottom = 60.dp)` 로 화면 정중앙에서
+        // 일부러 30dp 올려두었는데, 위쪽 상태 필(plug pill) 과 아래쪽 HUD 의
+        // 높이가 서로 달라 실제 화면에서 배터리가 너무 위로 뜨고 아래가 비어 보였습니다.
+        //
+        // 이제 상단/하단 HUD 를 자연스러운 높이로 두고, 그 사이의 남은 공간을
+        // Column 의 weight 로 배분해 배터리가 "지금 보이는 영역의 정중앙"에 오도록 했습니다.
+        Box(
             modifier = Modifier
-                .align(Alignment.Center)
-                .padding(bottom = 60.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .weight(1f),
+            contentAlignment = Alignment.Center
         ) {
             BatteryCenterGlow(batteryLevel = currentBatteryLevel)
         }
@@ -376,7 +390,6 @@ fun ChargingScreenContent(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
                 .padding(bottom = 28.dp, start = 20.dp, end = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -418,6 +431,7 @@ fun ChargingScreenContent(
                 fontSize = 12.sp,
                 textAlign = TextAlign.Center
             )
+        }
         }
     }
 }

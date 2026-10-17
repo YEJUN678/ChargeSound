@@ -119,6 +119,7 @@ import com.example.data.AnimationMode
 import com.example.data.ChargeSettings
 import com.example.data.PremiumCatalog
 import com.example.data.SoundMode
+import com.example.service.UpdateChecker
 import com.example.sound.SoundManager
 import com.example.ui.theme.ElectricAmber
 import com.example.ui.theme.ElectricCyan
@@ -151,6 +152,13 @@ fun MainScreen(viewModel: MainViewModel) {
     var showAbout by remember { mutableStateOf(false) }
     var showAlarmSheet by remember { mutableStateOf(false) }
     var showAlertsSheet by remember { mutableStateOf(false) }
+    var latestVersionName by remember { mutableStateOf<String?>(null) }
+
+    // 앱을 열 때마다 업데이트를 확인합니다.
+    // 네트워크가 없거나 확인에 실패해도 아무 것도 하지 않습니다 (조용히 넘어갑니다).
+    LaunchedEffect(Unit) {
+        UpdateChecker.isUpdateAvailable()?.let { latestVersionName = it.versionName }
+    }
 
     // 보상형 광고를 표시하려면 Activity가 필요합니다 (Compose Context로는 부족).
     val activity = LocalContext.current as? Activity
@@ -507,7 +515,25 @@ fun MainScreen(viewModel: MainViewModel) {
     }
 
     if (showAbout) {
-        AboutSheet(onDismiss = { showAbout = false })
+        AboutSheet(
+            onDismiss = { showAbout = false },
+            onCheckUpdate = {
+                showAbout = false
+                // 수동 확인은 항상 즉시 스토어 페이지를 엽니다.
+                UpdateChecker.openStorePage(context)
+            }
+        )
+    }
+
+    if (latestVersionName != null) {
+        UpdateAvailableDialog(
+            latestVersionName = latestVersionName!!,
+            onUpdate = {
+                latestVersionName = null
+                UpdateChecker.openUpdatePage(context)
+            },
+            onLater = { latestVersionName = null }
+        )
     }
 
     if (showAlarmSheet) {

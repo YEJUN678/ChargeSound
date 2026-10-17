@@ -1,0 +1,6 @@
+{
+  "versionCode": 2,
+  "versionName": "1.1.0",
+  "storeUrl": "https://m.onestore.co.kr/v2/ko-kr/app/0001010178",
+  "notes": "게시할 때마다 versionCode 를 현재 APK보다 큰 값으로 올리고 이 파일도 함께 수정하세요."
+}

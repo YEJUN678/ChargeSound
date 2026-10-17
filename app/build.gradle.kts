@@ -8,6 +8,18 @@ plugins {
   alias(libs.plugins.google.services)
 }
 
+// versionCode 는 스토어에 제출할 때마다 반드시 증가시켜야 합니다.
+// OneStore / Google Play 는 "이전 파일보다 낮다"고 거부합니다.
+// 여기 값을 매번 고치지 않도록 gradle 속성 또는 환경변수로 받습니다:
+//   gradle :app:assembleRelease -PVERSION_CODE=5
+//   $env:VERSION_CODE = "5"; gradle :app:assembleRelease
+val appVersionCode =
+    ((project.findProperty("VERSION_CODE") as String?) ?: (System.getenv("VERSION_CODE") ?: ""))
+        .toIntOrNull() ?: 2
+
+val appVersionName =
+    (project.findProperty("VERSION_NAME") as String?) ?: (System.getenv("VERSION_NAME") ?: "1.1.0")
+
 android {
   namespace = "com.example"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
@@ -18,8 +30,8 @@ android {
     applicationId = "com.chargesound.app"
     minSdk = 24
     targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
+    versionCode = appVersionCode
+    versionName = appVersionName
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }

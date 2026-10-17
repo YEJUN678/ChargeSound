@@ -24,8 +24,11 @@ import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -263,7 +266,7 @@ fun PremiumAnimationsSheet(
 /** 앱 정보 + 개인정보처리방침 */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutSheet(onDismiss: () -> Unit) {
+fun AboutSheet(onDismiss: () -> Unit, onCheckUpdate: () -> Unit) {
     val context = LocalContext.current
 
     SheetScaffold(titleRes = R.string.menu_about, onDismiss = onDismiss) {
@@ -283,6 +286,44 @@ fun AboutSheet(onDismiss: () -> Unit) {
         Spacer(Modifier.height(16.dp))
         HorizontalDivider(color = Slate800)
         Spacer(Modifier.height(16.dp))
+
+        // 수동 업데이트 확인 — 언제든 스토어 페이지로 연결합니다.
+        Surface(
+            color = Slate800,
+            shape = RoundedCornerShape(14.dp),
+            border = BorderStroke(1.dp, Slate700),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onCheckUpdate() }
+        ) {
+            Row(
+                modifier = Modifier.padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.SystemUpdate,
+                    contentDescription = null,
+                    tint = ElectricCyan,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.update_check_title),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = stringResource(R.string.update_check_sub),
+                        fontSize = 11.sp,
+                        color = Slate400
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(10.dp))
 
         Surface(
             color = Slate800,
@@ -507,6 +548,89 @@ private fun ToggleRow(
             checked = checked,
             onCheckedChange = onCheckedChange
         )
+    }
+}
+
+/**
+ * 업데이트 안내 다이얼로그.
+ *
+ * 스토어에 새 버전이 올라가 있을 때 앱을 열 때마다 자동으로 표시됩니다.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UpdateAvailableDialog(
+    latestVersionName: String,
+    onUpdate: () -> Unit,
+    onLater: () -> Unit
+) {
+    androidx.compose.material3.BasicAlertDialog(
+        onDismissRequest = onLater,
+        properties = androidx.compose.ui.window.DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+    ) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = Slate900,
+            border = BorderStroke(1.dp, ElectricCyan.copy(alpha = 0.5f)),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.SystemUpdate,
+                    contentDescription = null,
+                    tint = ElectricCyan,
+                    modifier = Modifier.size(40.dp)
+                )
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = stringResource(R.string.update_dialog_title),
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = stringResource(R.string.update_dialog_body, latestVersionName),
+                    color = Slate400,
+                    fontSize = 13.sp,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+
+                Spacer(Modifier.height(20.dp))
+
+                Button(
+                    onClick = onUpdate,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ElectricCyan,
+                        contentColor = Color.Black
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.update_dialog_btn),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = stringResource(R.string.update_dialog_later),
+                    color = Slate400,
+                    fontSize = 13.sp,
+                    modifier = Modifier
+                        .clickable { onLater() }
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
+                )
+            }
+        }
     }
 }
 
