@@ -1,4 +1,4 @@
-﻿package com.example.service
+package com.example.service
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -36,7 +36,7 @@ class ShortcutActionReceiver : BroadcastReceiver() {
                 val next = !repository.settingsFlow.first().isServiceEnabled
                 repository.setServiceEnabled(next)
                 // 알람 발화 기록을 초기화해 다음 충전 세션에서 다시 울리도록 합니다.
-                repository.setAlarmFiredThisSession(false)
+                repository.resetAlarmFired()
 
                 if (next) ChargingMonitorService.start(context) else ChargingMonitorService.stop(context)
 

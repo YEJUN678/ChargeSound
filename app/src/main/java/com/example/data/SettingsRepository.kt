@@ -97,6 +97,49 @@ class SettingsRepository(private val context: Context) {
     val KEY_SESSION_START_LEVEL = intPreferencesKey("session_start_level")
     val KEY_SESSION_LAST_LEVEL = intPreferencesKey("session_last_level")
     val KEY_SESSION_LAST_CHANGED_AT = longPreferencesKey("session_last_changed_at")
+
+    // ── 다중 알람 ──
+    val KEY_ALARM_TARGETS = stringPreferencesKey("alarm_targets_csv")
+    val KEY_FIRED_TARGETS = stringPreferencesKey("fired_alarm_targets_csv")
+    val KEY_SNOOZE_UNTIL = longPreferencesKey("snooze_until")
+    val KEY_ALARM_SNOOZE_MIN = intPreferencesKey("alarm_snooze_minutes")
+
+    // ── 충전 중단 알림 ──
+    val KEY_CHARGE_LIMIT_ENABLED = booleanPreferencesKey("charge_limit_enabled")
+    val KEY_CHARGE_LIMIT_PERCENT = intPreferencesKey("charge_limit_percent")
+    val KEY_CHARGE_LIMIT_NOTIFIED = booleanPreferencesKey("charge_limit_notified")
+
+    // ── 접근성 ──
+    val KEY_FONT_SCALE = floatPreferencesKey("font_scale")
+
+    // ── 충전 기록 (통계) ──
+    val KEY_CHARGE_HISTORY = stringPreferencesKey("charge_history_json")
+    }
+
+    /**
+     * IntSet 직렬화 — "50,80,100" 형태.
+     *
+     * 빈 값은 빈 문자열이 됩니다. DataStore 에 빈 문자열을 쓰는 것은
+     * 키가 "없음"인 상태와 구분하기 위해 필요합니다(마이그레이션 판단용).
+     */
+    private fun encodeIntSet(values: Set<Int>): String =
+        values.sorted().joinToString(",")
+
+    private fun decodeIntSet(raw: String?): Set<Int> {
+        if (raw.isNullOrBlank()) return emptySet()
+        return raw.split(",").mapNotNull { it.trim().toIntOrNull() }.toSet()
+    }
+
+    /** List<Int> 직렬화. 범위를 벗어나는 값과 빈 리스트는 걸러냅니다. */
+    private fun encodeIntList(values: List<Int>): String =
+        values.distinct().sorted().joinToString(",")
+
+    private fun decodeIntList(raw: String?): List<Int> {
+        if (raw.isNullOrBlank()) return emptyList()
+        return raw.split(",").mapNotNull { it.trim().toIntOrNull() }
+            .filter { it in 10..100 }
+            .distinct()
+            .sorted()
     }
 
     /** "id:count,id:count" 형태의 직렬화 */
@@ -128,6 +171,21 @@ class SettingsRepository(private val context: Context) {
             AnimationMode.BUILTIN_LIGHTNING
         }
 
+        // 단일 임계값 → 다중 임계값 마이그레이션.
+        // KEY_ALARM_TARGETS 키 자체가 없을 때만 이전 단일 값을 목록으로 승격합니다.
+        // 한 번 마이그레이션되면 목록이 단일값의 유일한 원천이 됩니다.
+        val legacyTarget = (prefs[KEY_ALARM_TARGET] ?: 80).coerceIn(10, 100)
+        val alarmTargets = if (prefs.contains(KEY_ALARM_TARGETS)) {
+            decodeIntList(prefs[KEY_ALARM_TARGETS]).ifEmpty { listOf(legacyTarget) }
+        } else {
+            listOf(legacyTarget)
+        }
+        // 이전 KEY_ALARM_FIRED(불리언)가 참이면 현재 목록의 모든 임계값을 발화된 것으로 봅니다.
+        // 한 개뿐인 알람에서 마이그레이션하므로 정확한 동작입니다.
+        val legacyFired = prefs[KEY_ALARM_FIRED] ?: false
+        val firedTargets = decodeIntSet(prefs[KEY_FIRED_TARGETS])
+            .let { if (prefs.contains(KEY_FIRED_TARGETS)) it else if (legacyFired) alarmTargets.toSet() else emptySet() }
+
         ChargeSettings(
             isServiceEnabled = prefs[KEY_SERVICE_ENABLED] ?: true,
             soundEnabled = prefs[KEY_SOUND_ENABLED] ?: true,
@@ -152,9 +210,15 @@ class SettingsRepository(private val context: Context) {
             premiumUnlocked = prefs[KEY_PREMIUM_UNLOCKED] ?: false,
             freeUnlockCredits = prefs[KEY_FREE_UNLOCK_CREDITS] ?: 0,
             alarmEnabled = prefs[KEY_ALARM_ENABLED] ?: false,
-            alarmTargetPercent = (prefs[KEY_ALARM_TARGET] ?: 80).coerceIn(10, 100),
-            alarmFiredThisSession = prefs[KEY_ALARM_FIRED] ?: false,
+            alarmTargetPercent = alarmTargets.last(),
+            alarmTargets = alarmTargets,
+            firedAlarmTargets = firedTargets,
+            snoozeUntilMillis = prefs[KEY_SNOOZE_UNTIL] ?: 0L,
+            alarmSnoozeMinutes = (prefs[KEY_ALARM_SNOOZE_MIN] ?: 10).coerceIn(1, 60),
             alarmWithSound = prefs[KEY_ALARM_WITH_SOUND] ?: true,
+            chargeLimitEnabled = prefs[KEY_CHARGE_LIMIT_ENABLED] ?: false,
+            chargeLimitPercent = (prefs[KEY_CHARGE_LIMIT_PERCENT] ?: 80).coerceIn(50, 95),
+            chargeLimitNotifiedThisSession = prefs[KEY_CHARGE_LIMIT_NOTIFIED] ?: false,
             tempAlertEnabled = prefs[KEY_TEMP_ALERT_ENABLED] ?: false,
             tempAlertThresholdC = prefs[KEY_TEMP_ALERT_THRESHOLD] ?: 45f,
             healthAlertEnabled = prefs[KEY_HEALTH_ALERT_ENABLED] ?: true,
@@ -171,7 +235,8 @@ class SettingsRepository(private val context: Context) {
             quietHoursEnabled = prefs[KEY_QUIET_ENABLED] ?: false,
             quietStartMinute = (prefs[KEY_QUIET_START] ?: 1320).coerceIn(0, 1440),
             quietEndMinute = (prefs[KEY_QUIET_END] ?: 420).coerceIn(0, 1440),
-            accentKey = prefs[KEY_ACCENT] ?: "cyan"
+            accentKey = prefs[KEY_ACCENT] ?: "cyan",
+            fontScale = (prefs[KEY_FONT_SCALE] ?: 1.0f).coerceIn(0.85f, 1.5f)
         )
     }
 suspend fun readSession(): ChargingSession = context.dataStore.data.first().let { prefs ->
@@ -332,10 +397,92 @@ suspend fun readSession(): ChargingSession = context.dataStore.data.first().let 
         }
     }
 
-    suspend fun setAlarmTargetPercent(percent: Int) {
+    /**
+     * 알람 임계값 목록을 교체합니다.
+     *
+     * 목록이 바뀌면 이번 세션의 발화 기록도 초기화합니다 — 새 임계값이
+     * 이미 울렸다고 잘못 판단하지 않도록 하기 위함입니다.
+     */
+    suspend fun setAlarmTargets(targets: List<Int>) {
+        val clean = targets.filter { it in 10..100 }.distinct().sorted()
+        if (clean.isEmpty()) return
         context.dataStore.edit {
-            it[KEY_ALARM_TARGET] = percent.coerceIn(10, 100)
+            it[KEY_ALARM_TARGETS] = encodeIntList(clean)
+            // 구버전에서 읽는 단일 임계값도 갱신해 두어 상호 호환성을 유지합니다.
+            it[KEY_ALARM_TARGET] = clean.last()
+            it[KEY_FIRED_TARGETS] = ""
             it[KEY_ALARM_FIRED] = false
+        }
+    }
+
+    /** 이번 충전 세션에서 발화된 임계값을 기록합니다. */
+    suspend fun markAlarmFired(targets: Collection<Int>) {
+        if (targets.isEmpty()) return
+        context.dataStore.edit { prefs ->
+            val merged = decodeIntSet(prefs[KEY_FIRED_TARGETS]) + targets
+            prefs[KEY_FIRED_TARGETS] = encodeIntSet(merged)
+            prefs[KEY_ALARM_FIRED] = true
+        }
+    }
+
+    /** 전원을 뽑었을 때 발화 기록을 비웁니다. */
+    suspend fun resetAlarmFired() {
+        context.dataStore.edit {
+            it[KEY_FIRED_TARGETS] = ""
+            it[KEY_ALARM_FIRED] = false
+        }
+    }
+
+    /** 스누즈: now + minutes 분 동안 알람을 보류합니다. */
+    suspend fun snoozeAlarm(minutes: Int) {
+        val until = System.currentTimeMillis() + minutes.coerceAtLeast(1) * 60_000L
+        context.dataStore.edit {
+            it[KEY_SNOOZE_UNTIL] = until
+            // 스누즈한 알람은 발화한 것으로 표시해 중복 발화를 막습니다.
+            it[KEY_FIRED_TARGETS] = ""
+            it[KEY_ALARM_FIRED] = false
+        }
+    }
+
+    suspend fun setAlarmSnoozeMinutes(minutes: Int) {
+        context.dataStore.edit { it[KEY_ALARM_SNOOZE_MIN] = minutes.coerceIn(1, 60) }
+    }
+
+    suspend fun setChargeLimitEnabled(enabled: Boolean) {
+        context.dataStore.edit {
+            it[KEY_CHARGE_LIMIT_ENABLED] = enabled
+            it[KEY_CHARGE_LIMIT_NOTIFIED] = false
+        }
+    }
+
+    suspend fun setChargeLimitPercent(percent: Int) {
+        context.dataStore.edit { it[KEY_CHARGE_LIMIT_PERCENT] = percent.coerceIn(50, 95) }
+    }
+
+    suspend fun setChargeLimitNotified() {
+        context.dataStore.edit { it[KEY_CHARGE_LIMIT_NOTIFIED] = true }
+    }
+
+    suspend fun resetChargeLimitNotified() {
+        context.dataStore.edit { it[KEY_CHARGE_LIMIT_NOTIFIED] = false }
+    }
+
+    suspend fun setFontScale(scale: Float) {
+        context.dataStore.edit { it[KEY_FONT_SCALE] = scale.coerceIn(0.85f, 1.5f) }
+    }
+
+    // ── 충전 기록 (통계) ──
+
+    val historyFlow: Flow<List<ChargeRecord>> = context.dataStore.data.map { prefs ->
+        ChargeHistoryRepository.decode(prefs[KEY_CHARGE_HISTORY])
+    }
+
+    suspend fun readHistory(): List<ChargeRecord> =
+        ChargeHistoryRepository.decode(context.dataStore.data.first()[KEY_CHARGE_HISTORY])
+
+    suspend fun writeHistory(records: List<ChargeRecord>) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_CHARGE_HISTORY] = ChargeHistoryRepository.encode(records)
         }
     }
 
@@ -343,8 +490,13 @@ suspend fun readSession(): ChargingSession = context.dataStore.data.first().let 
         context.dataStore.edit { it[KEY_ALARM_WITH_SOUND] = enabled }
     }
 
-    suspend fun setAlarmFiredThisSession(fired: Boolean) {
-        context.dataStore.edit { it[KEY_ALARM_FIRED] = fired }
+    // 발화 기록은 [markAlarmFired] / [resetAlarmFired] 로 관리합니다.
+    // 불리언 하나로는 "어느 임계값이 울렸는지"를 표현할 수 없어 다중 알람에서 쓸 수 없습니다.
+    suspend fun setAlarmFiredLegacy(fired: Boolean) {
+        context.dataStore.edit {
+            it[KEY_ALARM_FIRED] = fired
+            it[KEY_FIRED_TARGETS] = if (fired) (it[KEY_ALARM_TARGETS] ?: "") else ""
+        }
     }
 
     // ── 배터리 경고 ──

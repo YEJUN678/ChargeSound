@@ -141,6 +141,7 @@ fun MainScreen(viewModel: MainViewModel) {
     val context = LocalContext.current
     val settings by viewModel.settings.collectAsState()
     val batteryInfo by viewModel.batteryInfo.collectAsState()
+    val chargeHistory by viewModel.chargeHistory.collectAsState()
     val isPlayingPreview by viewModel.isPlayingPreview.collectAsState()
     val activePlayingId by viewModel.activePlayingId.collectAsState()
     val userMessage by viewModel.userMessage.collectAsState()
@@ -156,6 +157,7 @@ fun MainScreen(viewModel: MainViewModel) {
     var showAlertsSheet by remember { mutableStateOf(false) }
     var showSoundContextSheet by remember { mutableStateOf(false) }
     var showThemeSheet by remember { mutableStateOf(false) }
+    var showStatsSheet by remember { mutableStateOf(false) }
     var latestVersionName by remember { mutableStateOf<String?>(null) }
 
     // 앱을 열 때마다 업데이트를 확인합니다.
@@ -314,6 +316,7 @@ fun MainScreen(viewModel: MainViewModel) {
                         onOpenPremiumAnimations = { showPremiumAnimations = true },
                         onOpenAdFree = { showAdFreeDialog = true },
                         onOpenTheme = { showThemeSheet = true },
+                        onOpenStats = { showStatsSheet = true },
                         onOpenAbout = { showAbout = true },
                         adFreeMinutesRemaining = adFreeMinutes
                     )
@@ -566,7 +569,10 @@ fun MainScreen(viewModel: MainViewModel) {
             settings = settings,
             onDismiss = { showAlarmSheet = false },
             onToggleEnabled = { viewModel.setAlarmEnabled(it) },
-            onSelectPercent = { viewModel.setAlarmTargetPercent(it) },
+            onTogglePercent = { viewModel.toggleAlarmTarget(it) },
+            onSelectSnoozeMinutes = { viewModel.setAlarmSnoozeMinutes(it) },
+            onToggleChargeLimit = { viewModel.setChargeLimitEnabled(it) },
+            onSelectChargeLimitPercent = { viewModel.setChargeLimitPercent(it) },
             onToggleWithSound = { viewModel.setAlarmWithSound(it) }
         )
     }
@@ -603,7 +609,17 @@ fun MainScreen(viewModel: MainViewModel) {
         ThemeSettingsSheet(
             settings = settings,
             onDismiss = { showThemeSheet = false },
-            onSelectAccent = { viewModel.setAccentKey(it) }
+            onSelectAccent = { viewModel.setAccentKey(it) },
+            fontScale = settings.fontScale,
+            onSelectFontScale = { viewModel.setFontScale(it) }
+        )
+    }
+
+    if (showStatsSheet) {
+        ChargeStatsSheet(
+            records = chargeHistory,
+            onDismiss = { showStatsSheet = false },
+            onClear = { viewModel.clearChargeHistory() }
         )
     }
 }

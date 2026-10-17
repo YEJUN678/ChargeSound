@@ -101,15 +101,46 @@ data class ChargeSettings(
     // ── 충전 알람 ──
     /** 설정된 충전율에 도달하면 알람을 울립니다 */
     val alarmEnabled: Boolean = false,
-    /** 알람을 울릴 충전율 (10~100) */
+    /**
+     * 알람을 울릴 충전율 목록 (오름차순, 10~100).
+     *
+     * 예: [50, 80, 100] → 50·80·100% 에서 각각 울립니다.
+     * 단일 값으로 시작하는 사용자에게는 목록 크기가 1입니다.
+     */
+    val alarmTargets: List<Int> = listOf(80),
+    /**
+     * 알람을 울릴 충전율 (10~100).
+     * @deprecated 다중 알람으로 대체되었습니다. [alarmTargets] 를 사용하세요.
+     *   이 값은 기존 사용자를 위한 마이그레이션 용도로만 남겨둡니다.
+     */
     val alarmTargetPercent: Int = 80,
     /**
-     * 현재 충전 세션에서 이미 울린 알람인지.
-     * 한 번 울리면 전원을 뽑을 때까지 다시 울리지 않습니다.
+     * 이번 충전 세션에서 이미 울린 알람 임계값 집합.
+     * 한 번 울린 임계값은 전원을 뽑을 때까지 다시 울리지 않습니다.
      */
-    val alarmFiredThisSession: Boolean = false,
+    val firedAlarmTargets: Set<Int> = emptySet(),
+    /**
+     * 알람이 울린 뒤 사용자가 스누즈한 시각 (epoch millis). 0이면 스누즈 없음.
+     * 이 시각 전까지는 어떤 임계값도 새로 발화시키지 않습니다.
+     */
+    val snoozeUntilMillis: Long = 0L,
+    /** 스누즈 시 추가되는 시간(분) */
+    val alarmSnoozeMinutes: Int = 10,
     /** 알람에 사운드를 함께 재생할지 (off면 진동 + 알림만) */
     val alarmWithSound: Boolean = true,
+
+    // ── 충전 중단 알림 (배터리 수명 보호) ──
+    /**
+     * 설정한 충전율에 도달하면 "이제 충분합니다" 알림을 보냅니다.
+     *
+     * 리튬 배터리는 100%까지 계속 충전할 필요가 없습니다. 80%에서 끊으면
+     * 수명이 눈에 띄게 늘어나기 때문에, 앱을 여쭤봐 대신 알려드립니다.
+     */
+    val chargeLimitEnabled: Boolean = false,
+    /** 충전을 멈추라고 알릴 충전율 (50~95) */
+    val chargeLimitPercent: Int = 80,
+    /** 이번 충전 세션에서 충전 중단 알림을 이미 보냈는지 */
+    val chargeLimitNotifiedThisSession: Boolean = false,
 
     // ── 배터리 경고 ──
     /** 배터리가 설정 온도를 넘으면 경고 알림을 보냅니다 */
@@ -149,7 +180,16 @@ data class ChargeSettings(
     /** 종료 시각 (0~1439 분, 1440=24:00) */
     val quietEndMinute: Int = 420,
     /** 강조색 프리셋 키 (com.example.ui.theme.AccentPalette.keyOf 참조) */
-    val accentKey: String = "cyan"
+    val accentKey: String = "cyan",
+
+    // ── 접근성 ──
+    /**
+     * 앱 전체 글자 크기 배율 (0.85 ~ 1.5).
+     *
+     * 시스템 폰트 크기 설정과 별개로, 앱 안에서만 적용됩니다.
+     * 1.0 이 기본값입니다.
+     */
+    val fontScale: Float = 1.0f
 ) {
 
     /**

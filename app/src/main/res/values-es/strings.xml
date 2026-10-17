@@ -269,7 +269,6 @@
     <string name="alarm_enable_title">Alarma de carga</string>
     <string name="alarm_enable_sub">Suena cuando la batería llega al nivel elegido</string>
     <string name="alarm_target_title">Nivel objetivo</string>
-    <string name="alarm_target_sub">Suena una vez por sesión de carga</string>
     <string name="alarm_sound_title">Reproducir un sonido</string>
     <string name="alarm_sound_sub">Usa la alarma del sistema</string>
     <string name="alarm_channel_name">Alarma de carga</string>
@@ -346,4 +345,51 @@
     <string name="session_rate">+%1$s%/h</string>
 
     <string name="session_elapsed_short">durante %1$s</string>
+
+<!-- ═══════════════ 다중 알람 · 충전 중단 ═══════════════ -->
+    <string name="alarm_target_multi_sub">Puedes elegir varios. Cada uno suena una vez cuando lo alcanzas.</string>
+    <string name="alarm_targets_summary">Puntos de alarma: %1$s%%</string>
+    <string name="alarm_snooze_title">Posponer</string>
+    <string name="alarm_snooze_minutes">%1$d min</string>
+    <string name="alarm_snooze_sub">Si pospones desde la notificación, no sonará otra vez hasta que pase este tiempo.</string>
+    <string name="action_snooze">Posponer %1$d min</string>
+    <string name="action_dismiss">Descartar</string>
+    <string name="limit_enable_title">Aviso de límite de carga</string>
+    <string name="limit_enable_sub">Te avisa al llegar al nivel elegido y que ya puedes desconectar</string>
+    <string name="limit_health_note" formatted="false">Mantener una batería de litio al 100% acelera su desgaste. Desconectar al 80% ya hace que dure bastante más.</string>
+    <string name="limit_channel_name">Aviso de límite de carga</string>
+    <string name="limit_channel_desc">Te avisa cuándo es buen momento para dejar de cargar</string>
+    <string name="limit_title">Ya puedes dejar de cargar</string>
+    <string name="limit_body">Llegaste al %1$d%%. Desconectar aquí es suficiente.</string>
+
+    <!-- ═══════════════ 충전 통계 ═══════════════ -->
+    <string name="menu_stats">Estadísticas de carga</string>
+    <string name="stats_empty">Todavía no hay historial de carga</string>
+    <string name="stats_empty_sub">Enchufa y desenchufa el cargador unas veces y se acumularán registros. Se quedan en este dispositivo y nunca se envían a ningún sitio.</string>
+    <string name="stats_total">%1$d</string>
+    <string name="stats_total_label">Sesiones totales</string>
+    <string name="stats_avg_gain">+%1$d%%</string>
+    <string name="stats_avg_gain_label">Ganancia media</string>
+    <string name="stats_avg_time_label">Tiempo medio</string>
+    <string name="stats_avg_rate">%1$s%%/h</string>
+    <string name="stats_avg_rate_label">Velocidad media</string>
+    <string name="stats_peak_temp">%.1f °C</string>
+    <string name="stats_peak_temp_label">Temp. máxima media</string>
+    <string name="stats_alarm_hit">%1$d</string>
+    <string name="stats_alarm_hit_label">Alcanzó la alarma</string>
+    <string name="stats_chart_title">Ganancia reciente</string>
+    <string name="stats_chart_sub">Últimas %1$d sesiones. La altura es el porcentaje realmente ganado.</string>
+    <string name="stats_axis_old">Más antiguas</string>
+    <string name="stats_axis_new">Más reciente</string>
+    <string name="stats_axis_max">máx %1$d%%</string>
+    <string name="stats_recent_title">Sesiones recientes</string>
+    <string name="stats_row_title">%1$d%% → %2$d%%</string>
+    <string name="stats_today">Hoy %1$s:%2$s</string>
+    <string name="stats_clear">Borrar todos los registros</string>
+    <string name="stats_local_note">Los registros de carga solo viven en el almacenamiento del dispositivo. Sin cuenta, sin servidor, sin copia de seguridad.</string>
+
+    <!-- ═══════════════ 글자 크기 ═══════════════ -->
+    <string name="font_scale_title">Tamaño del texto</string>
+    <string name="font_scale_sub">Se aplica solo dentro de esta app, con independencia del ajuste del sistema</string>
+    <string name="font_scale_note">Se aplica al instante mientras la pantalla está abierta.</string>
 </resources>

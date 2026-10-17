@@ -26,22 +26,34 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
- * 충전 알람 / 배터리 경고 처리.
+     * 충전 알람 / 배터리 경고 처리.
  *
- * 충전 감지 모니터링 서비스가 배터리 변화마다 호출합니다.
+     * 충전 감지 모니터링 서비스가 배터리 변화마다 호출합니다.
  *
- * ## 정책
- * 알람은 **사용자가 설정한 충전율에 정확히 도달했을 때만** 울립니다.
- * 한 번 울린 뒤 전원을 뽑을 때까지 다시 울리지 않으므로 과도한 알림이 발생하지 않습니다.
+     * ## 다중 알람 정책
+ * [ChargeSettings.alarmTargets] 에 들어 있는 모든 임계값에서 각각 한 번씩 울립니다.
+ * 발화한 임계값은 [ChargeSettings.firedAlarmTargets] 에 기록되고, 전원을 뽑을 때까지
+ * 다시 울리지 않습니다.
+ *
+ * 사용자가 알림에서 스누즈를 누르면 [ChargeSettings.snoozeUntilMillis] 시각까지
+ * **어떤 임계값도 새로 발화하지 않습니다.** (동시 도달한 다른 임계값도 함께 미뤄집니다.
+ * 서로 다른 알람을 동시에 울리면 소음으로 이어지므로 의도적으로 그렇게 했습니다.)
+ *
+ * 앱이 꺼져 있다가 깨어난 경우를 위해 목표보다 5% 지점까지 여유를 둡니다.
  */
 object BatteryAlertManager {
 
     private const val TAG = "BatteryAlertManager"
 
     private const val ALARM_CHANNEL_ID = "charge_alarm_channel"
-    private const val ALARM_NOTIFICATION_ID = 2001
+    internal const val ALARM_NOTIFICATION_ID = 2001
     private const val HEALTH_CHANNEL_ID = "battery_health_channel"
     private const val HEALTH_NOTIFICATION_ID = 2002
+    private const val LIMIT_CHANNEL_ID = "charge_limit_channel"
+    private const val LIMIT_NOTIFICATION_ID = 2003
+
+    /** 앱이 꺼져 있다 켜졌을 때, 목표 지점을 이만큼 지나쳤어도 발화시킵니다. */
+    private const val FIRE_TOLERANCE_PERCENT = 5
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -64,12 +76,17 @@ object BatteryAlertManager {
 
                 val info = BatteryInfoHelper.getBatteryInfo(appContext)
 
-                // 충전기가 연결된 상태에서만 알람이 의미를 가집니다.
                 if (info.isCharging) {
                     if (settings.alarmEnabled) evaluateAlarm(appContext, settings, info, repository)
+                    if (settings.chargeLimitEnabled) {
+                        evaluateChargeLimit(appContext, settings, info, repository)
+                    }
                 } else {
-                    // 전원을 뽑으면 다음 충전 세션을 위해 발화 기록을 초기화합니다.
-                    if (settings.alarmFiredThisSession) repository.setAlarmFiredThisSession(false)
+                    // 전원을 뽑으면 통계를 기록하고 발화 상태를 초기화합니다.
+                    // 마지막으로 도달한 임계값이 있었는지도 함께 남깁니다.
+                    ChargingSessionTracker.endSession(appContext, settings.firedAlarmTargets.isNotEmpty())
+                    if (settings.firedAlarmTargets.isNotEmpty()) repository.resetAlarmFired()
+                    if (settings.chargeLimitNotifiedThisSession) repository.resetChargeLimitNotified()
                 }
 
                 if (settings.tempAlertEnabled) evaluateTemperature(appContext, settings, info)
@@ -87,27 +104,29 @@ object BatteryAlertManager {
 
     // ─────────────────────── 충전 알람 ───────────────────────
 
+    /**
+     * 아직 울리지 않은 임계값 중 하나를 발화시킵니다.
+     *
+     * 한 번에 하나만 울립니다 — 50·80·100 을 한꺼번에 통과했다면
+     * 세 번 연속 울리는 대신 가장 높은 임계값 하나만 알립니다.
+     */
     private suspend fun evaluateAlarm(
         context: Context,
         settings: ChargeSettings,
         info: BatteryInfo,
         repository: com.example.data.SettingsRepository
     ) {
-        val target = settings.alarmTargetPercent
-        val alreadyFired = settings.alarmFiredThisSession
+        val now = System.currentTimeMillis()
+        if (now < settings.snoozeUntilMillis) return  // 스누즈 보류 중
 
-        // 목표에 도달했고 아직 울리지 않았다면 알람
-        if (!alreadyFired && info.level >= target) {
-            repository.setAlarmFiredThisSession(true)
-            fireAlarm(context, settings, info, target)
-            return
-        }
+        val pending = settings.alarmTargets
+            .filter { it !in settings.firedAlarmTargets }
+            .filter { info.level >= it - FIRE_TOLERANCE_PERCENT }
+        if (pending.isEmpty()) return
 
-        // 목표를 지나쳤는데 아직 울리지 않았다면 (앱이 꺼져 있다가 깨어난 경우) 발화
-        if (!alreadyFired && info.level >= target - 5) {
-            repository.setAlarmFiredThisSession(true)
-            fireAlarm(context, settings, info, target)
-        }
+        val target = pending.last()  // 여러 개가 동시에 조건을 만족하면 가장 높은 값
+        repository.markAlarmFired(setOf(target))
+        fireAlarm(context, settings, info, target)
     }
 
     private fun fireAlarm(
@@ -125,10 +144,15 @@ object BatteryAlertManager {
             playAlarmTone(context)
         }
 
-        postAlarmNotification(context, info, target)
+        postAlarmNotification(context, info, target, settings.alarmSnoozeMinutes)
     }
 
-    private fun postAlarmNotification(context: Context, info: BatteryInfo, target: Int) {
+    private fun postAlarmNotification(
+        context: Context,
+        info: BatteryInfo,
+        target: Int,
+        snoozeMinutes: Int
+    ) {
         try {
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -160,11 +184,77 @@ object BatteryAlertManager {
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setAutoCancel(true)
                 .setContentIntent(openApp)
+                // 알림에서 바로 제어할 수 있게 합니다 — 앱을 열어야 하는 불편을 없앱니다.
+                .addAction(
+                    R.drawable.charge_sound_icon_1791457205401,
+                    context.getString(R.string.action_snooze, snoozeMinutes),
+                    AlarmActionReceiver.snoozePendingIntent(context, snoozeMinutes)
+                )
+                .addAction(
+                    R.drawable.charge_sound_icon_1791457205401,
+                    context.getString(R.string.action_dismiss),
+                    AlarmActionReceiver.dismissPendingIntent(context)
+                )
                 .build()
 
             manager.notify(ALARM_NOTIFICATION_ID, notification)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to post alarm notification", e)
+        }
+    }
+
+    // ─────────────────────── 충전 중단 알림 ───────────────────────
+
+    /**
+     * 설정한 충전율에 도달하면 "이제 충분합니다"를 알립니다.
+     *
+     * 리튬 배터리를 100%까지 계속 충전하면 화학적 노화가 빨라집니다.
+     * 80%에서 끊는 것만으로 수命이 크게 늘기 때문에, 앱이 대신 알려줍니다.
+     */
+    private suspend fun evaluateChargeLimit(
+        context: Context,
+        settings: ChargeSettings,
+        info: BatteryInfo,
+        repository: com.example.data.SettingsRepository
+    ) {
+        if (settings.chargeLimitNotifiedThisSession) return
+        if (info.level < settings.chargeLimitPercent) return
+
+        repository.setChargeLimitNotified()
+        try {
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (manager.getNotificationChannel(LIMIT_CHANNEL_ID) == null) {
+                    manager.createNotificationChannel(
+                        NotificationChannel(
+                            LIMIT_CHANNEL_ID,
+                            context.getString(R.string.limit_channel_name),
+                            NotificationManager.IMPORTANCE_DEFAULT
+                        ).apply {
+                            description = context.getString(R.string.limit_channel_desc)
+                        }
+                    )
+                }
+            }
+            val openApp = PendingIntent.getActivity(
+                context,
+                1,
+                Intent(context, MainActivity::class.java),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            manager.notify(
+                LIMIT_NOTIFICATION_ID,
+                NotificationCompat.Builder(context, LIMIT_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.charge_sound_icon_1791457205401)
+                    .setContentTitle(context.getString(R.string.limit_title))
+                    .setContentText(context.getString(R.string.limit_body, settings.chargeLimitPercent))
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setAutoCancel(true)
+                    .setContentIntent(openApp)
+                    .build()
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to post charge limit notification", e)
         }
     }
 

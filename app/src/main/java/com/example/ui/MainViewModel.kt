@@ -19,6 +19,7 @@ import com.example.battery.BatteryInfo
 import com.example.battery.BatteryInfoHelper
 import com.example.battery.PlugType
 import com.example.data.AnimationMode
+import com.example.data.ChargeRecord
 import com.example.data.ChargeSettings
 import com.example.data.PremiumCatalog
 import com.example.data.SettingsRepository
@@ -43,6 +44,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         initialValue = ChargeSettings()
     )
 
+    /** 완료된 충전 기록 (통계 화면). 서버로 나가지 않고 기기에만 남습니다. */
+    val chargeHistory: StateFlow<List<ChargeRecord>> = repository.historyFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
     val batteryInfo: StateFlow<BatteryInfo> = BatteryInfoHelper.batteryFlow(application).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -410,11 +417,37 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun setAlarmTargetPercent(percent: Int) {
-        viewModelScope.launch {
-            repository.setAlarmTargetPercent(percent)
-            _userMessage.value = msg(R.string.msg_alarm_target, percent)
-        }
+    fun setAlarmTargets(targets: List<Int>) {
+        viewModelScope.launch { repository.setAlarmTargets(targets) }
+    }
+
+    /** 알람 임계값 하나를 토글합니다. 목록이 비면 아무것도 하지 않습니다. */
+    fun toggleAlarmTarget(percent: Int) {
+        val current = settings.value.alarmTargets.toMutableSet()
+        if (!current.remove(percent)) current.add(percent)
+        // 최소 1개는 남겨야 합니다 — 0개면 알람을 켜도 아무 일도 일어나지 않습니다.
+        if (current.isEmpty()) return
+        setAlarmTargets(current.toList())
+    }
+
+    fun setAlarmSnoozeMinutes(minutes: Int) {
+        viewModelScope.launch { repository.setAlarmSnoozeMinutes(minutes) }
+    }
+
+    fun setChargeLimitEnabled(enabled: Boolean) {
+        viewModelScope.launch { repository.setChargeLimitEnabled(enabled) }
+    }
+
+    fun setChargeLimitPercent(percent: Int) {
+        viewModelScope.launch { repository.setChargeLimitPercent(percent) }
+    }
+
+    fun setFontScale(scale: Float) {
+        viewModelScope.launch { repository.setFontScale(scale) }
+    }
+
+    fun clearChargeHistory() {
+        viewModelScope.launch { repository.writeHistory(emptyList()) }
     }
 
     fun setAlarmWithSound(enabled: Boolean) {

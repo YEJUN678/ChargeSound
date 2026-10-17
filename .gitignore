@@ -12,6 +12,9 @@ hs_err_pid*.log
 replay_pid*.log
 .DS_Store
 /build
+
+# 서명된 릴리스 APK 보관 (Gradle 은 app/build 를 청소합니다)
+/dist/
 /captures
 .externalNativeBuild
 .cxx

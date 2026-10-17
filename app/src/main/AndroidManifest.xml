@@ -136,6 +136,11 @@
             </intent-filter>
         </receiver>
 
+
+    <!-- 충전 알림 액션 (스누즈 · 해제). 알림 버튼이 이 리시버를 호출합니다. -->
+    <receiver
+        android:name=".service.AlarmActionReceiver"
+        android:exported="false" />
     </application>
 
 </manifest>

@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Movie
@@ -59,6 +60,7 @@ import com.example.data.AnimationMode
 import com.example.data.ChargeSettings
 import com.example.data.PremiumCatalog
 import com.example.ui.theme.ElectricCyan
+import com.example.ui.theme.ElectricGreen
 import com.example.ui.theme.Slate400
 import com.example.ui.theme.Slate600
 import com.example.ui.theme.Slate700
@@ -84,6 +86,7 @@ fun OverflowMenu(
     onOpenPremiumAnimations: () -> Unit,
     onOpenAdFree: () -> Unit,
     onOpenTheme: () -> Unit,
+    onOpenStats: () -> Unit,
     onOpenAbout: () -> Unit,
     adFreeMinutesRemaining: Int
 ) {
@@ -167,6 +170,14 @@ fun OverflowMenu(
             onClick = {
                 expanded = false
                 onOpenTheme()
+            }
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.menu_stats)) },
+            leadingIcon = { Icon(Icons.Default.BarChart, contentDescription = null) },
+            onClick = {
+                expanded = false
+                onOpenStats()
             }
         )
         DropdownMenuItem(
@@ -400,7 +411,10 @@ fun AlarmSettingsSheet(
     settings: ChargeSettings,
     onDismiss: () -> Unit,
     onToggleEnabled: (Boolean) -> Unit,
-    onSelectPercent: (Int) -> Unit,
+    onTogglePercent: (Int) -> Unit,
+    onSelectSnoozeMinutes: (Int) -> Unit,
+    onToggleChargeLimit: (Boolean) -> Unit,
+    onSelectChargeLimitPercent: (Int) -> Unit,
     onToggleWithSound: (Boolean) -> Unit
 ) {
     SheetScaffold(titleRes = R.string.menu_alarm, onDismiss = onDismiss) {
@@ -420,27 +434,26 @@ fun AlarmSettingsSheet(
             color = Color.White
         )
         Text(
-            text = stringResource(R.string.alarm_target_sub),
+            text = stringResource(R.string.alarm_target_multi_sub),
             fontSize = 11.sp,
             color = Slate400
         )
 
         Spacer(Modifier.height(10.dp))
 
-        // 흔한 목표값만 버튼으로 제공합니다 (슬라이더 대비 조작이 정확합니다).
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             listOf(50, 60, 70, 80, 90, 100).forEach { percent ->
-                val selected = settings.alarmTargetPercent == percent
+                val selected = percent in settings.alarmTargets
                 Surface(
                     color = if (selected) ElectricCyan else Slate800,
                     shape = RoundedCornerShape(10.dp),
                     border = BorderStroke(1.dp, if (selected) ElectricCyan else Slate700),
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { onSelectPercent(percent) }
+                        .clickable { onTogglePercent(percent) }
                 ) {
                     Box(
                         modifier = Modifier.padding(vertical = 10.dp),
@@ -457,6 +470,56 @@ fun AlarmSettingsSheet(
             }
         }
 
+        if (settings.alarmTargets.size > 1) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.alarm_targets_summary, settings.alarmTargets.joinToString(", ")),
+                fontSize = 11.sp,
+                color = ElectricCyan
+            )
+        }
+
+        Spacer(Modifier.height(18.dp))
+
+        Text(
+            text = stringResource(R.string.alarm_snooze_title),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White
+        )
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(5, 10, 20, 30).forEach { minutes ->
+                val selected = settings.alarmSnoozeMinutes == minutes
+                Surface(
+                    color = if (selected) ElectricCyan else Slate800,
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, if (selected) ElectricCyan else Slate700),
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onSelectSnoozeMinutes(minutes) }
+                ) {
+                    Box(
+                        modifier = Modifier.padding(vertical = 9.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.alarm_snooze_minutes, minutes),
+                            color = if (selected) Color.Black else Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = stringResource(R.string.alarm_snooze_sub),
+            fontSize = 11.sp,
+            color = Slate600
+        )
+
         Spacer(Modifier.height(18.dp))
 
         ToggleRow(
@@ -465,9 +528,54 @@ fun AlarmSettingsSheet(
             checked = settings.alarmWithSound,
             onCheckedChange = onToggleWithSound
         )
+
+        HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Slate800)
+
+        // 배터리 수명 보호: 100%까지 채우지 말고 이 지점에서 끊으라고 알려줍니다.
+        ToggleRow(
+            title = stringResource(R.string.limit_enable_title),
+            subtitle = stringResource(R.string.limit_enable_sub),
+            checked = settings.chargeLimitEnabled,
+            onCheckedChange = onToggleChargeLimit
+        )
+
+        if (settings.chargeLimitEnabled) {
+            Spacer(Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(60, 70, 80, 90).forEach { percent ->
+                    val selected = settings.chargeLimitPercent == percent
+                    Surface(
+                        color = if (selected) ElectricGreen else Slate800,
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, if (selected) ElectricGreen else Slate700),
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { onSelectChargeLimitPercent(percent) }
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(vertical = 10.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "$percent%",
+                                color = if (selected) Color.Black else Color.White,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = stringResource(R.string.limit_health_note),
+                fontSize = 11.sp,
+                color = Slate600,
+                lineHeight = 15.sp
+            )
+        }
     }
 }
-
 /** 배터리 경고 설정 (온도 · 건강도) */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

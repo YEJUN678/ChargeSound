@@ -168,7 +168,6 @@
     <string name="alarm_enable_title">충전 알람</string>
     <string name="alarm_enable_sub">설정한 충전율에 도달하면 알람을 울립니다</string>
     <string name="alarm_target_title">목표 충전율</string>
-    <string name="alarm_target_sub">한 번 충전할 때 한 번만 울립니다</string>
     <string name="alarm_sound_title">사운드 재생</string>
     <string name="alarm_sound_sub">시스템 알람음을 사용합니다</string>
     <string name="alarm_channel_name">충전 알람</string>
@@ -337,4 +336,51 @@
     <string name="accent_sub">앱 전체에 쓰이는 색을 고릅니다</string>
     <string name="accent_lime">라임 그린</string>
     <string name="session_elapsed_short">%1$s 경과</string>
+
+<!-- ═══════════════ 다중 알람 · 충전 중단 ═══════════════ -->
+    <string name="alarm_target_multi_sub">여러 개를 선택할 수 있습니다. 도달한 지점마다 한 번씩 울립니다.</string>
+    <string name="alarm_targets_summary">알람 지점: %1$s%%</string>
+    <string name="alarm_snooze_title">스누즈</string>
+    <string name="alarm_snooze_minutes">%1$d분</string>
+    <string name="alarm_snooze_sub">알림에서 스누즈를 누르면 이 시간이 지날 때까지 다시 울리지 않습니다.</string>
+    <string name="action_snooze">%1$d분 미루기</string>
+    <string name="action_dismiss">해제</string>
+    <string name="limit_enable_title">충전 중단 알림</string>
+    <string name="limit_enable_sub">설정한 충전율에 도달하면 이제 그만 꽂아도 된다고 알려줍니다</string>
+    <string name="limit_health_note" formatted="false">리튬 배터리를 100%로 유지하면 노화가 빨라집니다. 80%에서 끊는 것만으로 수명이 눈에 띄게 늘어납니다.</string>
+    <string name="limit_channel_name">충전 중단 알림</string>
+    <string name="limit_channel_desc">충전을 멈추기 좋은 시점을 알려줍니다</string>
+    <string name="limit_title">충전을 멈추세요</string>
+    <string name="limit_body">%1$d%%에 도달했습니다. 여기서 뽑아도 충분합니다.</string>
+
+    <!-- ═══════════════ 충전 통계 ═══════════════ -->
+    <string name="menu_stats">충전 통계</string>
+    <string name="stats_empty">아직 충전 기록이 없습니다</string>
+    <string name="stats_empty_sub">충전기를 꽂았다가 몇 번 빼면 기록이 쌓입니다. 기기 안에만 남고 외부로 전송되지 않습니다.</string>
+    <string name="stats_total">%1$d회</string>
+    <string name="stats_total_label">총 충전 횟수</string>
+    <string name="stats_avg_gain">+%1$d%%</string>
+    <string name="stats_avg_gain_label">평균 충전량</string>
+    <string name="stats_avg_time_label">평균 소요 시간</string>
+    <string name="stats_avg_rate">%1$s%%/시간</string>
+    <string name="stats_avg_rate_label">평균 충전 속도</string>
+    <string name="stats_peak_temp">%.1f °C</string>
+    <string name="stats_peak_temp_label">평균 최고 온도</string>
+    <string name="stats_alarm_hit">%1$d회</string>
+    <string name="stats_alarm_hit_label">알람 도달</string>
+    <string name="stats_chart_title">최근 충전량</string>
+    <string name="stats_chart_sub">최근 %1$d회 기준. 막대 높이는 실제로 오른 잔량입니다.</string>
+    <string name="stats_axis_old">오래된 순</string>
+    <string name="stats_axis_new">최신</string>
+    <string name="stats_axis_max">최대 %1$d%%</string>
+    <string name="stats_recent_title">최근 기록</string>
+    <string name="stats_row_title">%1$d%% → %2$d%%</string>
+    <string name="stats_today">오늘 %1$s:%2$s</string>
+    <string name="stats_clear">기록 모두 삭제</string>
+    <string name="stats_local_note">충전 기록은 기기 안의 저장소에만 남습니다. 계정도, 서버도, 백업도 없습니다.</string>
+
+    <!-- ═══════════════ 글자 크기 ═══════════════ -->
+    <string name="font_scale_title">글자 크기</string>
+    <string name="font_scale_sub">시스템 설정과 별개로 이 앱 안에서만 적용됩니다</string>
+    <string name="font_scale_note">화면이 열려 있는 동안 바로 적용됩니다.</string>
 </resources>

@@ -5,7 +5,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ad.AdManager
 import com.example.ui.MainScreen
@@ -28,11 +32,22 @@ class MainActivity : ComponentActivity() {
             // 강조색은 설정에서 바꾸므로 상태로 읽어야 테마가 다시 그려집니다.
             // (전역 색 상수에 반영하는 방식은 MyApplicationTheme 참조)
             val settings by viewModel.settings.collectAsStateWithLifecycle()
-            MyApplicationTheme(
-                darkTheme = true,
-                accent = AccentPalette.fromKey(settings.accentKey)
-            ) {
-                MainScreen(viewModel = viewModel)
+
+            // 앱 전용 글자 크기 배율.
+            // Density 의 fontScale 만 올려서 sp 단위가 전부 함께 커집니다 —
+            // 개별 컴포저블에 fontScale 을 흘려보내는 것보다 훨씬 덜 번집니다.
+            val density = LocalDensity.current
+            val scaled = remember(settings.fontScale) {
+                Density(density = density.density, fontScale = density.fontScale * settings.fontScale)
+            }
+
+            CompositionLocalProvider(LocalDensity provides scaled) {
+                MyApplicationTheme(
+                    darkTheme = true,
+                    accent = AccentPalette.fromKey(settings.accentKey)
+                ) {
+                    MainScreen(viewModel = viewModel)
+                }
             }
         }
     }

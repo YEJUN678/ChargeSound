@@ -175,7 +175,6 @@
     <string name="alarm_enable_title">Charge alarm</string>
     <string name="alarm_enable_sub">Ring when your battery reaches the target level</string>
     <string name="alarm_target_title">Target level</string>
-    <string name="alarm_target_sub">The alarm rings once per charging session</string>
     <string name="alarm_sound_title">Play a sound</string>
     <string name="alarm_sound_sub">Uses your system alarm tone</string>
     <string name="alarm_channel_name">Charge alarm</string>
@@ -344,4 +343,52 @@
     <string name="accent_sub">Pick the colour used across the app</string>
     <string name="accent_lime">Lime</string>
     <string name="session_elapsed_short">for %1$s</string>
+
+    <!-- ═══════════════ 다중 알람 · 충전 중단 ═══════════════ -->
+    <string name="alarm_target_multi_sub">You can pick several. Each one alarms once as you reach it.</string>
+    <string name="alarm_targets_summary">Alarm points: %1$s%%</string>
+    <string name="alarm_snooze_title">Snooze</string>
+    <string name="alarm_snooze_minutes">%1$d min</string>
+    <string name="alarm_snooze_sub">When you press snooze on the notification, nothing alarms again until this much time has passed.</string>
+    <string name="action_snooze">Snooze %1$d min</string>
+    <string name="action_dismiss">Dismiss</string>
+    <string name="limit_enable_title">Charge limit reminder</string>
+    <string name="limit_enable_sub">Tells you when the chosen level is reached and you can unplug</string>
+    <string name="limit_health_note" formatted="false">Keeping a lithium battery at 100% all the time speeds up its wear. Unplugging at 80% alone makes it last noticeably longer.</string>
+    <string name="limit_channel_name">Charge limit reminder</string>
+    <string name="limit_channel_desc">Tells you when it is a good time to stop charging</string>
+    <string name="limit_title">You can stop charging</string>
+    <string name="limit_body">You reached %1$d%%. Unplugging here is enough.</string>
+
+    <!-- ═══════════════ 충전 통계 ═══════════════ -->
+    <string name="menu_stats">Charging stats</string>
+    <string name="stats_empty">No charging history yet</string>
+    <string name="stats_empty_sub">Plug in and unplug your charger a few times and records will build up. They stay on this device and are never sent anywhere.</string>
+    <string name="stats_total">%1$d</string>
+    <string name="stats_total_label">Total sessions</string>
+    <string name="stats_avg_gain">+%1$d%%</string>
+    <string name="stats_avg_gain_label">Average gain</string>
+    <string name="stats_avg_time_label">Average time</string>
+    <string name="stats_avg_rate">%1$s%%/h</string>
+    <string name="stats_avg_rate_label">Average rate</string>
+    <string name="stats_peak_temp">%.1f °C</string>
+    <string name="stats_peak_temp_label">Average peak temp</string>
+    <string name="stats_alarm_hit">%1$d</string>
+    <string name="stats_alarm_hit_label">Reached alarm</string>
+    <string name="stats_chart_title">Recent charge gain</string>
+    <string name="stats_chart_sub">Last %1$d sessions. Bar height is the percentage actually gained.</string>
+    <string name="stats_axis_old">Older</string>
+    <string name="stats_axis_new">Newest</string>
+    <string name="stats_axis_max">max %1$d%%</string>
+    <string name="stats_recent_title">Recent sessions</string>
+    <string name="stats_row_title">%1$d%% → %2$d%%</string>
+    <string name="stats_today">Today %1$s:%2$s</string>
+    <string name="stats_clear">Delete all records</string>
+    <string name="stats_local_note">Charging records live only in on-device storage. No account, no server, no backup.</string>
+
+    <!-- ═══════════════ 글자 크기 ═══════════════ -->
+    <string name="font_scale_title">Text size</string>
+    <string name="font_scale_sub">Applies inside this app only, independent of your system setting</string>
+    <string name="font_scale_note">Applied immediately while the screen is open.</string>
+
 </resources>

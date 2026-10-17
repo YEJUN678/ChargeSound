@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.example.R
 import com.example.data.ChargeSettings
 import com.example.ui.theme.AccentPalette
+import com.example.ui.theme.ElectricCyan
 import com.example.ui.theme.ElectricGreen
 import com.example.ui.theme.Slate400
 import com.example.ui.theme.Slate600
@@ -47,7 +49,9 @@ import com.example.ui.theme.Slate800
 fun ThemeSettingsSheet(
     settings: ChargeSettings,
     onDismiss: () -> Unit,
-    onSelectAccent: (String) -> Unit
+    onSelectAccent: (String) -> Unit,
+    fontScale: Float = 1.0f,
+    onSelectFontScale: (Float) -> Unit = {}
 ) {
     SheetScaffold(titleRes = R.string.menu_theme, onDismiss = onDismiss) {
         Text(
@@ -120,8 +124,64 @@ fun ThemeSettingsSheet(
             color = Slate600,
             lineHeight = 16.sp
         )
+
+        Spacer(Modifier.height(20.dp))
+
+        Text(
+            text = stringResource(R.string.font_scale_title),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        Text(
+            text = stringResource(R.string.font_scale_sub),
+            fontSize = 11.sp,
+            color = Slate400
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            FONT_SCALES.forEach { scale ->
+                val selected = kotlin.math.abs(fontScale - scale) < 0.01f
+                Surface(
+                    color = if (selected) ElectricCyan else Slate800,
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, if (selected) ElectricCyan else Slate700),
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onSelectFontScale(scale) }
+                ) {
+                    Box(
+                        modifier = Modifier.padding(vertical = 11.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "${(scale * 100).toInt()}%",
+                            color = if (selected) Color.Black else Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.font_scale_note),
+            fontSize = 11.sp,
+            color = Slate600,
+            lineHeight = 16.sp
+        )
     }
 }
+
+/** 글자 크기 배율 프리셋. 시스템 폰트 설정과 무관하게 앱 안에서만 적용됩니다. */
+private val FONT_SCALES = listOf(0.9f, 1.0f, 1.15f, 1.3f, 1.5f)
 
 private fun accentLabelRes(key: String): Int = when (key) {
     "magenta" -> R.string.accent_magenta

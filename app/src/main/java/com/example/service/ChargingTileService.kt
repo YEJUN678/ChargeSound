@@ -46,7 +46,7 @@ class ChargingTileService : TileService() {
             }
 
             // 알람 발화 기록을 초기화해 다음 충전 세션에서 다시 울리도록 합니다.
-            repository.setAlarmFiredThisSession(false)
+            repository.resetAlarmFired()
 
             updateTile(tile, next)
         }

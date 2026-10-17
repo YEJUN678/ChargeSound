@@ -2,6 +2,8 @@ package com.example.service
 
 import android.util.Log
 import com.example.battery.BatteryInfo
+import com.example.data.ChargeHistoryRepository
+import com.example.data.ChargeRecord
 import com.example.data.ChargingSession
 import com.example.data.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +33,46 @@ object ChargingSessionTracker {
         val isActive: Boolean
     )
 
+    /** 이번 세션에서 관측한 최고 온도 — 기록 종료 시 통계에 넣습니다. */
+    @Volatile private var peakTempC = 0f
+    @Volatile private var lastSeenLevel = -1
+    @Volatile private var lastSeenPlug = "none"
+
+    /**
+     * 충전기가 빠졌을 때 호출합니다. 통계를 쌓고 세션을 비웁니다.
+     *
+     * [reset] 과 달리 기록이 남습니다 — 어떻게 충전해 왔나를 보여줄 근거입니다.
+     */
+    fun endSession(context: android.content.Context, reachedTarget: Boolean) {
+        val appContext = context.applicationContext
+        scope.launch {
+            try {
+                val repo = SettingsRepository(appContext)
+                val session = repo.readSession()
+                if (session.startedAt > 0L) {
+                    val level = lastSeenLevel.takeIf { it >= 0 } ?: session.lastLevel
+                    ChargeHistoryRepository.append(
+                        appContext,
+                        ChargeRecord(
+                            startedAt = session.startedAt,
+                            endedAt = System.currentTimeMillis(),
+                            startLevel = session.startLevel,
+                            endLevel = level,
+                            peakTempC = peakTempC,
+                            plugType = lastSeenPlug,
+                            reachedAlarmTarget = reachedTarget
+                        )
+                    )
+                }
+                repo.writeSession(ChargingSession())
+                peakTempC = 0f
+                lastSeenLevel = -1
+            } catch (e: Exception) {
+                Log.w(TAG, "endSession failed", e)
+            }
+        }
+    }
+
     /**
      * 배터리 상태가 바뀔 때마다 호출합니다.
      */
@@ -50,6 +92,9 @@ object ChargingSessionTracker {
 
                 if (session.startedAt <= 0L) {
                     // 충전 시작
+                    peakTempC = info.temperatureC
+                    lastSeenLevel = info.level
+                    lastSeenPlug = info.plugType.name.lowercase()
                     repo.writeSession(
                         ChargingSession(
                             startedAt = now,
@@ -61,6 +106,11 @@ object ChargingSessionTracker {
                     Log.d(TAG, "charge session started at $info.level%")
                     return@launch
                 }
+
+                // 통계용 관측값 갱신 (쓰기 비용이 없는 필드들)
+                if (info.temperatureC > peakTempC) peakTempC = info.temperatureC
+                lastSeenLevel = info.level
+                lastSeenPlug = info.plugType.name.lowercase()
 
                 // 잔량이 실제로 바뀌었을 때만 시각을 갱신합니다.
                 // (같은 % 로 여러 번 이벤트가 오면 분모가 어긋납니다)
