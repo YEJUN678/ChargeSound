@@ -35,3 +35,5 @@ debug.keystore
 # Firebase — AI Studio가 주입합니다
 app/google-services.json
 app/src/*/google-services.json
+# Android 개발자 인증 (ADI) 스니펫 — 민감 정보이므로 커밋하지 않음
+app/src/main/assets/adi-registration.properties

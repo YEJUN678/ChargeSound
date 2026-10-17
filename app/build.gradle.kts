@@ -24,6 +24,22 @@ android {
   namespace = "com.example"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
+  // ─────────────────────────────────────────────────────────────
+  // Android 개발자 인증 (ADI)
+  //
+  // Play 에 올릴 계획이 아니라면 아무것도 하지 않아도 됩니다.
+  // OneStore 는 assets/adi-registration.properties 없��� 정보성 팝업만 띄우고
+  // 등록/검수/출시에 영향을 주지 않습니다.
+  //
+  // Play 배포 시에만 아래 절차가 필요합니다 (OneStore 서명키를 쓰는 경우):
+  //   1) https://developer.android.com/developer-verification 에서 인증 시작
+  //   2) 화면에 표시된 스니펫을 아래 경로에 그대로 저장
+  //        app/src/main/assets/adi-registration.properties
+  //   3) 이 파일이 포함된 APK 를 OneStore 에 올림 (OneStore 가 자체 키로 재서명)
+  //   4) OneStore 에서 내려받은 최종 서명 APK 를 Play Console 에 올림
+  //
+  // 이 파일은 인증 재질량 등 민감하므로 커밋하지 않습니다 (.gitignore 처리됨).
+  // ─────────────────────────────────────────────────────────────
   defaultConfig {
     // 스토어 등록용 앱 식별자. 한 번 등록하면 변경 불가하므로 신중히 결정할 것.
     // namespace(위)는 내부 R/BuildConfig 패키지라 스토어에 노출되지 않습니다.
