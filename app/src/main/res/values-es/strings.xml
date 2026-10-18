@@ -147,7 +147,6 @@
     <string name="anim_plug_connected">Cargador conectado</string>
     <string name="anim_auto_close">Cierra en %1$d s</string>
     <string name="anim_loop_forever">Reproduciendo hasta que toques</string>
-    <string name="anim_tap_to_close">Toca en cualquier lugar para cerrar</string>
 
     <!-- ═══════════════ pestaña de batería ═══════════════ -->
     <string name="battery_discharging">Sin cargar</string>
@@ -415,4 +414,8 @@
     <string name="trim_read_error">No se pudo leer la duración. Puedes usar el archivo entero.</string>
     <string name="trim_active_note">Solo sonará la sección elegida. Los bucles de carga se quedan dentro de ella.</string>
 
+
+    <!-- ═══════════════ 충전 애니메이션 화면 HUD ═══════════════ -->
+    <string name="anim_rate_measuring">Midiendo…</string>
+    <string name="anim_exit_hint">Toca en cualquier lugar para cerrar</string>
 </resources>

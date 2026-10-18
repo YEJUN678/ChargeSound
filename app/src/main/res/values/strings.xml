@@ -82,7 +82,6 @@
     <string name="anim_plug_connected">Charger connected</string>
     <string name="anim_auto_close">Closing in %1$d s</string>
     <string name="anim_loop_forever">Playing until you tap</string>
-    <string name="anim_tap_to_close">Tap anywhere to close</string>
 
     <!-- ═══════════════ battery info tab ═══════════════ -->
     <string name="battery_discharging">Not charging</string>
@@ -412,4 +411,8 @@
     <string name="trim_read_error">Could not read the length of this media file. You can still use the whole file.</string>
     <string name="trim_active_note">Only the selected section will play. Charging loops stay inside it.</string>
 
+
+    <!-- ═══════════════ 충전 애니메이션 화면 HUD ═══════════════ -->
+    <string name="anim_rate_measuring">Measuring…</string>
+    <string name="anim_exit_hint">Tap anywhere to close</string>
 </resources>

@@ -1,8 +1,6 @@
 package com.example.ui
 
 import android.content.Context
-import android.media.MediaPlayer
-import android.net.Uri
 import android.app.KeyguardManager
 import android.os.Build
 import com.example.data.SettingsRepository
@@ -15,12 +13,14 @@ import android.widget.VideoView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -38,18 +38,12 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -58,7 +52,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -68,24 +62,26 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.res.stringResource
 import com.example.R
 import com.example.ad.AdManager
 import com.example.battery.BatteryInfoHelper
 import com.example.data.AnimationMode
+import com.example.service.ChargingSessionTracker
 import com.example.sound.SoundManager
 import com.example.ui.theme.ElectricAmber
 import com.example.ui.theme.ElectricCyan
 import com.example.ui.theme.ElectricGreen
 import com.example.ui.theme.ElectricPurple
 import com.example.ui.theme.AccentPalette
+import com.example.ui.theme.AppText
+import com.example.ui.theme.Motion
 import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.theme.Slate950
+import com.example.ui.theme.Spacing
 import kotlinx.coroutines.delay
 import java.io.File
 import kotlin.math.PI
@@ -259,13 +255,39 @@ fun ChargingScreenContent(
     var currentBatteryLevel by remember { mutableIntStateOf(initialLevel) }
     var remainingSeconds by remember { mutableIntStateOf(if (durationSec > 0) durationSec else 0) }
 
-    // Read real battery info
-    LaunchedEffect(Unit) {
-        val info = BatteryInfoHelper.getBatteryInfo(context)
-        if (info.level > 0) {
-            currentBatteryLevel = info.level
+    // 충전 상태 폴링.
+    //
+    // 이 화면이 앱의 얼굴 이므로 가장 쓸모 있는 정보(충전 속도)를 여기에 둡니다.
+    // 배터리를 이미 읽고 있으니 같은 경로로 세션 스냅샷만 추가로 얻습니다.
+    //
+    // 배터리는 1% 단위로 바뀌므로 10초 주기면 충분합니다. 더 짧게 폴링해도
+    // 표시되는 숫자는 달라지지 않고 배터리 소모만 늘어납니다.
+    var chargeRate by remember { mutableStateOf<Float?>(null) }
+    var measuringRate by remember { mutableStateOf(true) }
+    LaunchedEffect(animMode) {
+        while (true) {
+            val info = BatteryInfoHelper.getBatteryInfo(context)
+            if (info.level > 0) currentBatteryLevel = info.level
+            val snap = ChargingSessionTracker.snapshot(context, info)
+            chargeRate = snap.percentPerHour
+            // 시간당 상승률을 믿을 만하게 추정하려면 최소 1분은 지켜봐야 합니다.
+            measuringRate = snap.elapsedMillis < 60_000L
+            delay(10_000L)
         }
     }
+
+    // 진입 스케일 — 화면이 아주 짧게 떠오르는 느낌으로 나타나게 합니다.
+    // 오래 두면 시선을 뺏으므로 한 번만 스프링을 주고 끝냅니다.
+    var entranceDone by remember { mutableStateOf(false) }
+    val entranceScale by animateFloatAsState(
+        targetValue = if (entranceDone) 1f else 0.92f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Motion.SPRING_STIFFNESS
+        ),
+        label = "entrance_scale"
+    )
+    LaunchedEffect(Unit) { entranceDone = true }
 
     // Auto dismiss timer
     LaunchedEffect(durationSec) {
@@ -289,6 +311,9 @@ fun ChargingScreenContent(
             )
             .testTag("charging_animation_screen")
     ) {
+        // 진입 스케일은 애니메이션 레이어 에만 적용합니다.
+        // HUD 는 글자라서 흔들리면 읽기 어렵고, 배경만 떠오르면 충분히 인상적입니다.
+        Box(modifier = Modifier.fillMaxSize().scale(entranceScale)) {
         // Animation Layer
         val hasValidCustomVideo = animMode == AnimationMode.CUSTOM_VIDEO &&
                 !videoPath.isNullOrBlank() &&
@@ -322,17 +347,21 @@ fun ChargingScreenContent(
             }
         }
 
-        // Dark gradient vignette overlay to ensure text contrast
+        }   // 진입 스케일 Box 끝 — 비네트는 아래에서 화면에 고정됩니다
+
+        // 비네트 — HUD 글자가 배경 위에서도 읽히도록 위/아래를 어둡게 덮습니다.
+        // 화면에 고정(스케일 대상 아님)이라 애니메이션이 커져도 가장자리만 어두워집니다.
+        // Slate950 을 씁니다 — 순수 검정보다 앱 자신의 배경색이라 이질감이 없습니다.
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.Black.copy(alpha = 0.65f),
+                            Slate950.copy(alpha = 0.72f),
                             Color.Transparent,
                             Color.Transparent,
-                            Color.Black.copy(alpha = 0.85f)
+                            Slate950.copy(alpha = 0.88f)
                         )
                     )
                 )
@@ -345,119 +374,69 @@ fun ChargingScreenContent(
             modifier = Modifier.fillMaxSize()
         ) {
 
-        // Top bar with close button & timer info
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Surface(
-                color = Color.Black.copy(alpha = 0.5f),
-                shape = RoundedCornerShape(20.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, ElectricCyan.copy(alpha = 0.3f))
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.FlashOn,
-                        contentDescription = null,
-                        tint = ElectricAmber,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = plugName,
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-
-            IconButton(
-                onClick = onDismiss,
+            // Top bar with close button & timer info
+            Row(
                 modifier = Modifier
-                    .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.5f))
-                    .size(40.dp)
-                    .testTag("close_animation_button")
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = HudPad, vertical = Spacing.lg),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.a11y_close),
-                    tint = Color.White
+                ChargingPlugChip(plugName = plugName)
+
+                HudCloseButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.testTag("close_animation_button")
                 )
             }
-        }
 
-        // Center HUD: Battery percentage & neon ring
-        //
-        // 이전에는 `.align(Center).padding(bottom = 60.dp)` 로 화면 정중앙에서
-        // 일부러 30dp 올려두었는데, 위쪽 상태 필(plug pill) 과 아래쪽 HUD 의
-        // 높이가 서로 달라 실제 화면에서 배터리가 너무 위로 뜨고 아래가 비어 보였습니다.
-        //
-        // 이제 상단/하단 HUD 를 자연스러운 높이로 두고, 그 사이의 남은 공간을
-        // Column 의 weight 로 배분해 배터리가 "지금 보이는 영역의 정중앙"에 오도록 했습니다.
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            contentAlignment = Alignment.Center
-        ) {
-            BatteryCenterGlow(batteryLevel = currentBatteryLevel)
-        }
-
-        // Bottom HUD: Tap instruction & timer indicator
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(bottom = 28.dp, start = 20.dp, end = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (durationSec > 0) {
-                Surface(
-                    color = Color.Black.copy(alpha = 0.65f),
-                    shape = RoundedCornerShape(16.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, ElectricCyan.copy(alpha = 0.4f))
-                ) {
-                    Text(
-                        text = stringResource(R.string.anim_auto_close, remainingSeconds),
-                        color = ElectricCyan,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-            } else if (durationSec == 0) {
-                Surface(
-                    color = Color.Black.copy(alpha = 0.6f),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.anim_loop_forever),
-                        color = ElectricGreen,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(10.dp))
+            // Center HUD: Battery percentage & neon ring
+            //
+            // 이전에는 `.align(Center).padding(bottom = 60.dp)` 로 화면 정중앙에서
+            // 일부러 30dp 올려두었는데, 위쪽 상태 필(plug pill) 과 아래쪽 HUD 의
+            // 높이가 서로 달라 실제 화면에서 배터리가 너무 위로 뜨고 아래가 비어 보였습니다.
+            //
+            // 이제 상단/하단 HUD 를 자연스러운 높이로 두고, 그 사이의 남은 공간을
+            // Column 의 weight 로 배분해 배터리가 "지금 보이는 영역의 정중앙"에 오도록 했습니다.
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                BatteryCenterGlow(
+                    batteryLevel = currentBatteryLevel,
+                    percentPerHour = chargeRate,
+                    measuring = measuringRate
+                )
             }
 
-            Text(
-                text = stringResource(R.string.anim_tap_to_close),
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center
-            )
-        }
+            // Bottom HUD: Tap instruction & timer indicator
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(bottom = Spacing.xxl),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (durationSec > 0) {
+                    ChargingCountdownChip(
+                        text = stringResource(R.string.anim_auto_close, remainingSeconds)
+                    )
+                    Spacer(Modifier.height(Spacing.sm))
+                } else if (durationSec == 0) {
+                    ChargingLoopChip(text = stringResource(R.string.anim_loop_forever))
+                    Spacer(Modifier.height(Spacing.sm))
+                }
+
+                Text(
+                    text = stringResource(R.string.anim_exit_hint),
+                    style = AppText.Axis,
+                    color = Color.White.copy(alpha = 0.55f),
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
@@ -518,7 +497,11 @@ fun VideoPlaybackView(
 }
 
 @Composable
-fun BatteryCenterGlow(batteryLevel: Int) {
+fun BatteryCenterGlow(
+    batteryLevel: Int,
+    percentPerHour: Float? = null,
+    measuring: Boolean = false
+) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 0.95f,
@@ -586,28 +569,26 @@ fun BatteryCenterGlow(batteryLevel: Int) {
                 tint = ElectricAmber,
                 modifier = Modifier.size(36.dp)
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(Modifier.height(Spacing.xxs))
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = "$batteryLevel",
-                    fontSize = 58.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    style = MaterialTheme.typography.displayLarge,
                     color = Color.White
                 )
                 Text(
                     text = "%",
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = ElectricCyan,
-                    modifier = Modifier.padding(bottom = 8.dp, start = 2.dp)
+                    modifier = Modifier.padding(bottom = Spacing.sm, start = Spacing.xxs)
                 )
             }
-            Text(
-                text = "FAST CHARGING",
-                fontSize = 12.sp,
-                letterSpacing = 2.sp,
-                fontWeight = FontWeight.Bold,
-                color = ElectricGreen
+            Spacer(Modifier.height(Spacing.sm))
+            // 예전에는 여기 "FAST CHARGING" 이 고정 표시했는데 충전 속도와 상관없이
+            // 5W 충전기에서도 같은 문구가 나왔습니다. 이제 실제로 잰 값만 보여줍니다.
+            ChargingStatusLine(
+                percentPerHour = percentPerHour,
+                measuring = measuring
             )
         }
     }

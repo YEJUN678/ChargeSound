@@ -77,7 +77,6 @@
     <string name="anim_plug_connected">충전기 연결됨</string>
     <string name="anim_auto_close">%1$d초 후 자동 종료</string>
     <string name="anim_loop_forever">화면 터치 시까지 연속 재생</string>
-    <string name="anim_tap_to_close">화면 아무 곳이나 터치하면 즉시 닫힙니다</string>
 
     <!-- ═══════════════ 배터리 정보 탭 ═══════════════ -->
     <string name="battery_discharging">방전 중</string>
@@ -406,4 +405,8 @@
     <string name="trim_read_error">이 파일의 길이를 읽지 못했습니다. 전체 파일로 그대로 쓸 수 있습니다.</string>
     <string name="trim_active_note">선택한 구간만 재생됩니다. 충전 반복도 이 구간 안에서만 돌아갑니다.</string>
 
+
+    <!-- ═══════════════ 충전 애니메이션 화면 HUD ═══════════════ -->
+    <string name="anim_rate_measuring">측정 중…</string>
+    <string name="anim_exit_hint">아무 곳이나 눌러 닫기</string>
 </resources>
