@@ -13,6 +13,9 @@ import android.widget.VideoView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -22,6 +25,9 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -57,9 +63,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
@@ -153,8 +161,7 @@ class ChargingAnimationActivity : ComponentActivity() {
                     isLoop = isLoop,
                     videoStartMs = videoStartMs,
                     videoEndMs = videoEndMs,
-                    onDismiss = {
-                        SoundManager.fadeOutAndStop(500L)
+                    onExitComplete = {
                         finishAndReturnToPreviousApp()
                     }
                 )
@@ -249,7 +256,7 @@ fun ChargingScreenContent(
     isLoop: Boolean,
     videoStartMs: Long,
     videoEndMs: Long,
-    onDismiss: () -> Unit
+    onExitComplete: () -> Unit
 ) {
     val context = LocalContext.current
     var currentBatteryLevel by remember { mutableIntStateOf(initialLevel) }
@@ -289,6 +296,34 @@ fun ChargingScreenContent(
     )
     LaunchedEffect(Unit) { entranceDone = true }
 
+    // ── 종료 전환 ──────────────────────────────────────────────────
+    //
+    // 예전에는 닫기를 누르는 즉시 `finish()` 였습니다. 화면이 통째로 증발합니다.
+    //
+    // 지금은 "닫기 요청"과 "실제 종료"를 분리했습니다.
+    //  1) 어떤 경로로든 `requestClose()` 를 부르면 종료 전환이 시작되고
+    //  2) 전환이 끝난 뒤에야 `onExitComplete()` 가 불려 실제로 종료됩니다.
+    //
+    // 덕분에 소리 페이드아웃도 화면이 사라지는 그 순간에 맞춰집니다.
+    var exitRequested by remember { mutableStateOf(false) }
+    val exit = remember { ExitTransition() }
+
+    fun requestClose() {
+        // 이미 전환 중이면 무시합니다 (연속 탭으로 두 번 finish 되는 것 방지)
+        if (exitRequested) return
+        exitRequested = true
+        // 소리는 화면이 사라지는 그 0.2초에 맞춰 함께 사라집니다.
+        // 전환이 끝난 뒤에 페이드하면 소리만 0.2초 더 남아서 "끊긴" 느낌이 납니다.
+        // 시각(240ms)보다 약간 길게 잡아 화면이 닫힐 때쯤 이미 조용해 있게 합니다.
+        SoundManager.fadeOutAndStop(260L)
+    }
+
+    LaunchedEffect(exitRequested) {
+        if (!exitRequested) return@LaunchedEffect
+        exit.run()
+        onExitComplete()
+    }
+
     // Auto dismiss timer
     LaunchedEffect(durationSec) {
         if (durationSec > 0) {
@@ -296,7 +331,7 @@ fun ChargingScreenContent(
                 delay(1000L)
                 remainingSeconds--
             }
-            onDismiss()
+            requestClose()
         }
     }
 
@@ -307,10 +342,24 @@ fun ChargingScreenContent(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = onDismiss
+                onClick = { requestClose() }
             )
             .testTag("charging_animation_screen")
     ) {
+        // ── 종료 레이어 ────────────────────────────────────────
+        //
+        // 배경(Slate950)은 여기서 페이드시키지 않습니다. 창 배경을 색다시 나타내지
+        // 않으려면 이 레이어는 불투명해야 하고, 그 위에 있는 것들만 사라집니다.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    alpha = exit.alpha.value
+                    scaleX = exit.scale.value
+                    scaleY = exit.scale.value
+                }
+        ) {
+
         // 진입 스케일은 애니메이션 레이어 에만 적용합니다.
         // HUD 는 글자라서 흔들리면 읽기 어렵고, 배경만 떠오르면 충분히 인상적입니다.
         Box(modifier = Modifier.fillMaxSize().scale(entranceScale)) {
@@ -327,7 +376,7 @@ fun ChargingScreenContent(
                 endMs = videoEndMs,
                 onVideoFinished = {
                     if (durationSec == -1) {
-                        onDismiss()
+                        requestClose()
                     }
                 }
             )
@@ -379,14 +428,15 @@ fun ChargingScreenContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
-                    .padding(horizontal = HudPad, vertical = Spacing.lg),
+                    .padding(horizontal = HudPad, vertical = Spacing.lg)
+                    .hudEntrance(delayMillis = HudStagger.TOP, fromTop = true),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 ChargingPlugChip(plugName = plugName)
 
                 HudCloseButton(
-                    onClick = onDismiss,
+                    onClick = { requestClose() },
                     modifier = Modifier.testTag("close_animation_button")
                 )
             }
@@ -402,7 +452,8 @@ fun ChargingScreenContent(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .weight(1f)
+                    .hudEntrance(delayMillis = HudStagger.CENTER),
                 contentAlignment = Alignment.Center
             ) {
                 BatteryCenterGlow(
@@ -417,12 +468,14 @@ fun ChargingScreenContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(bottom = Spacing.xxl),
+                    .padding(bottom = Spacing.xxl)
+                    .hudEntrance(delayMillis = HudStagger.BOTTOM),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (durationSec > 0) {
                     ChargingCountdownChip(
-                        text = stringResource(R.string.anim_auto_close, remainingSeconds)
+                        text = stringResource(R.string.anim_auto_close, remainingSeconds),
+                        seconds = remainingSeconds
                     )
                     Spacer(Modifier.height(Spacing.sm))
                 } else if (durationSec == 0) {
@@ -438,6 +491,7 @@ fun ChargingScreenContent(
                 )
             }
         }
+        }   // 종료 레이어 끝 — 이 안의 것들만 사라지고 배경은 남습니다
     }
 }
 
@@ -513,6 +567,23 @@ fun BatteryCenterGlow(
         label = "pulse_scale"
     )
 
+    // 100% 에서는 충전이 끝났다는 사실을 색으로 말합니다.
+    // 번쩍이는 효과는 넣지 않았습니다 — 만충인 화면에서 빛 effects 는 시끄럽습니다.
+    val isFull = batteryLevel >= 100
+    val accent = if (isFull) ElectricGreen else ElectricAmber
+
+    // 링이 1% 마다 순간이동하던 것을 부드럽게 잇습니다.
+    // 스프링을 쓴 이유: 1% 는 3.6도라 tween 로는 눈에 띄지 않고, spring 은
+    // "한 칸이 채워지는" 느낌을 줍니다.
+    val animatedLevel by animateFloatAsState(
+        targetValue = batteryLevel.coerceIn(0, 100).toFloat(),
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Motion.SPRING_STIFFNESS
+        ),
+        label = "battery_level"
+    )
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.size(240.dp)
@@ -525,8 +596,8 @@ fun BatteryCenterGlow(
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        ElectricCyan.copy(alpha = 0.25f),
-                        ElectricCyan.copy(alpha = 0.05f),
+                        accent.copy(alpha = if (isFull) 0.3f else 0.25f),
+                        accent.copy(alpha = 0.05f),
                         Color.Transparent
                     ),
                     center = center,
@@ -536,26 +607,42 @@ fun BatteryCenterGlow(
                 center = center
             )
 
-            // Dynamic progress arc
-            val sweepAngle = (batteryLevel / 100f) * 360f
+            // ── 그리는 순서가 중요합니다 ──
+            // 배경 고리(회색)를 먼저 깔고, 그 위에 충전 고리를 얹어야 합니다.
+            // 예전에는 반대로 그려서, 10% 불투명 흰색 고리가 충전 고리 위로 올라와
+            // 색을 희석시켰습니다. 눈에 크게 드러나진 않지만 잘못된 순서입니다.
             drawArc(
-                brush = Brush.sweepGradient(
-                    colors = listOf(ElectricCyan, ElectricGreen, ElectricAmber, ElectricCyan)
-                ),
-                startAngle = -90f,
-                sweepAngle = sweepAngle,
-                useCenter = false,
-                style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
-            )
-
-            // Background arc
-            drawArc(
-                color = Color.White.copy(alpha = 0.1f),
+                color = Color.White.copy(alpha = 0.10f),
                 startAngle = 0f,
                 sweepAngle = 360f,
                 useCenter = false,
                 style = Stroke(width = 8.dp.toPx())
             )
+
+            // Dynamic progress arc
+            val sweepAngle = animatedLevel / 100f * 360f
+            // 0% 에서도 Round 캡이 점 하나를 남기는데, 아무것도 안 그린 게 맞습니다.
+            if (sweepAngle > 0.1f) {
+                drawArc(
+                    brush = if (isFull) {
+                        // 만충이면 단색 — 그라데이션은 "진행 중"이라는 암시
+                        SolidColor(ElectricGreen)
+                    } else {
+                        Brush.sweepGradient(
+                            colors = listOf(
+                                ElectricCyan,
+                                ElectricGreen,
+                                ElectricAmber,
+                                ElectricCyan
+                            )
+                        )
+                    },
+                    startAngle = -90f,
+                    sweepAngle = sweepAngle,
+                    useCenter = false,
+                    style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
+                )
+            }
         }
 
         // Percentage & Charging Bolt
@@ -566,20 +653,36 @@ fun BatteryCenterGlow(
             Icon(
                 imageVector = Icons.Default.FlashOn,
                 contentDescription = null,
-                tint = ElectricAmber,
+                tint = accent,
                 modifier = Modifier.size(36.dp)
             )
             Spacer(Modifier.height(Spacing.xxs))
             Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    text = "$batteryLevel",
-                    style = MaterialTheme.typography.displayLarge,
-                    color = Color.White
-                )
+                // 숫자가 1 올라갈 때 아래에서 새 숫자가 밀려오며 바뀝니다.
+                // 정지해 있던 숫자가 순간적으로 바뀌는 것보다 "계속 증가하고 있다"는
+                // 감각이 훨씬 선명하게 전달됩니다.
+                AnimatedContent(
+                    targetState = batteryLevel,
+                    transitionSpec = {
+                        (slideInVertically(tween(Motion.MEDIUM_MILLIS)) { height -> height } +
+                            fadeIn(tween(Motion.MEDIUM_MILLIS)))
+                            .togetherWith(
+                                slideOutVertically(tween(Motion.FAST_MILLIS)) { height -> -height } +
+                                    fadeOut(tween(Motion.FAST_MILLIS))
+                            )
+                    },
+                    label = "battery_digits"
+                ) { level ->
+                    Text(
+                        text = "$level",
+                        style = MaterialTheme.typography.displayLarge,
+                        color = Color.White
+                    )
+                }
                 Text(
                     text = "%",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = ElectricCyan,
+                    color = if (isFull) ElectricGreen else ElectricCyan,
                     modifier = Modifier.padding(bottom = Spacing.sm, start = Spacing.xxs)
                 )
             }
@@ -588,7 +691,8 @@ fun BatteryCenterGlow(
             // 5W 충전기에서도 같은 문구가 나왔습니다. 이제 실제로 잰 값만 보여줍니다.
             ChargingStatusLine(
                 percentPerHour = percentPerHour,
-                measuring = measuring
+                measuring = measuring,
+                isFull = isFull
             )
         }
     }

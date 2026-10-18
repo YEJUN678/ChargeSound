@@ -418,4 +418,7 @@
     <!-- ═══════════════ 충전 애니메이션 화면 HUD ═══════════════ -->
     <string name="anim_rate_measuring">Midiendo…</string>
     <string name="anim_exit_hint">Toca en cualquier lugar para cerrar</string>
+    <!-- 충전 애니메이션 화면 HUD -->
+    <string name="anim_full_label">Completamente cargada</string>
+
 </resources>

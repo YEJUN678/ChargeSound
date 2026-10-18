@@ -415,4 +415,7 @@
     <!-- ═══════════════ 충전 애니메이션 화면 HUD ═══════════════ -->
     <string name="anim_rate_measuring">Measuring…</string>
     <string name="anim_exit_hint">Tap anywhere to close</string>
+    <!-- 충전 애니메이션 화면 HUD -->
+    <string name="anim_full_label">Fully charged</string>
+
 </resources>
