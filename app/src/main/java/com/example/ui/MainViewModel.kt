@@ -446,6 +446,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch { repository.setFontScale(scale) }
     }
 
+    fun setDynamicColor(enabled: Boolean) {
+        viewModelScope.launch { repository.setDynamicColor(enabled) }
+    }
+
+    fun setHighContrast(enabled: Boolean) {
+        viewModelScope.launch { repository.setHighContrast(enabled) }
+    }
+
+    /** 커스텀 오디오 재생 구간 저장 (0L = 전체) */
+    fun setCustomSoundRange(startMs: Long, endMs: Long) {
+        viewModelScope.launch { repository.setCustomSoundRange(startMs, endMs) }
+    }
+
+    /** 커스텀 영상 재생 구간 저장 (0L = 전체) */
+    fun setCustomVideoRange(startMs: Long, endMs: Long) {
+        viewModelScope.launch { repository.setCustomVideoRange(startMs, endMs) }
+    }
+
     fun clearChargeHistory() {
         viewModelScope.launch { repository.writeHistory(emptyList()) }
     }
@@ -543,6 +561,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             filePath = targetPath,
             volume = currentSettings.volume,
             durationSeconds = currentSettings.videoDurationSeconds,
+            // 구간 선택은 커스텀 오디오에만 의미가 있습니다.
+            // 프리셋은 이미 원하는 길이로 합성되어 있습니다.
+            startMs = if (currentSettings.soundMode == SoundMode.CUSTOM) currentSettings.customSoundStartMs else 0L,
+            endMs = if (currentSettings.soundMode == SoundMode.CUSTOM) currentSettings.customSoundEndMs else 0L,
             onCompletion = {
                 _isPlayingPreview.value = false
                 _activePlayingId.value = null
@@ -582,7 +604,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 context = context,
                 filePath = soundPath,
                 volume = currentSettings.volume,
-                durationSeconds = currentSettings.videoDurationSeconds
+                durationSeconds = currentSettings.videoDurationSeconds,
+                startMs = if (currentSettings.soundMode == SoundMode.CUSTOM) currentSettings.customSoundStartMs else 0L,
+                endMs = if (currentSettings.soundMode == SoundMode.CUSTOM) currentSettings.customSoundEndMs else 0L
             )
         }
 
@@ -595,6 +619,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             putExtra(ChargingAnimationActivity.EXTRA_VIDEO_PATH, currentSettings.customVideoPath)
             putExtra(ChargingAnimationActivity.EXTRA_DURATION_SEC, currentSettings.videoDurationSeconds)
             putExtra(ChargingAnimationActivity.EXTRA_LOOP, currentSettings.videoLoop)
+            putExtra(ChargingAnimationActivity.EXTRA_VIDEO_START_MS, currentSettings.customVideoStartMs)
+            putExtra(ChargingAnimationActivity.EXTRA_VIDEO_END_MS, currentSettings.customVideoEndMs)
         }
         context.startActivity(intent)
     }
@@ -612,6 +638,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             putExtra(ChargingAnimationActivity.EXTRA_VIDEO_PATH, currentSettings.customVideoPath)
             putExtra(ChargingAnimationActivity.EXTRA_DURATION_SEC, currentSettings.videoDurationSeconds)
             putExtra(ChargingAnimationActivity.EXTRA_LOOP, currentSettings.videoLoop)
+            putExtra(ChargingAnimationActivity.EXTRA_VIDEO_START_MS, currentSettings.customVideoStartMs)
+            putExtra(ChargingAnimationActivity.EXTRA_VIDEO_END_MS, currentSettings.customVideoEndMs)
         }
         context.startActivity(intent)
     }

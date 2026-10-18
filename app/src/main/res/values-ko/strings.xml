@@ -160,8 +160,6 @@
     <string name="shortcut_alarm_long">충전 알람 설정 열기</string>
 
     <!-- ═══════════════ 충전 세션 (ETA) ═══════════════ -->
-    <string name="session_elapsed">%1$s째 충전 중</string>
-    <string name="session_eta">목표까지 약 %1$s</string>
     <string name="session_rate">+%1$s%/시간</string>
 
     <!-- ═══════════════ 충전 알람 ═══════════════ -->
@@ -176,7 +174,6 @@
     <string name="alarm_notification_text">충전 알람 목표는 %1$d%%였습니다</string>
     <string name="msg_alarm_on">충전 알람이 켜졌습니다.</string>
     <string name="msg_alarm_off">충전 알람이 꺼졌습니다.</string>
-    <string name="msg_alarm_target">알람을 %1$d%%로 설정했습니다.</string>
 
     <!-- ═══════════════ 배터리 경고 ═══════════════ -->
     <string name="temp_alert_title">과열 경고</string>
@@ -383,4 +380,30 @@
     <string name="font_scale_title">글자 크기</string>
     <string name="font_scale_sub">시스템 설정과 별개로 이 앱 안에서만 적용됩니다</string>
     <string name="font_scale_note">화면이 열려 있는 동안 바로 적용됩니다.</string>
+
+    <!-- ═══════════════ Material 3 ═══════════════ -->
+    <string name="appearance_title">화면 표시</string>
+    <string name="high_contrast_sub">표면을 더 또렷하게 나누어 작은 글씨가 잘 보이게 합니다</string>
+    <string name="high_contrast_title">고대비</string>
+    <string name="dynamic_color_sub">벽paper 색에 맞춰 앱 색을 바꿉니다. 네온 강조색은 사용하지 않습니다.</string>
+    <string name="dynamic_color_title">Material You 색상</string>
+
+
+    <!-- ═══════════════ 미디어 구간 선택 ═══════════════ -->
+    <string name="trim_sound_title">사운드 자르기</string>
+    <string name="trim_video_title">영상 자르기</string>
+    <string name="trim_hint">손잡이를 끌어서 원하는 부분만 고르세요. 파일은 그대로 두고 이 구간만 반복 재생합니다.</string>
+    <string name="trim_from">시작</string>
+    <string name="trim_to">끝</string>
+    <string name="trim_length">길이 %1$s</string>
+    <string name="trim_total">전체 %1$s</string>
+    <string name="trim_play">미리듣기</string>
+    <string name="trim_pause">일시정지</string>
+    <string name="trim_preview_start">시작 지점으로</string>
+    <string name="trim_reset">전체 사용</string>
+    <string name="trim_apply">적용</string>
+    <string name="trim_open">구간 자르기</string>
+    <string name="trim_read_error">이 파일의 길이를 읽지 못했습니다. 전체 파일로 그대로 쓸 수 있습니다.</string>
+    <string name="trim_active_note">선택한 구간만 재생됩니다. 충전 반복도 이 구간 안에서만 돌아갑니다.</string>
+
 </resources>

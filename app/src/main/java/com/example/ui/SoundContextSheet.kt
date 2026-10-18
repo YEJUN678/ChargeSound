@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -83,7 +84,7 @@ fun SoundContextSettingsSheet(
                 Column(Modifier.padding(bottom = 14.dp)) {
                     Text(
                         text = stringResource(plugType.displayNameRes),
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.SemiBold,
                         color = Slate400
                     )
@@ -112,7 +113,7 @@ fun SoundContextSettingsSheet(
                                     Text(
                                         text = stringResource(preset.nameRes),
                                         color = if (selected) Color.Black else Color.White,
-                                        fontSize = 9.sp,
+                                        style = MaterialTheme.typography.labelSmall,
                                         lineHeight = 11.sp,
                                         maxLines = 2,
                                         textAlign = TextAlign.Center
@@ -161,7 +162,7 @@ fun SoundContextSettingsSheet(
                     formatMinute(settings.quietStartMinute),
                     formatMinute(settings.quietEndMinute)
                 ),
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = Slate400
             )
         }
@@ -193,11 +194,11 @@ private fun TimePickerField(
             modifier = Modifier.padding(vertical = 10.dp, horizontal = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = label, fontSize = 10.sp, color = Slate400)
+            Text(text = label, style = MaterialTheme.typography.labelSmall, color = Slate400)
             Spacer(Modifier.height(2.dp))
             Text(
                 text = formatMinute(minuteOfDay),
-                fontSize = 16.sp,
+                style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )

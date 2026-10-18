@@ -45,6 +45,7 @@ import androidx.compose.material.icons.filled.Audiotrack
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ElectricBolt
 import androidx.compose.material.icons.filled.FlashOn
@@ -70,8 +71,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
@@ -123,10 +126,13 @@ import com.example.data.SoundMode
 import com.example.service.ChargingSessionTracker
 import com.example.service.UpdateChecker
 import com.example.sound.SoundManager
+import com.example.ui.theme.AppShapes
+import com.example.ui.theme.AppText
 import com.example.ui.theme.ElectricAmber
 import com.example.ui.theme.ElectricCyan
 import com.example.ui.theme.ElectricGreen
 import com.example.ui.theme.ElectricPurple
+import com.example.ui.theme.Spacing
 import com.example.ui.theme.Slate400
 import com.example.ui.theme.Slate600
 import com.example.ui.theme.Slate700
@@ -158,6 +164,7 @@ fun MainScreen(viewModel: MainViewModel) {
     var showSoundContextSheet by remember { mutableStateOf(false) }
     var showThemeSheet by remember { mutableStateOf(false) }
     var showStatsSheet by remember { mutableStateOf(false) }
+    var showTrimSheet by remember { mutableStateOf(false) }
     var latestVersionName by remember { mutableStateOf<String?>(null) }
 
     // 앱을 열 때마다 업데이트를 확인합니다.
@@ -261,7 +268,7 @@ fun MainScreen(viewModel: MainViewModel) {
                         Surface(
                             shape = CircleShape,
                             color = ElectricCyan.copy(alpha = 0.2f),
-                            modifier = Modifier.size(38.dp)
+                            modifier = Modifier.size(40.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
@@ -272,26 +279,35 @@ fun MainScreen(viewModel: MainViewModel) {
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.width(10.dp))
+                        Spacer(modifier = Modifier.width(Spacing.sm))
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "ChargeSound",
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 19.sp,
-                                    color = Color.White
+                                    style = AppText.Brand,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
+                                Spacer(modifier = Modifier.width(Spacing.sm))
                                 Surface(
-                                    color = if (settings.isServiceEnabled) ElectricGreen.copy(alpha = 0.2f) else Slate800,
-                                    shape = RoundedCornerShape(8.dp)
+                                    color = if (settings.isServiceEnabled) {
+                                        ElectricGreen.copy(alpha = 0.18f)
+                                    } else {
+                                        MaterialTheme.colorScheme.surfaceContainerHighest
+                                    },
+                                    shape = AppShapes.pill
                                 ) {
                                     Text(
                                         text = if (settings.isServiceEnabled) "ON" else "OFF",
-                                        color = if (settings.isServiceEnabled) ElectricGreen else Slate400,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        color = if (settings.isServiceEnabled) {
+                                            ElectricGreen
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        },
+                                        style = AppText.Badge,
+                                        modifier = Modifier.padding(
+                                            horizontal = Spacing.sm,
+                                            vertical = Spacing.xxs,
+                                        )
                                     )
                                 }
                             }
@@ -301,8 +317,12 @@ fun MainScreen(viewModel: MainViewModel) {
                                 } else {
                                     stringResource(R.string.status_monitoring_idle)
                                 },
-                                fontSize = 11.sp,
-                                color = if (settings.isServiceEnabled) ElectricGreen else Slate400
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (settings.isServiceEnabled) {
+                                    ElectricGreen
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
                             )
                         }
                     }
@@ -324,23 +344,27 @@ fun MainScreen(viewModel: MainViewModel) {
                         checked = settings.isServiceEnabled,
                         onCheckedChange = { viewModel.toggleServiceEnabled(it) },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = Slate950,
+                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
                             checkedTrackColor = ElectricCyan,
-                            uncheckedThumbColor = Slate400,
-                            uncheckedTrackColor = Slate800
+                            checkedBorderColor = ElectricCyan,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            uncheckedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                         ),
                         modifier = Modifier
-                            .padding(end = 12.dp)
+                            .padding(end = Spacing.md)
                             .testTag("service_toggle_switch")
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Slate950
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Slate950
+        containerColor = MaterialTheme.colorScheme.surface
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -361,17 +385,15 @@ fun MainScreen(viewModel: MainViewModel) {
             )
 
             // Tabs: 0: Sound (MP3), 1: Animation (MP4/AVI), 2: Battery Info
+            //
+            // 인디케이터를 직접 그리지 않고 기본값을 씁니다.
+            // 이전에 쓰던 SecondaryIndicator 는 Material 3 초기 스타일이라
+            // 지금은 얇아 보입니다. 기본 Primary 인디케이터가 두껍고 현재 표준입니다.
             TabRow(
                 selectedTabIndex = selectedTabIndex,
-                containerColor = Slate900,
+                containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = ElectricCyan,
-                indicator = { tabPositions ->
-                    TabRowDefaults.SecondaryIndicator(
-                        Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                        color = ElectricCyan,
-                        height = 3.dp
-                    )
-                }
+                divider = { HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant) },
             ) {
                 Tab(
                     selected = selectedTabIndex == 0,
@@ -381,14 +403,17 @@ fun MainScreen(viewModel: MainViewModel) {
                             Icon(
                                 imageVector = Icons.Default.Audiotrack,
                                 contentDescription = null,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(text = stringResource(R.string.tab_sound), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Spacer(modifier = Modifier.width(Spacing.sm))
+                            Text(
+                                text = stringResource(R.string.tab_sound),
+                                style = MaterialTheme.typography.labelLarge,
+                            )
                         }
                     },
                     selectedContentColor = ElectricCyan,
-                    unselectedContentColor = Slate400
+                    unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Tab(
                     selected = selectedTabIndex == 1,
@@ -398,14 +423,17 @@ fun MainScreen(viewModel: MainViewModel) {
                             Icon(
                                 imageVector = Icons.Default.Videocam,
                                 contentDescription = null,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(text = stringResource(R.string.tab_animation), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Spacer(modifier = Modifier.width(Spacing.sm))
+                            Text(
+                                text = stringResource(R.string.tab_animation),
+                                style = MaterialTheme.typography.labelLarge,
+                            )
                         }
                     },
                     selectedContentColor = ElectricCyan,
-                    unselectedContentColor = Slate400
+                    unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Tab(
                     selected = selectedTabIndex == 2,
@@ -415,14 +443,17 @@ fun MainScreen(viewModel: MainViewModel) {
                             Icon(
                                 imageVector = Icons.Default.Info,
                                 contentDescription = null,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(text = stringResource(R.string.tab_battery_info), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Spacer(modifier = Modifier.width(Spacing.sm))
+                            Text(
+                                text = stringResource(R.string.tab_battery_info),
+                                style = MaterialTheme.typography.labelLarge,
+                            )
                         }
                     },
                     selectedContentColor = ElectricCyan,
-                    unselectedContentColor = Slate400
+                    unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -435,6 +466,8 @@ fun MainScreen(viewModel: MainViewModel) {
                         activePlayingId = activePlayingId,
                         onPickAudio = { audioPickerLauncher.launch("audio/*") },
                         onClearAudio = { viewModel.clearCustomAudio() },
+                        onTrimAudio = { showTrimSheet = true },
+                        hasSoundRange = settings.customSoundEndMs > settings.customSoundStartMs,
                         onToggleSound = { viewModel.toggleSoundEnabled(it) },
                         onVolumeChange = { viewModel.setVolume(it) },
                         onSelectPreset = { viewModel.selectPresetSound(it) },
@@ -464,6 +497,8 @@ fun MainScreen(viewModel: MainViewModel) {
                         settings = settings,
                         onPickVideo = { videoPickerLauncher.launch("video/*") },
                         onClearVideo = { viewModel.clearCustomVideo() },
+                        onTrimVideo = { showTrimSheet = true },
+                        hasVideoRange = settings.customVideoEndMs > settings.customVideoStartMs,
                         onToggleAnimation = { viewModel.toggleAnimationEnabled(it) },
                         onSelectAnimationMode = { viewModel.selectAnimationMode(it) },
                         onSelectDuration = { viewModel.setVideoDuration(it) },
@@ -611,7 +646,11 @@ fun MainScreen(viewModel: MainViewModel) {
             onDismiss = { showThemeSheet = false },
             onSelectAccent = { viewModel.setAccentKey(it) },
             fontScale = settings.fontScale,
-            onSelectFontScale = { viewModel.setFontScale(it) }
+            onSelectFontScale = { viewModel.setFontScale(it) },
+            dynamicColor = settings.dynamicColor,
+            onToggleDynamicColor = { viewModel.setDynamicColor(it) },
+            highContrast = settings.highContrast,
+            onToggleHighContrast = { viewModel.setHighContrast(it) }
         )
     }
 
@@ -621,6 +660,29 @@ fun MainScreen(viewModel: MainViewModel) {
             onDismiss = { showStatsSheet = false },
             onClear = { viewModel.clearChargeHistory() }
         )
+    }
+
+    // 커스텀 미디어 구간 선택.
+    // 어느 파일을 자를지는 설정에 파일이 걸려 있는지(커스텀 사운드가 있으면 사운드로 판단)로
+    // 알 수 있습니다 — 사용자가 어느 탭의 가위 버튼을 눌렀는지를 별도로 기억하지 않습니다.
+    if (showTrimSheet) {
+        val soundPath = settings.customSoundPath
+        val videoPath = settings.customVideoPath
+        val isSound = !soundPath.isNullOrBlank()
+        val path = if (isSound) soundPath!! else videoPath
+        if (!path.isNullOrBlank()) {
+            TrimRangeSheet(
+                path = path,
+                initialStartMs = if (isSound) settings.customSoundStartMs else settings.customVideoStartMs,
+                initialEndMs = if (isSound) settings.customSoundEndMs else settings.customVideoEndMs,
+                titleRes = if (isSound) R.string.trim_sound_title else R.string.trim_video_title,
+                onDismiss = { showTrimSheet = false },
+                onApply = { start, end ->
+                    if (isSound) viewModel.setCustomSoundRange(start, end)
+                    else viewModel.setCustomVideoRange(start, end)
+                }
+            )
+        }
     }
 }
 
@@ -642,39 +704,32 @@ fun BatteryLiveHeaderCard(
         label = "test_pulse"
     )
 
+    val scheme = MaterialTheme.colorScheme
+    // 히어로 카드에는 이미지 자산을 쓰지 않고 절차적 그라디언트를 그립니다.
+    // 이유: 강조색을 바꾸면 카드가 같이 따라가고, APK 가 가볍고,
+    // 어떤 화면 비율에서도 잘리지 않습니다.
+    val heroBrush = Brush.linearGradient(
+        colors = listOf(
+            ElectricCyan.copy(alpha = if (batteryInfo.isCharging) 0.20f else 0.05f),
+            ElectricPurple.copy(alpha = if (batteryInfo.isCharging) 0.10f else 0.02f),
+            Color.Transparent,
+        )
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = Slate900),
-        shape = RoundedCornerShape(22.dp),
-        border = BorderStroke(1.dp, if (batteryInfo.isCharging) ElectricCyan.copy(alpha = 0.5f) else Slate800)
+            .padding(horizontal = Spacing.screen, vertical = Spacing.sm),
+        colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
+        shape = AppShapes.lg,
+        border = BorderStroke(1.dp, if (batteryInfo.isCharging) ElectricCyan.copy(alpha = 0.45f) else scheme.outlineVariant)
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            Image(
-                painter = painterResource(id = R.drawable.charge_hero_banner_1791458034500),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(130.dp)
-                    .clip(RoundedCornerShape(22.dp)),
-                alpha = 0.22f
-            )
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(130.dp)
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                Slate900.copy(alpha = 0.95f),
-                                Slate900.copy(alpha = 0.7f),
-                                Slate900.copy(alpha = 0.95f)
-                            )
-                        )
-                    )
+                    .height(132.dp)
+                    .background(heroBrush)
             )
 
             Column(modifier = Modifier.padding(16.dp)) {
@@ -705,26 +760,24 @@ fun BatteryLiveHeaderCard(
                                 modifier = Modifier.size(28.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(Spacing.md))
                         Column {
                             Row(verticalAlignment = Alignment.Bottom) {
                                 Text(
                                     text = "${batteryInfo.level}%",
-                                    fontSize = 28.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = Color.White
+                                    style = MaterialTheme.typography.displaySmall,
+                                    color = scheme.onSurface
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
+                                Spacer(modifier = Modifier.width(Spacing.xs))
                                 Text(
                                     text = if (batteryInfo.isCharging) {
                                         stringResource(R.string.battery_charging_short)
                                     } else {
                                         stringResource(R.string.battery_idle_short)
                                     },
-                                    fontSize = 13.sp,
-                                    color = if (batteryInfo.isCharging) ElectricGreen else Slate400,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.padding(bottom = 4.dp)
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = if (batteryInfo.isCharging) ElectricGreen else scheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(bottom = 5.dp)
                                 )
                             }
                             Text(
@@ -733,7 +786,7 @@ fun BatteryLiveHeaderCard(
                                     stringResource(batteryInfo.plugType.displayNameRes),
                                     batteryInfo.temperatureC
                                 ),
-                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = Slate400
                             )
                             // 충전 속도 배지 (충전 중 + 측정 가능할 때만 그려짐)
@@ -761,7 +814,7 @@ fun BatteryLiveHeaderCard(
                         Text(
                             text = stringResource(R.string.btn_test_charging),
                             fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                     }
                 }
@@ -789,6 +842,8 @@ fun SoundSettingsTab(
     activePlayingId: String?,
     onPickAudio: () -> Unit,
     onClearAudio: () -> Unit,
+    onTrimAudio: () -> Unit,
+    hasSoundRange: Boolean,
     onToggleSound: (Boolean) -> Unit,
     onVolumeChange: (Float) -> Unit,
     onSelectPreset: (String) -> Unit,
@@ -811,9 +866,9 @@ fun SoundSettingsTab(
         // Master Sound Switch Card
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900),
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, Slate800)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = AppShapes.md,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Row(
                     modifier = Modifier
@@ -842,12 +897,12 @@ fun SoundSettingsTab(
                             Text(
                                 text = stringResource(R.string.sound_enable_title),
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = Color.White
                             )
                             Text(
                                 text = stringResource(R.string.sound_enable_sub),
-                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = Slate400
                             )
                         }
@@ -871,9 +926,9 @@ fun SoundSettingsTab(
         // Volume Slider & Visualizer Card
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900),
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, Slate800)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = AppShapes.md,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -897,7 +952,7 @@ fun SoundSettingsTab(
                             Text(
                                 text = stringResource(R.string.sound_volume_title),
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = Color.White
                             )
                         }
@@ -911,7 +966,7 @@ fun SoundSettingsTab(
                                 text = "${(settings.volume * 100).toInt()}%",
                                 fontWeight = FontWeight.ExtraBold,
                                 color = ElectricCyan,
-                                fontSize = 16.sp
+                                style = MaterialTheme.typography.bodyLarge,
                             )
                         }
                     }
@@ -960,7 +1015,7 @@ fun SoundSettingsTab(
                                     stringResource(R.string.btn_preview_volume)
                                 },
                                 color = ElectricCyan,
-                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -972,9 +1027,9 @@ fun SoundSettingsTab(
         // Custom MP3 Picker Section (Triggers Test Ad)
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900),
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, Slate800)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = AppShapes.md,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -988,13 +1043,13 @@ fun SoundSettingsTab(
                         Text(
                             text = stringResource(R.string.sound_custom_title),
                             fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
+                            style = MaterialTheme.typography.titleMedium,
                             color = Color.White
                         )
                     }
                     Text(
                         text = stringResource(R.string.sound_custom_sub),
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         color = Slate400,
                         modifier = Modifier.padding(top = 4.dp)
                     )
@@ -1036,12 +1091,12 @@ fun SoundSettingsTab(
                                         Text(
                                             text = settings.customSoundName ?: "custom_audio.mp3",
                                             fontWeight = FontWeight.Bold,
-                                            fontSize = 14.sp,
+                                            style = MaterialTheme.typography.titleSmall,
                                             color = Color.White
                                         )
                                         Text(
                                             text = stringResource(R.string.sound_custom_applied),
-                                            fontSize = 11.sp,
+                                            style = MaterialTheme.typography.labelSmall,
                                             color = ElectricGreen
                                         )
                                     }
@@ -1058,6 +1113,17 @@ fun SoundSettingsTab(
                                             imageVector = if (isPlayingPreview && activePlayingId == "custom") Icons.Default.Stop else Icons.Default.PlayArrow,
                                             contentDescription = stringResource(R.string.a11y_play_short),
                                             tint = ElectricCyan
+                                        )
+                                    }
+                                    // 구간 선택 — 파일을 자르지 않고 이 부분만 반복합니다.
+                                    IconButton(
+                                        onClick = onTrimAudio,
+                                        modifier = Modifier.testTag("custom_audio_trim_button")
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.ContentCut,
+                                            contentDescription = stringResource(R.string.trim_open),
+                                            tint = if (hasSoundRange) ElectricAmber else Slate400
                                         )
                                     }
                                     IconButton(
@@ -1111,20 +1177,20 @@ fun SoundSettingsTab(
         // Built-in Presets Section (Triggers Test Ad on Selection)
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900),
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, Slate800)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = AppShapes.md,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = stringResource(R.string.sound_presets_title),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
+                        style = MaterialTheme.typography.titleMedium,
                         color = Color.White
                     )
                     Text(
                         text = stringResource(R.string.sound_presets_sub),
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         color = Slate400
                     )
 
@@ -1164,12 +1230,12 @@ fun SoundSettingsTab(
                                         Text(
                                             text = stringResource(preset.nameRes),
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                            fontSize = 14.sp,
+                                            style = MaterialTheme.typography.titleSmall,
                                             color = if (isSelected) ElectricCyan else Color.White
                                         )
                                         Text(
                                             text = stringResource(preset.descriptionRes),
-                                            fontSize = 11.sp,
+                                            style = MaterialTheme.typography.labelSmall,
                                             color = Slate400
                                         )
                                     }
@@ -1214,9 +1280,9 @@ fun SoundSettingsTab(
         // Haptic Vibration Card
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900),
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, Slate800)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = AppShapes.md,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Row(
                     modifier = Modifier
@@ -1245,12 +1311,12 @@ fun SoundSettingsTab(
                             Text(
                                 text = stringResource(R.string.vibration_title),
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = Color.White
                             )
                             Text(
                                 text = stringResource(R.string.vibration_sub),
-                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = Slate400
                             )
                         }
@@ -1288,6 +1354,8 @@ fun AnimationSettingsTab(
     settings: ChargeSettings,
     onPickVideo: () -> Unit,
     onClearVideo: () -> Unit,
+    onTrimVideo: () -> Unit,
+    hasVideoRange: Boolean,
     onToggleAnimation: (Boolean) -> Unit,
     onSelectAnimationMode: (AnimationMode) -> Unit,
     onSelectDuration: (Int) -> Unit,
@@ -1304,9 +1372,9 @@ fun AnimationSettingsTab(
         // Master Animation Toggle Card
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900),
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, Slate800)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = AppShapes.md,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Row(
                     modifier = Modifier
@@ -1335,12 +1403,12 @@ fun AnimationSettingsTab(
                             Text(
                                 text = stringResource(R.string.anim_enable_title),
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = Color.White
                             )
                             Text(
                                 text = stringResource(R.string.anim_enable_sub),
-                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = Slate400
                             )
                         }
@@ -1364,9 +1432,9 @@ fun AnimationSettingsTab(
         // Custom Video Picker Card (MP4, AVI, MKV)
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900),
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, Slate800)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = AppShapes.md,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1380,13 +1448,13 @@ fun AnimationSettingsTab(
                         Text(
                             text = stringResource(R.string.anim_custom_title),
                             fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
+                            style = MaterialTheme.typography.titleMedium,
                             color = Color.White
                         )
                     }
                     Text(
                         text = stringResource(R.string.anim_custom_sub),
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         color = Slate400,
                         modifier = Modifier.padding(top = 4.dp)
                     )
@@ -1428,17 +1496,27 @@ fun AnimationSettingsTab(
                                         Text(
                                             text = settings.customVideoName ?: "custom_video.mp4",
                                             fontWeight = FontWeight.Bold,
-                                            fontSize = 14.sp,
+                                            style = MaterialTheme.typography.titleSmall,
                                             color = Color.White
                                         )
                                         Text(
                                             text = stringResource(R.string.anim_custom_applied),
-                                            fontSize = 11.sp,
+                                            style = MaterialTheme.typography.labelSmall,
                                             color = ElectricAmber
                                         )
                                     }
                                 }
 
+                                IconButton(
+                                    onClick = onTrimVideo,
+                                    modifier = Modifier.testTag("custom_video_trim_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ContentCut,
+                                        contentDescription = stringResource(R.string.trim_open),
+                                        tint = if (hasVideoRange) ElectricAmber else Slate400
+                                    )
+                                }
                                 IconButton(
                                     onClick = onClearVideo,
                                     modifier = Modifier.testTag("custom_video_delete_button")
@@ -1489,9 +1567,9 @@ fun AnimationSettingsTab(
         // NEW: Playback Duration SLIDER Card (requested by user)
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900),
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, Slate800)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = AppShapes.md,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -1510,7 +1588,7 @@ fun AnimationSettingsTab(
                             Text(
                                 text = stringResource(R.string.anim_duration_title),
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = Color.White
                             )
                         }
@@ -1525,7 +1603,7 @@ fun AnimationSettingsTab(
                                 text = settings.durationLabel(context),
                                 color = ElectricCyan,
                                 fontWeight = FontWeight.ExtraBold,
-                                fontSize = 14.sp,
+                                style = MaterialTheme.typography.titleSmall,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
                         }
@@ -1534,7 +1612,7 @@ fun AnimationSettingsTab(
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = stringResource(R.string.anim_duration_sub),
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         color = Slate400
                     )
 
@@ -1549,7 +1627,7 @@ fun AnimationSettingsTab(
                         FilterChip(
                             selected = isSliderMode,
                             onClick = { if (!isSliderMode) onSelectDuration(5) },
-                            label = { Text(stringResource(R.string.anim_chip_slider), fontSize = 12.sp) },
+                            label = { Text(stringResource(R.string.anim_chip_slider), style = MaterialTheme.typography.labelMedium) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = ElectricCyan,
                                 selectedLabelColor = Slate950
@@ -1559,7 +1637,7 @@ fun AnimationSettingsTab(
                         FilterChip(
                             selected = settings.videoDurationSeconds == -1,
                             onClick = { onSelectDuration(-1) },
-                            label = { Text(stringResource(R.string.anim_chip_full), fontSize = 12.sp) },
+                            label = { Text(stringResource(R.string.anim_chip_full), style = MaterialTheme.typography.labelMedium) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = ElectricCyan,
                                 selectedLabelColor = Slate950
@@ -1569,7 +1647,7 @@ fun AnimationSettingsTab(
                         FilterChip(
                             selected = settings.videoDurationSeconds == 0,
                             onClick = { onSelectDuration(0) },
-                            label = { Text(stringResource(R.string.anim_chip_touch), fontSize = 12.sp) },
+                            label = { Text(stringResource(R.string.anim_chip_touch), style = MaterialTheme.typography.labelMedium) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = ElectricCyan,
                                 selectedLabelColor = Slate950
@@ -1610,7 +1688,7 @@ fun AnimationSettingsTab(
                         Text(
                             text = stringResource(R.string.duration_label_seconds, tick),
                             color = Slate600,
-                            fontSize = 11.sp
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                     }
@@ -1637,7 +1715,7 @@ fun AnimationSettingsTab(
                             Text(
                                 text = stringResource(R.string.anim_fadeout_note),
                                 color = ElectricGreen,
-                                fontSize = 11.sp,
+                                style = MaterialTheme.typography.labelSmall,
                                 lineHeight = 16.sp
                             )
                         }
@@ -1654,13 +1732,13 @@ fun AnimationSettingsTab(
                         Column {
                             Text(
                                 text = stringResource(R.string.anim_loop_title),
-                                fontSize = 14.sp,
+                                style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Medium,
                                 color = Color.White
                             )
                             Text(
                                 text = stringResource(R.string.anim_loop_sub),
-                                fontSize = 11.sp,
+                                style = MaterialTheme.typography.labelSmall,
                                 color = Slate400
                             )
                         }
@@ -1682,20 +1760,20 @@ fun AnimationSettingsTab(
         // Built-in Visual Themes
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900),
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, Slate800)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = AppShapes.md,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = stringResource(R.string.anim_builtin_title),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
+                        style = MaterialTheme.typography.titleMedium,
                         color = Color.White
                     )
                     Text(
                         text = stringResource(R.string.anim_builtin_sub),
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         color = Slate400
                     )
 
@@ -1735,12 +1813,12 @@ fun AnimationSettingsTab(
                                         Text(
                                             text = stringResource(mode.nameRes),
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                            fontSize = 14.sp,
+                                            style = MaterialTheme.typography.titleSmall,
                                             color = if (isSelected) ElectricAmber else Color.White
                                         )
                                         Text(
                                             text = stringResource(mode.descRes),
-                                            fontSize = 11.sp,
+                                            style = MaterialTheme.typography.labelSmall,
                                             color = Slate400
                                         )
                                     }
@@ -1777,7 +1855,7 @@ fun AnimationSettingsTab(
                 Text(
                     text = stringResource(R.string.btn_preview_fullscreen),
                     fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp
+                    style = MaterialTheme.typography.titleLarge,
                 )
             }
         }
@@ -1814,13 +1892,13 @@ fun AdFreeDurationDialog(
                     text = stringResource(R.string.adfree_dialog_title),
                     color = Color.White,
                     fontWeight = FontWeight.ExtraBold,
-                    fontSize = 18.sp
+                    style = MaterialTheme.typography.headlineSmall,
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = stringResource(R.string.adfree_dialog_sub),
                     color = Slate400,
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center
                 )
 
@@ -1856,7 +1934,7 @@ fun AdFreeDurationDialog(
                             ),
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp
+                                style = MaterialTheme.typography.titleLarge,
                             )
                             Icon(
                                 imageVector = Icons.Default.PlayArrow,
@@ -1873,7 +1951,7 @@ fun AdFreeDurationDialog(
                 Text(
                     text = stringResource(R.string.btn_cancel),
                     color = Slate400,
-                    fontSize = 13.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .clickable { onDismiss() }
                         .padding(horizontal = 20.dp, vertical = 8.dp)
@@ -1938,8 +2016,8 @@ fun BatteryInfoTab(batteryInfo: BatteryInfo) {
         // 충전 상태 헤더
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Slate900),
-                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = AppShapes.md,
                 border = BorderStroke(
                     1.dp,
                     if (batteryInfo.isCharging) ElectricGreen.copy(alpha = 0.5f) else Slate800
@@ -1959,19 +2037,19 @@ fun BatteryInfoTab(batteryInfo: BatteryInfo) {
                                     stringResource(R.string.battery_discharging)
                                 },
                                 fontWeight = FontWeight.ExtraBold,
-                                fontSize = 22.sp,
+                                style = MaterialTheme.typography.headlineMedium,
                                 color = if (batteryInfo.isCharging) ElectricGreen else Color.White
                             )
                             Text(
                                 text = stringResource(batteryInfo.statusRes),
-                                fontSize = 13.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = Slate400
                             )
                         }
                         Text(
                             text = "${batteryInfo.level}%",
                             fontWeight = FontWeight.ExtraBold,
-                            fontSize = 30.sp,
+                            style = MaterialTheme.typography.displayMedium,
                             color = if (batteryInfo.level > 20) ElectricCyan else ElectricAmber
                         )
                     }
@@ -2000,7 +2078,7 @@ fun BatteryInfoTab(batteryInfo: BatteryInfo) {
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = stringResource(batteryInfo.plugType.displayNameRes),
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.bodySmall,
                             color = Slate400
                         )
                     }
@@ -2061,7 +2139,7 @@ fun BatteryInfoTab(batteryInfo: BatteryInfo) {
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = stringResource(R.string.battery_temp_warning),
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.bodySmall,
                             color = ElectricAmber
                         )
                     }
@@ -2080,7 +2158,7 @@ private fun BatteryInfoRow(
     Surface(
         color = Slate900,
         shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(1.dp, Slate800),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -2100,13 +2178,13 @@ private fun BatteryInfoRow(
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     text = label,
-                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.titleSmall,
                     color = Slate400
                 )
             }
             Text(
                 text = value,
-                fontSize = 14.sp,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )

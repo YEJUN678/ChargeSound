@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import com.example.ad.AdManager
 import com.example.ad.AdUnits
@@ -171,7 +172,7 @@ fun AdFreeCard(
                             stringResource(R.string.adfree_card_title)
                         },
                         fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
+                        style = MaterialTheme.typography.titleMedium,
                         color = Color.White
                     )
                 }
@@ -179,7 +180,7 @@ fun AdFreeCard(
                     Text(
                         text = stringResource(R.string.duration_minutes, remainingMinutes),
                         fontWeight = FontWeight.ExtraBold,
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = ElectricCyan
                     )
                 }
@@ -193,7 +194,7 @@ fun AdFreeCard(
                 } else {
                     stringResource(R.string.adfree_card_desc)
                 },
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = Slate600
             )
 
@@ -218,7 +219,7 @@ fun AdFreeCard(
                         Text(
                             text = stringResource(R.string.adfree_btn_hide),
                             fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                     Button(
@@ -229,7 +230,7 @@ fun AdFreeCard(
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text(stringResource(R.string.adfree_btn_choose), fontSize = 13.sp)
+                        Text(stringResource(R.string.adfree_btn_choose), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
@@ -281,12 +282,12 @@ fun PremiumLockedRow(
                     Text(
                         text = stringResource(nameRes),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.titleSmall,
                         color = Color.White
                     )
                     Text(
                         text = stringResource(descriptionRes),
-                        fontSize = 11.sp,
+                        style = MaterialTheme.typography.labelSmall,
                         color = Slate600
                     )
                 }
@@ -307,7 +308,7 @@ fun PremiumLockedRow(
                         stringResource(R.string.premium_btn_ads_left, remaining)
                     },
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }
@@ -325,7 +326,7 @@ fun PremiumLockedRow(
         Spacer(Modifier.height(4.dp))
         Text(
             text = stringResource(R.string.premium_progress, adsWatched, adsRequired),
-            fontSize = 11.sp,
+            style = MaterialTheme.typography.labelSmall,
             color = Slate600
         )
     }
@@ -370,12 +371,12 @@ fun PremiumUnlockedRow(
                     Text(
                         text = stringResource(nameRes),
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.titleSmall,
                         color = if (isSelected) accent else Color.White
                     )
                     Text(
                         text = stringResource(descriptionRes),
-                        fontSize = 11.sp,
+                        style = MaterialTheme.typography.labelSmall,
                         color = Slate600
                     )
                 }
@@ -432,7 +433,7 @@ fun OverlayPermissionCard(
                         stringResource(R.string.overlay_title_needed)
                     },
                     fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
+                    style = MaterialTheme.typography.titleMedium,
                     color = Color.White
                 )
             }
@@ -445,7 +446,7 @@ fun OverlayPermissionCard(
                 } else {
                     stringResource(R.string.overlay_desc_needed)
                 },
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = Slate600
             )
 
@@ -463,7 +464,7 @@ fun OverlayPermissionCard(
                     Text(
                         stringResource(R.string.overlay_btn_grant),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
@@ -511,13 +512,13 @@ fun FreeUnlockOfferDialog(
                     text = stringResource(R.string.offer_title, appliedLabel),
                     color = Color.White,
                     fontWeight = FontWeight.ExtraBold,
-                    fontSize = 18.sp
+                    style = MaterialTheme.typography.labelSmall
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = stringResource(R.string.offer_desc),
                     color = Slate600,
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center
                 )
 
@@ -541,7 +542,7 @@ fun FreeUnlockOfferDialog(
                     Text(
                         stringResource(R.string.offer_btn),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        style = MaterialTheme.typography.titleSmall
                     )
                 }
 
@@ -550,7 +551,7 @@ fun FreeUnlockOfferDialog(
                 Text(
                     text = stringResource(R.string.offer_later),
                     color = Slate400,
-                    fontSize = 13.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .clickable { onDismiss() }
                         .padding(horizontal = 24.dp, vertical = 8.dp)

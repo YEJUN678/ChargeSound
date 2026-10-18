@@ -189,7 +189,36 @@ data class ChargeSettings(
      * 시스템 폰트 크기 설정과 별개로, 앱 안에서만 적용됩니다.
      * 1.0 이 기본값입니다.
      */
-    val fontScale: Float = 1.0f
+    val fontScale: Float = 1.0f,
+
+    // ── 커스텀 미디어 구간 선택 (자르기) ──
+    /**
+     * 커스텀 오디오 재생 시작 지점 (밀리초).
+     *
+     * 파일 자체를 잘라 저장하지 않습니다. 재생할 때 이 지점부터 건너뛰기만 합니다.
+     * 재인코딩 없이 모든 포맷에서 동작하고, 저장 공간도 쓰지 않습니다.
+     */
+    val customSoundStartMs: Long = 0L,
+    /** 커스텀 오디오 재생 끝 지점(밀리초). 0 이면 파일 끝까지 재생 */
+    val customSoundEndMs: Long = 0L,
+    /** 커스텀 영상 재생 시작 지점 (밀리초) */
+    val customVideoStartMs: Long = 0L,
+    /** 커스텀 영상 재생 끝 지점 (밀리초). 0 이면 파일 끝까지 재생 */
+    val customVideoEndMs: Long = 0L,
+
+    // ── Material 3 ──
+    /**
+     * 기기 월피퍼(Material You)에서 색을 가져옵니다.
+     *
+     * 켜면 브랜드 색이 사라지고 안드로이드 색이 됩니다. 앱 정체성을 유지하려면
+     * 꺼 두는 게 기본값입니다. Android 12 미만에서는 자동으로 무시됩니다.
+     */
+    val dynamicColor: Boolean = false,
+    /**
+     * 표면 역할 색을 단계적으로 분리해 대비를 올립니다.
+     * 작은 글씨가 많거나 밝은 야외에서 쓰는 경우에 도움이 됩니다.
+     */
+    val highContrast: Boolean = false
 ) {
 
     /**

@@ -92,8 +92,6 @@
     <string name="battery_technology_label">Technology</string>
     <string name="battery_status_label">Status</string>
     <string name="battery_temp_warning">Battery is hot. Keep it away from heat and direct sunlight.</string>
-    <string name="unit_celsius" translatable="false">°C</string>
-    <string name="unit_volts" translatable="false"> V</string>
     <string name="value_celsius">%1$.1f°C</string>
     <string name="value_volts">%1$.2f V</string>
 
@@ -167,8 +165,6 @@
     <string name="shortcut_alarm_long">Open charge alarm settings</string>
 
     <!-- ═══════════════ charging session (ETA) ═══════════════ -->
-    <string name="session_elapsed">Charging for %1$s</string>
-    <string name="session_eta">Target in about %1$s</string>
     <string name="session_rate">+%1$s%/h</string>
 
     <!-- ═══════════════ charge alarm ═══════════════ -->
@@ -183,7 +179,6 @@
     <string name="alarm_notification_text">Your charge alarm target was %1$d%%</string>
     <string name="msg_alarm_on">Charge alarm is on.</string>
     <string name="msg_alarm_off">Charge alarm is off.</string>
-    <string name="msg_alarm_target">Alarm set to %1$d%%.</string>
 
     <!-- ═══════════════ battery alerts ═══════════════ -->
     <string name="temp_alert_title">High temperature</string>
@@ -390,5 +385,31 @@
     <string name="font_scale_title">Text size</string>
     <string name="font_scale_sub">Applies inside this app only, independent of your system setting</string>
     <string name="font_scale_note">Applied immediately while the screen is open.</string>
+
+
+    <!-- ═══════════════ Material 3 ═══════════════ -->
+    <string name="appearance_title">Appearance</string>
+    <string name="high_contrast_sub">Separates surfaces more clearly so small text stays readable</string>
+    <string name="high_contrast_title">Higher contrast</string>
+    <string name="dynamic_color_sub">Match the colours to your wallpaper. Turns off the neon accent palette.</string>
+    <string name="dynamic_color_title">Material You colours</string>
+
+
+    <!-- ═══════════════ 미디어 구간 선택 ═══════════════ -->
+    <string name="trim_sound_title">Trim sound</string>
+    <string name="trim_video_title">Trim video</string>
+    <string name="trim_hint">Drag the handles to pick the part you want. The file is not modified — only this part plays, and loops.</string>
+    <string name="trim_from">From</string>
+    <string name="trim_to">To</string>
+    <string name="trim_length">Length %1$s</string>
+    <string name="trim_total">Total %1$s</string>
+    <string name="trim_play">Preview</string>
+    <string name="trim_pause">Pause</string>
+    <string name="trim_preview_start">Back to start</string>
+    <string name="trim_reset">Use whole file</string>
+    <string name="trim_apply">Apply</string>
+    <string name="trim_open">Trim section</string>
+    <string name="trim_read_error">Could not read the length of this media file. You can still use the whole file.</string>
+    <string name="trim_active_note">Only the selected section will play. Charging loops stay inside it.</string>
 
 </resources>

@@ -25,6 +25,7 @@ object SoundManager {
     private const val TAG = "SoundManager"
     private var activeMediaPlayer: MediaPlayer? = null
     private var fadeJob: Job? = null
+    private var rangeJob: Job? = null
     private val scope = CoroutineScope(Dispatchers.Main + Job())
 
     val PRESETS = listOf(
@@ -92,6 +93,8 @@ object SoundManager {
         filePath: String?,
         volume: Float,
         durationSeconds: Int = -1, // >0: sync fade-out with animation duration
+        startMs: Long = 0L,       // 구간 선택: 재생 시작 지점
+        endMs: Long = 0L,         // 구간 선택: 재생 끝 지점 (0 이면 파일 끝)
         onCompletion: (() -> Unit)? = null
     ) {
         stopSound()
@@ -135,9 +138,18 @@ object SoundManager {
                     true
                 }
                 prepare()
+                // 구간 선택이 있으면 저장된 시작 지점부터 재생합니다.
+                if (startMs > 0L) {
+                    seekTo(startMs.coerceIn(0L, duration.toLong()).toInt())
+                }
                 start()
             }
             activeMediaPlayer = player
+
+            // 구간 선택: 파일을 자르지 않고 재생이 끝점에 도달하면 멈춥니다.
+            if (endMs > startMs) {
+                scheduleStopAt(player, endMs, startMs, onCompletion)
+            }
 
             // Schedule audio fade-out according to animation playback duration
             if (durationSeconds > 0) {
@@ -146,6 +158,34 @@ object SoundManager {
         } catch (e: Exception) {
             Log.e(TAG, "Error playing sound: $filePath", e)
             onCompletion?.invoke()
+        }
+    }
+
+    /**
+     * 구간 끝점에서 재생을 멈춥니다.
+     *
+     * 파일을 자르는 대신 재생 위치를 지켜보다가 멈추는 방식이라 재인코딩이 없습니다.
+     * 40ms 간격은 사람이 지연을 알아채지 못하는 수준이면서 CPU 부담은 무시할 만합니다.
+     */
+    private fun scheduleStopAt(
+        player: MediaPlayer,
+        endMs: Long,
+        restartAtMs: Long,
+        onCompletion: (() -> Unit)?
+    ) {
+        rangeJob?.cancel()
+        rangeJob = scope.launch {
+            while (true) {
+                val pos = runCatching { player.currentPosition.toLong() }.getOrElse { return@launch }
+                if (pos >= endMs) {
+                    runCatching { player.pause() }
+                    runCatching { player.seekTo(restartAtMs.toInt()) }
+                    stopSound()
+                    onCompletion?.invoke()
+                    return@launch
+                }
+                delay(40)
+            }
         }
     }
 
@@ -209,6 +249,9 @@ object SoundManager {
     fun stopSound() {
         fadeJob?.cancel()
         fadeJob = null
+        // 구간 감시도 함께 멈춰야 이전 재생을 멈추지 않습니다.
+        rangeJob?.cancel()
+        rangeJob = null
         try {
             activeMediaPlayer?.let {
                 if (it.isPlaying) {

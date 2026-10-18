@@ -161,6 +161,9 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
             putExtra(ChargingAnimationActivity.EXTRA_VIDEO_PATH, settings.customVideoPath)
             putExtra(ChargingAnimationActivity.EXTRA_DURATION_SEC, settings.videoDurationSeconds)
             putExtra(ChargingAnimationActivity.EXTRA_LOOP, settings.videoLoop)
+            // 구간 선택: 사용자가 고른 부분만 반복 재생합니다.
+            putExtra(ChargingAnimationActivity.EXTRA_VIDEO_START_MS, settings.customVideoStartMs)
+            putExtra(ChargingAnimationActivity.EXTRA_VIDEO_END_MS, settings.customVideoEndMs)
         }
         try {
             context.startActivity(animIntent)

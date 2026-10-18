@@ -1,5 +1,7 @@
 package com.example.ui
 
+import android.os.Build
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -36,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import com.example.R
 import com.example.data.ChargeSettings
 import com.example.ui.theme.AccentPalette
+import com.example.ui.theme.Spacing
 import com.example.ui.theme.ElectricCyan
 import com.example.ui.theme.ElectricGreen
 import com.example.ui.theme.Slate400
@@ -51,19 +55,23 @@ fun ThemeSettingsSheet(
     onDismiss: () -> Unit,
     onSelectAccent: (String) -> Unit,
     fontScale: Float = 1.0f,
-    onSelectFontScale: (Float) -> Unit = {}
+    onSelectFontScale: (Float) -> Unit = {},
+    dynamicColor: Boolean = false,
+    onToggleDynamicColor: (Boolean) -> Unit = {},
+    highContrast: Boolean = false,
+    onToggleHighContrast: (Boolean) -> Unit = {}
 ) {
     SheetScaffold(titleRes = R.string.menu_theme, onDismiss = onDismiss) {
         Text(
             text = stringResource(R.string.accent_title),
-            fontSize = 14.sp,
+            style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
         Spacer(Modifier.height(4.dp))
         Text(
             text = stringResource(R.string.accent_sub),
-            fontSize = 11.sp,
+            style = MaterialTheme.typography.labelSmall,
             color = Slate400
         )
 
@@ -101,7 +109,7 @@ fun ThemeSettingsSheet(
                 Spacer(Modifier.width(14.dp))
                 Text(
                     text = stringResource(accentLabelRes(key)),
-                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                     color = if (selected) Color.White else Slate400,
                     modifier = Modifier.weight(1f)
@@ -120,7 +128,7 @@ fun ThemeSettingsSheet(
         Spacer(Modifier.height(12.dp))
         Text(
             text = stringResource(R.string.accent_apply_note),
-            fontSize = 11.sp,
+            style = MaterialTheme.typography.labelSmall,
             color = Slate600,
             lineHeight = 16.sp
         )
@@ -129,13 +137,13 @@ fun ThemeSettingsSheet(
 
         Text(
             text = stringResource(R.string.font_scale_title),
-            fontSize = 14.sp,
+            style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
         Text(
             text = stringResource(R.string.font_scale_sub),
-            fontSize = 11.sp,
+            style = MaterialTheme.typography.labelSmall,
             color = Slate400
         )
 
@@ -162,7 +170,7 @@ fun ThemeSettingsSheet(
                         Text(
                             text = "${(scale * 100).toInt()}%",
                             color = if (selected) Color.Black else Color.White,
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -173,9 +181,40 @@ fun ThemeSettingsSheet(
         Spacer(Modifier.height(8.dp))
         Text(
             text = stringResource(R.string.font_scale_note),
-            fontSize = 11.sp,
+            style = MaterialTheme.typography.labelSmall,
             color = Slate600,
             lineHeight = 16.sp
+        )
+
+        Spacer(Modifier.height(Spacing.xl))
+        HorizontalDivider(color = Slate800)
+        Spacer(Modifier.height(Spacing.xl))
+
+        Text(
+            text = stringResource(R.string.appearance_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+
+        Spacer(Modifier.height(Spacing.md))
+
+        // Material You 는 Android 12 미만에서 동작하지 않으므로 hidesDisabledAreas 로 감춥니다.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            ToggleRow(
+                title = stringResource(R.string.dynamic_color_title),
+                subtitle = stringResource(R.string.dynamic_color_sub),
+                checked = dynamicColor,
+                onCheckedChange = onToggleDynamicColor
+            )
+            Spacer(Modifier.height(Spacing.md))
+        }
+
+        ToggleRow(
+            title = stringResource(R.string.high_contrast_title),
+            subtitle = stringResource(R.string.high_contrast_sub),
+            checked = highContrast,
+            onCheckedChange = onToggleHighContrast
         )
     }
 }
@@ -227,7 +266,7 @@ fun ChargingRateBadge(
         Spacer(Modifier.width(5.dp))
         Text(
             text = stringResource(R.string.session_rate, formatRate(percentPerHour)),
-            fontSize = 11.sp,
+            style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
             color = accent
         )
@@ -236,7 +275,7 @@ fun ChargingRateBadge(
             Spacer(Modifier.width(7.dp))
             Text(
                 text = "· " + stringResource(R.string.session_elapsed_short, formatElapsed(elapsedMillis)),
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = Slate600
             )
         }

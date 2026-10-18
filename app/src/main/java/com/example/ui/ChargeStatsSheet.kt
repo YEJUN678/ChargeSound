@@ -62,7 +62,7 @@ fun ChargeStatsSheet(
             Spacer(Modifier.height(28.dp))
             Text(
                 text = stringResource(R.string.stats_empty),
-                fontSize = 13.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 color = Slate600,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -70,7 +70,7 @@ fun ChargeStatsSheet(
             Spacer(Modifier.height(12.dp))
             Text(
                 text = stringResource(R.string.stats_empty_sub),
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = Slate700,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -94,8 +94,8 @@ fun ChargeStatsSheet(
             )
             StatTile(
                 modifier = Modifier.weight(1f),
-                value = "+$avgGain%",
-                label = stringResource(R.string.stats_avg_gain),
+                value = stringResource(R.string.stats_avg_gain, avgGain),
+                label = stringResource(R.string.stats_avg_gain_label),
                 tint = ElectricGreen
             )
         }
@@ -111,8 +111,8 @@ fun ChargeStatsSheet(
             )
             StatTile(
                 modifier = Modifier.weight(1f),
-                value = if (avgRate != null) formatRate(avgRate) else "—",
-                label = stringResource(R.string.stats_avg_rate),
+                value = if (avgRate != null) stringResource(R.string.stats_avg_rate, formatRate(avgRate)) else "-",
+                label = stringResource(R.string.stats_avg_rate_label),
                 tint = ElectricCyan
             )
         }
@@ -122,8 +122,8 @@ fun ChargeStatsSheet(
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StatTile(
                 modifier = Modifier.weight(1f),
-                value = "%.1f °C".format(avgPeakTemp),
-                label = stringResource(R.string.stats_peak_temp),
+                value = stringResource(R.string.stats_peak_temp, avgPeakTemp),
+                label = stringResource(R.string.stats_peak_temp_label),
                 tint = if (avgPeakTemp >= 45f) ElectricAmber else ElectricGreen
             )
             StatTile(
@@ -138,14 +138,14 @@ fun ChargeStatsSheet(
 
         Text(
             text = stringResource(R.string.stats_chart_title),
-            fontSize = 13.sp,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
         Spacer(Modifier.height(4.dp))
         Text(
             text = stringResource(R.string.stats_chart_sub, MAX_BARS),
-            fontSize = 11.sp,
+            style = MaterialTheme.typography.labelSmall,
             color = Slate600
         )
         Spacer(Modifier.height(12.dp))
@@ -156,7 +156,7 @@ fun ChargeStatsSheet(
 
         Text(
             text = stringResource(R.string.stats_recent_title),
-            fontSize = 13.sp,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
@@ -186,21 +186,21 @@ fun ChargeStatsSheet(
                             record.startLevel,
                             record.endLevel
                         ),
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White
                     )
                     Text(
                         text = formatRecordDate(record.startedAt) + " · " +
                             formatMinutesShort(record.durationMillis / 60_000L),
-                        fontSize = 10.sp,
+                        style = MaterialTheme.typography.labelSmall,
                         color = Slate600
                     )
                 }
                 record.percentPerHour?.let { rate ->
                     Text(
                         text = formatRate(rate),
-                        fontSize = 11.sp,
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = ElectricCyan
                     )
@@ -229,7 +229,7 @@ fun ChargeStatsSheet(
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.stats_clear),
-                    fontSize = 13.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = Slate400
                 )
@@ -239,7 +239,7 @@ fun ChargeStatsSheet(
         Spacer(Modifier.height(6.dp))
         Text(
             text = stringResource(R.string.stats_local_note),
-            fontSize = 10.sp,
+            style = MaterialTheme.typography.labelSmall,
             color = Slate700,
             lineHeight = 14.sp
         )
@@ -263,7 +263,7 @@ private fun StatTile(
     ) {
         Text(
             text = value,
-            fontSize = 19.sp,
+            style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.ExtraBold,
             color = tint,
             maxLines = 1
@@ -271,7 +271,7 @@ private fun StatTile(
         Spacer(Modifier.height(2.dp))
         Text(
             text = label,
-            fontSize = 10.sp,
+            style = MaterialTheme.typography.labelSmall,
             color = Slate600,
             maxLines = 2,
             lineHeight = 13.sp
@@ -323,17 +323,17 @@ private fun ChargeBarChart(
         ) {
             Text(
                 text = stringResource(R.string.stats_axis_old),
-                fontSize = 9.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = Slate700
             )
             Text(
                 text = stringResource(R.string.stats_axis_max, maxGain),
-                fontSize = 9.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = Slate700
             )
             Text(
                 text = stringResource(R.string.stats_axis_new),
-                fontSize = 9.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = Slate700
             )
         }

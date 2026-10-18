@@ -38,8 +38,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -49,6 +51,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -59,9 +62,11 @@ import com.example.R
 import com.example.data.AnimationMode
 import com.example.data.ChargeSettings
 import com.example.data.PremiumCatalog
+import com.example.ui.theme.AppShapes
 import com.example.ui.theme.ElectricCyan
 import com.example.ui.theme.ElectricGreen
 import com.example.ui.theme.Slate400
+import com.example.ui.theme.Spacing
 import com.example.ui.theme.Slate600
 import com.example.ui.theme.Slate700
 import com.example.ui.theme.Slate800
@@ -211,7 +216,7 @@ fun PremiumSoundsSheet(
                 R.string.premium_sounds_sub,
                 PremiumCatalog.ADS_REQUIRED_PER_UNLOCK
             ),
-            fontSize = 12.sp,
+            style = MaterialTheme.typography.bodySmall,
             color = Slate400,
             modifier = Modifier.padding(bottom = 12.dp)
         )
@@ -260,7 +265,7 @@ fun PremiumAnimationsSheet(
                 R.string.premium_anims_sub,
                 PremiumCatalog.ADS_REQUIRED_PER_UNLOCK
             ),
-            fontSize = 12.sp,
+            style = MaterialTheme.typography.bodySmall,
             color = Slate400,
             modifier = Modifier.padding(bottom = 12.dp)
         )
@@ -303,14 +308,14 @@ fun AboutSheet(onDismiss: () -> Unit, onCheckUpdate: () -> Unit) {
     SheetScaffold(titleRes = R.string.menu_about, onDismiss = onDismiss) {
         Text(
             text = stringResource(R.string.app_name),
-            fontSize = 18.sp,
+            style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.ExtraBold,
             color = Color.White
         )
         Spacer(Modifier.height(4.dp))
         Text(
             text = stringResource(R.string.about_description),
-            fontSize = 12.sp,
+            style = MaterialTheme.typography.bodySmall,
             color = Slate400
         )
 
@@ -341,13 +346,13 @@ fun AboutSheet(onDismiss: () -> Unit, onCheckUpdate: () -> Unit) {
                 Column(Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.update_check_title),
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                     Text(
                         text = stringResource(R.string.update_check_sub),
-                        fontSize = 11.sp,
+                        style = MaterialTheme.typography.labelSmall,
                         color = Slate400
                     )
                 }
@@ -381,13 +386,13 @@ fun AboutSheet(onDismiss: () -> Unit, onCheckUpdate: () -> Unit) {
                 Column(Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.about_privacy_title),
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                     Text(
                         text = stringResource(R.string.about_privacy_sub),
-                        fontSize = 11.sp,
+                        style = MaterialTheme.typography.labelSmall,
                         color = Slate400
                     )
                 }
@@ -397,7 +402,7 @@ fun AboutSheet(onDismiss: () -> Unit, onCheckUpdate: () -> Unit) {
         Spacer(Modifier.height(12.dp))
         Text(
             text = stringResource(R.string.about_data_note),
-            fontSize = 11.sp,
+            style = MaterialTheme.typography.labelSmall,
             color = Slate600,
             lineHeight = 16.sp
         )
@@ -429,13 +434,13 @@ fun AlarmSettingsSheet(
 
         Text(
             text = stringResource(R.string.alarm_target_title),
-            fontSize = 14.sp,
+            style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
         Text(
             text = stringResource(R.string.alarm_target_multi_sub),
-            fontSize = 11.sp,
+            style = MaterialTheme.typography.labelSmall,
             color = Slate400
         )
 
@@ -462,7 +467,7 @@ fun AlarmSettingsSheet(
                         Text(
                             text = "$percent",
                             color = if (selected) Color.Black else Color.White,
-                            fontSize = 13.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -474,7 +479,7 @@ fun AlarmSettingsSheet(
             Spacer(Modifier.height(8.dp))
             Text(
                 text = stringResource(R.string.alarm_targets_summary, settings.alarmTargets.joinToString(", ")),
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = ElectricCyan
             )
         }
@@ -483,7 +488,7 @@ fun AlarmSettingsSheet(
 
         Text(
             text = stringResource(R.string.alarm_snooze_title),
-            fontSize = 13.sp,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             color = Color.White
         )
@@ -506,7 +511,7 @@ fun AlarmSettingsSheet(
                         Text(
                             text = stringResource(R.string.alarm_snooze_minutes, minutes),
                             color = if (selected) Color.Black else Color.White,
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -516,7 +521,7 @@ fun AlarmSettingsSheet(
         Spacer(Modifier.height(6.dp))
         Text(
             text = stringResource(R.string.alarm_snooze_sub),
-            fontSize = 11.sp,
+            style = MaterialTheme.typography.labelSmall,
             color = Slate600
         )
 
@@ -559,7 +564,7 @@ fun AlarmSettingsSheet(
                             Text(
                                 text = "$percent%",
                                 color = if (selected) Color.Black else Color.White,
-                                fontSize = 13.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -569,7 +574,7 @@ fun AlarmSettingsSheet(
             Spacer(Modifier.height(6.dp))
             Text(
                 text = stringResource(R.string.limit_health_note),
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = Slate600,
                 lineHeight = 15.sp
             )
@@ -622,7 +627,7 @@ fun AlertSettingsSheet(
                             Text(
                                 text = "${threshold.toInt()}°",
                                 color = if (selected) Color.Black else Color.White,
-                                fontSize = 13.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -673,7 +678,7 @@ fun AlertSettingsSheet(
                             Text(
                                 text = "$threshold%",
                                 color = if (selected) Color.Black else Color.White,
-                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -695,7 +700,7 @@ fun AlertSettingsSheet(
             Spacer(Modifier.height(12.dp))
             Text(
                 text = stringResource(R.string.rapid_window_title),
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = Slate400
             )
             Spacer(Modifier.height(6.dp))
@@ -720,7 +725,7 @@ fun AlertSettingsSheet(
                             Text(
                                 text = stringResource(R.string.duration_minutes, minutes),
                                 color = if (selected) Color.Black else Color.White,
-                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -731,7 +736,7 @@ fun AlertSettingsSheet(
             Spacer(Modifier.height(10.dp))
             Text(
                 text = stringResource(R.string.rapid_drop_title),
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = Slate400
             )
             Spacer(Modifier.height(6.dp))
@@ -756,7 +761,7 @@ fun AlertSettingsSheet(
                             Text(
                                 text = "-$drop%",
                                 color = if (selected) Color.Black else Color.White,
-                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -768,7 +773,7 @@ fun AlertSettingsSheet(
         Spacer(Modifier.height(16.dp))
         Text(
             text = stringResource(R.string.widget_hint),
-            fontSize = 11.sp,
+            style = MaterialTheme.typography.labelSmall,
             color = Slate600,
             lineHeight = 16.sp
         )
@@ -785,24 +790,25 @@ internal fun ToggleRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) },
+            .clip(AppShapes.md)
+            .clickable { onCheckedChange(!checked) }
+            .padding(vertical = Spacing.sm),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
             Text(
                 text = title,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = subtitle,
-                fontSize = 11.sp,
-                color = Slate400
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Spacer(Modifier.width(12.dp))
-        androidx.compose.material3.Switch(
+        Spacer(Modifier.width(Spacing.md))
+        Switch(
             checked = checked,
             onCheckedChange = onCheckedChange
         )
@@ -848,14 +854,14 @@ fun UpdateAvailableDialog(
                 Text(
                     text = stringResource(R.string.update_dialog_title),
                     color = Color.White,
-                    fontSize = 18.sp,
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.ExtraBold
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = stringResource(R.string.update_dialog_body, latestVersionName),
                     color = Slate400,
-                    fontSize = 13.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
 
@@ -873,7 +879,7 @@ fun UpdateAvailableDialog(
                     Text(
                         text = stringResource(R.string.update_dialog_btn),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        style = MaterialTheme.typography.titleSmall
                     )
                 }
 
@@ -882,7 +888,7 @@ fun UpdateAvailableDialog(
                 Text(
                     text = stringResource(R.string.update_dialog_later),
                     color = Slate400,
-                    fontSize = 13.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .clickable { onLater() }
                         .padding(horizontal = 24.dp, vertical = 8.dp)
@@ -905,22 +911,26 @@ internal fun SheetScaffold(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Slate900,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = Slate600) }
+        // 시트는 앱 배경(950)보다 확실히 밝아야 위에 떠 있는 시트로 읽힙니다.
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        dragHandle = {
+            BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outline)
+        }
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 32.dp)
+                .padding(horizontal = Spacing.xl)
+                .padding(bottom = Spacing.xxl)
         ) {
             Text(
                 text = stringResource(titleRes),
-                color = Color.White,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.padding(bottom = 12.dp)
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = Spacing.md)
             )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Spacer(Modifier.height(Spacing.md))
             content()
         }
     }

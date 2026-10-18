@@ -44,6 +44,8 @@ class MainActivity : ComponentActivity() {
             CompositionLocalProvider(LocalDensity provides scaled) {
                 MyApplicationTheme(
                     darkTheme = true,
+                    dynamicColor = settings.dynamicColor,
+                    highContrast = settings.highContrast,
                     accent = AccentPalette.fromKey(settings.accentKey)
                 ) {
                     MainScreen(viewModel = viewModel)

@@ -112,6 +112,16 @@ class SettingsRepository(private val context: Context) {
     // ── 접근성 ──
     val KEY_FONT_SCALE = floatPreferencesKey("font_scale")
 
+    // ── Material 3 ──
+    val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
+    val KEY_HIGH_CONTRAST = booleanPreferencesKey("high_contrast")
+
+    // ── 커스텀 미디어 구간 선택 ──
+    val KEY_SOUND_START_MS = longPreferencesKey("sound_start_ms")
+    val KEY_SOUND_END_MS = longPreferencesKey("sound_end_ms")
+    val KEY_VIDEO_START_MS = longPreferencesKey("video_start_ms")
+    val KEY_VIDEO_END_MS = longPreferencesKey("video_end_ms")
+
     // ── 충전 기록 (통계) ──
     val KEY_CHARGE_HISTORY = stringPreferencesKey("charge_history_json")
     }
@@ -236,10 +246,17 @@ class SettingsRepository(private val context: Context) {
             quietStartMinute = (prefs[KEY_QUIET_START] ?: 1320).coerceIn(0, 1440),
             quietEndMinute = (prefs[KEY_QUIET_END] ?: 420).coerceIn(0, 1440),
             accentKey = prefs[KEY_ACCENT] ?: "cyan",
-            fontScale = (prefs[KEY_FONT_SCALE] ?: 1.0f).coerceIn(0.85f, 1.5f)
+            fontScale = (prefs[KEY_FONT_SCALE] ?: 1.0f).coerceIn(0.85f, 1.5f),
+            dynamicColor = prefs[KEY_DYNAMIC_COLOR] ?: false,
+            highContrast = prefs[KEY_HIGH_CONTRAST] ?: false,
+            customSoundStartMs = prefs[KEY_SOUND_START_MS] ?: 0L,
+            customSoundEndMs = prefs[KEY_SOUND_END_MS] ?: 0L,
+            customVideoStartMs = prefs[KEY_VIDEO_START_MS] ?: 0L,
+            customVideoEndMs = prefs[KEY_VIDEO_END_MS] ?: 0L
         )
     }
-suspend fun readSession(): ChargingSession = context.dataStore.data.first().let { prefs ->
+
+    suspend fun readSession(): ChargingSession = context.dataStore.data.first().let { prefs ->
         ChargingSession(
             startedAt = prefs[KEY_SESSION_STARTED_AT] ?: 0L,
             startLevel = prefs[KEY_SESSION_START_LEVEL] ?: 0,
@@ -469,6 +486,28 @@ suspend fun readSession(): ChargingSession = context.dataStore.data.first().let 
 
     suspend fun setFontScale(scale: Float) {
         context.dataStore.edit { it[KEY_FONT_SCALE] = scale.coerceIn(0.85f, 1.5f) }
+    }
+
+    suspend fun setDynamicColor(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_DYNAMIC_COLOR] = enabled }
+    }
+
+    suspend fun setHighContrast(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_HIGH_CONTRAST] = enabled }
+    }
+
+    suspend fun setCustomSoundRange(startMs: Long, endMs: Long) {
+        context.dataStore.edit {
+            it[KEY_SOUND_START_MS] = startMs.coerceAtLeast(0L)
+            it[KEY_SOUND_END_MS] = endMs.coerceAtLeast(0L)
+        }
+    }
+
+    suspend fun setCustomVideoRange(startMs: Long, endMs: Long) {
+        context.dataStore.edit {
+            it[KEY_VIDEO_START_MS] = startMs.coerceAtLeast(0L)
+            it[KEY_VIDEO_END_MS] = endMs.coerceAtLeast(0L)
+        }
     }
 
     // ── 충전 기록 (통계) ──

@@ -105,6 +105,11 @@ class ChargingAnimationActivity : ComponentActivity() {
         const val EXTRA_VIDEO_PATH = "extra_video_path"
         const val EXTRA_DURATION_SEC = "extra_duration_sec"
         const val EXTRA_LOOP = "extra_loop"
+
+        /** 구간 선택: 영상 재생 시작 지점 (ms). 0 이면 파일 처음부터 */
+        const val EXTRA_VIDEO_START_MS = "extra_video_start_ms"
+        /** 구간 선택: 영상 재생 끝 지점 (ms). 0 이면 파일 끝까지 */
+        const val EXTRA_VIDEO_END_MS = "extra_video_end_ms"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -127,6 +132,9 @@ class ChargingAnimationActivity : ComponentActivity() {
         val videoPath = intent.getStringExtra(EXTRA_VIDEO_PATH)
         val durationSec = intent.getIntExtra(EXTRA_DURATION_SEC, 5)
         val isLoop = intent.getBooleanExtra(EXTRA_LOOP, true)
+        // 구간 선택 (0 이면 전체 재생)
+        val videoStartMs = intent.getLongExtra(EXTRA_VIDEO_START_MS, 0L)
+        val videoEndMs = intent.getLongExtra(EXTRA_VIDEO_END_MS, 0L)
 
         val animMode = try {
             AnimationMode.valueOf(animModeStr)
@@ -147,6 +155,8 @@ class ChargingAnimationActivity : ComponentActivity() {
                     videoPath = videoPath,
                     durationSec = durationSec,
                     isLoop = isLoop,
+                    videoStartMs = videoStartMs,
+                    videoEndMs = videoEndMs,
                     onDismiss = {
                         SoundManager.fadeOutAndStop(500L)
                         finishAndReturnToPreviousApp()
@@ -241,6 +251,8 @@ fun ChargingScreenContent(
     videoPath: String?,
     durationSec: Int,
     isLoop: Boolean,
+    videoStartMs: Long,
+    videoEndMs: Long,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
@@ -286,6 +298,8 @@ fun ChargingScreenContent(
             VideoPlaybackView(
                 videoPath = videoPath!!,
                 isLoop = isLoop,
+                startMs = videoStartMs,
+                endMs = videoEndMs,
                 onVideoFinished = {
                     if (durationSec == -1) {
                         onDismiss()
@@ -452,6 +466,8 @@ fun ChargingScreenContent(
 fun VideoPlaybackView(
     videoPath: String,
     isLoop: Boolean,
+    startMs: Long,
+    endMs: Long,
     onVideoFinished: () -> Unit
 ) {
     AndroidView(
@@ -463,6 +479,10 @@ fun VideoPlaybackView(
                     setOnPreparedListener { mp ->
                         mp.isLooping = isLoop
                         mp.setVolume(0f, 0f)
+                        // 구간이 지정돼 있으면 시작 지점으로 이동합니다.
+                        if (startMs > 0L) {
+                            mp.seekTo(startMs.toInt())
+                        }
                         start()
                     }
                     setOnCompletionListener {
@@ -479,6 +499,14 @@ fun VideoPlaybackView(
         },
         update = { videoView ->
             try {
+                    // 구간 선택: 끝 지점을 넘어가면 시작 지점으로 되돌립니다.
+                    // 파일을 자르지 않으므로 반복 재생도 이 구간 안에서만 일어납니다.
+                    if (endMs > startMs) {
+                        val pos = videoView.currentPosition.toLong()
+                        if (pos >= endMs) {
+                            videoView.seekTo(startMs.toInt())
+                        }
+                    }
                 if (!videoView.isPlaying) {
                     videoView.start()
                 }

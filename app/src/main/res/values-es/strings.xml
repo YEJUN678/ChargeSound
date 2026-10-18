@@ -277,7 +277,6 @@
     <string name="alarm_notification_text">Tu objetivo de alarma era el %1$d %%</string>
     <string name="msg_alarm_on">Alarma de carga activada.</string>
     <string name="msg_alarm_off">Alarma de carga desactivada.</string>
-    <string name="msg_alarm_target">Alarma fijada en el %1$d %%.</string>
 
     <!-- ═══════════════ contexto del sonido ═══════════════ -->
     <string name="plug_sound_title">Sonido distinto por cargador</string>
@@ -340,8 +339,6 @@
     <string name="duration_label_seconds">%1$d s</string>
 
     <!-- ═══════════════ sesión de carga ═══════════════ -->
-    <string name="session_elapsed">Cargando desde hace %1$s</string>
-    <string name="session_eta">Objetivo en unos %1$s</string>
     <string name="session_rate">+%1$s%/h</string>
 
     <string name="session_elapsed_short">durante %1$s</string>
@@ -392,4 +389,30 @@
     <string name="font_scale_title">Tamaño del texto</string>
     <string name="font_scale_sub">Se aplica solo dentro de esta app, con independencia del ajuste del sistema</string>
     <string name="font_scale_note">Se aplica al instante mientras la pantalla está abierta.</string>
+
+    <!-- ═══════════════ Material 3 ═══════════════ -->
+    <string name="appearance_title">Apariencia</string>
+    <string name="high_contrast_sub">Separa mejor las superficies para que el texto pequeño siga siendo legible</string>
+    <string name="high_contrast_title">Más contraste</string>
+    <string name="dynamic_color_sub">Adapta los colores a tu fondo de pantalla. Desactiva la paleta de acento neón.</string>
+    <string name="dynamic_color_title">Colores Material You</string>
+
+
+    <!-- ═══════════════ 미디어 구간 선택 ═══════════════ -->
+    <string name="trim_sound_title">Recortar sonido</string>
+    <string name="trim_video_title">Recortar vídeo</string>
+    <string name="trim_hint">Arrastra los tiradores para elegir la parte. El archivo no se modifica: solo se reproduce esa parte, en bucle.</string>
+    <string name="trim_from">Desde</string>
+    <string name="trim_to">Hasta</string>
+    <string name="trim_length">Duración %1$s</string>
+    <string name="trim_total">Total %1$s</string>
+    <string name="trim_play">Escuchar</string>
+    <string name="trim_pause">Pausar</string>
+    <string name="trim_preview_start">Volver al inicio</string>
+    <string name="trim_reset">Usar el archivo entero</string>
+    <string name="trim_apply">Aplicar</string>
+    <string name="trim_open">Recortar sección</string>
+    <string name="trim_read_error">No se pudo leer la duración. Puedes usar el archivo entero.</string>
+    <string name="trim_active_note">Solo sonará la sección elegida. Los bucles de carga se quedan dentro de ella.</string>
+
 </resources>
