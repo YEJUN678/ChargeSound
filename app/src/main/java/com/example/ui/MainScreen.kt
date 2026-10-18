@@ -43,6 +43,7 @@ import androidx.compose.material.icons.automirrored.filled.VolumeMute
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Audiotrack
 import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCut
@@ -119,6 +120,7 @@ import androidx.core.content.ContextCompat
 import com.example.R
 import com.example.ad.AdManager
 import com.example.battery.BatteryInfo
+import com.example.battery.PowerTracker
 import com.example.data.AnimationMode
 import com.example.data.ChargeSettings
 import com.example.data.PremiumCatalog
@@ -2008,6 +2010,39 @@ private fun PlayingIndicator() {
  */
 @Composable
 fun BatteryInfoTab(batteryInfo: BatteryInfo) {
+    // ── 충전 출력(와트) ────────────────────────────────────────────
+    //
+    // 이 화면 안에 sampling 을 두는 이유: 폴링이 화면에 보이는 동안에만 돌게 됩니다.
+    // 메인 탭에 두면 사용자가 이 탭을 안 볼 때도 배터리를 갉아먹습니다.
+    //
+    // 에너지원을 시간차 두 번 읽어 미분해야 하므로 배터리가 바뀌었다는 브로드캐스트
+    // 만으로는 값이 나오지 않습니다. 그래서 별도 주기로 샘플을 쌓습니다.
+    val context = LocalContext.current
+    val powerTracker = remember { PowerTracker.get(context) }
+    var watts by remember { mutableStateOf<Float?>(null) }
+
+    // 지원 여부는 한 번만 확인합니다. 기기가 값을 안 주면 몇 번을 재도 0 이므로
+    // 폴링 자체를 아예 시작하지 않습니다.
+    val powerSupported = remember {
+        powerTracker.hasEverMeasured || PowerTracker.isSupported(context)
+    }
+
+    LaunchedEffect(Unit) {
+        while (powerSupported) {
+            watts = powerTracker.sample()
+            delay(6_000L)
+        }
+        watts = null
+    }
+
+    // 충전이 끊기면 미분 기준이 사라지므로 버립니다. 다음 충전에서 새 기준으로 시작합니다.
+    LaunchedEffect(batteryInfo.isCharging) {
+        if (!batteryInfo.isCharging) {
+            powerTracker.reset()
+            watts = null
+        }
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -2099,6 +2134,53 @@ fun BatteryInfoTab(batteryInfo: BatteryInfo) {
                     label = stringResource(R.string.battery_voltage_label),
                     value = stringResource(R.string.value_volts, batteryInfo.voltageV)
                 )
+                // ── 충전 출력 (W) ──────────────────────────────────────
+                //
+                // 값을 못 내는 기기가 많으므로 세 갈래로 나눕니다.
+                //   측정 불가 (기기 미지원) → 한 줄 설명
+                //   측정 중                 → 흐린 "측정 중"
+                //   값 있음                 → 실제 와트 + 방향
+                //
+                // 0W 로 보여주는 것은 절대 하지 않습니다. 충전기가 안 물고 있다는
+                // 잘못된 결론을 만들게 됩니다.
+                //
+                // 위임 프로퍼티는 smart cast 가 되지 않으므로 지역 값으로 꺼냅니다.
+                val currentWatts = watts
+                BatteryInfoRow(
+                    icon = Icons.Default.Bolt,
+                    label = stringResource(R.string.power_label),
+                    value = when {
+                        !powerSupported -> stringResource(R.string.power_unsupported)
+                        currentWatts == null -> stringResource(R.string.power_measuring)
+                        currentWatts >= 0f -> stringResource(
+                            R.string.power_watts_charging,
+                            formatWatts(currentWatts)
+                        )
+
+                        else -> stringResource(
+                            R.string.power_watts_discharging,
+                            formatWatts(-currentWatts)
+                        )
+                    },
+                    valueTint = when {
+                        currentWatts == null -> Slate600
+                        // 색은 "많이 흐르면 진하게" 뿐 급속/저속 판정이 아닙니다.
+                        // 그 판정은 배터리 용량 대비 비율이라 이 데이터로는 못 합니다.
+                        currentWatts >= 20f -> ElectricGreen
+                        currentWatts >= 8f -> ElectricCyan
+                        else -> Slate400
+                    }
+                )
+                // ── 배터리 건강도 (SOH) 대신 ──────────────────────────
+                //
+                // 숫자로 넣지 않았습니다. Android 에는 만충 용량 API 가 없고,
+                // 설계 용량(BATTERY_PROPERTY_DESIGN_CAPACITY)은 AOSP @SystemApi 로
+                // 공개 SDK 에 없어 컴파일조차 되지 않습니다. 즉 "SOH 92%" 를
+                // 띄우려면 반드시 지어내야 하고, 사용자가 가장 신뢰하는 자리에서
+                // 거짓말을 하게 됩니다.
+                //
+                // 대신 온도·충전 습관 기반 인사이트를 통계 시트에 넣었습니다
+                // (BatteryInsights). 전부 이 앱이 직접 기록한 값에서 나옵니다.
                 BatteryInfoRow(
                     icon = Icons.Default.Check,
                     label = stringResource(R.string.battery_health_label),
@@ -2153,7 +2235,8 @@ fun BatteryInfoTab(batteryInfo: BatteryInfo) {
 private fun BatteryInfoRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
-    value: String
+    value: String,
+    valueTint: Color = Color.White
 ) {
     Surface(
         color = Slate900,
@@ -2182,12 +2265,31 @@ private fun BatteryInfoRow(
                     color = Slate400
                 )
             }
+            // SOH / 전력처럼 "값이 없을 수 있는" 행이 들어오게 되었습니다.
+            // 측정 불가능한 항목도 흰 글씨로 뜨면 이상해 보이므로 회색으로 물러나게 합니다.
             Text(
                 text = value,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = valueTint,
+                modifier = Modifier.padding(start = Spacing.md)
             )
         }
+    }
+}
+
+/**
+ * 와트를 읽기 좋게 만듭니다.
+ *
+ * 1 미만은 소수 첫째 자리, 그 이상은 정수 + 소수 첫째 자리.
+ * 계측 자체가 ± 오차를 가지므로 12.37W 같은 정밀도를 내보내면
+ * 정확해 보이지만 오히려 신뢰를 갉아먹습니다.
+ */
+internal fun formatWatts(watts: Float): String {
+    val v = if (watts < 0f) 0f else watts
+    return if (v < 10f) {
+        String.format(java.util.Locale.getDefault(), "%.1f", v)
+    } else {
+        String.format(java.util.Locale.getDefault(), "%.0f", v)
     }
 }

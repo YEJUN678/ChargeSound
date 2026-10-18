@@ -59,12 +59,21 @@ $env:KEYSTORE_PATH = $Keystore
 if ([string]::IsNullOrWhiteSpace($env:KEY_ALIAS)) { $env:KEY_ALIAS = "upload" }
 
 # ── 빌드 ──────────────────────────────────────────────────────────
+# 이 머신은 물리 메모리가 4 GB 뿐입니다.
+# gradle.properties 의 기본값(-Xmx4g + workers 4 + parallel)은 DEX 병합 단계에서
+# JVM 이 죽습니다("Gradle build daemon disappeared unexpectedly").
+# 그래서 빌드 중에만 아래로 눌러서 돌립니다. gradle.properties 는 건드리지 않습니다.
+$env:JAVA_TOOL_OPTIONS = "-Xmx1800m"
+$gradleJvmArgs = "-Xmx2200m -Dfile.encoding=UTF-8"
+
 Push-Location $Root
 try {
     Write-Host "▶ 빌드 중... versionCode=$VersionCode versionName=$VersionName" -ForegroundColor Cyan
     # 인자를 따옴표로 감싸야 합니다 — 감싸지 않으면 .bat 이 1.2.0 을 .2.0 으로 쪼갭니다.
     & ".\gradlew.bat" ":app:assembleRelease" `
         "-PVERSION_CODE=$VersionCode" "-PVERSION_NAME=$VersionName" `
+        "-Dorg.gradle.jvmargs=$gradleJvmArgs" `
+        --no-parallel --max-workers=1 `
         --console=plain --no-configuration-cache
     if ($LASTEXITCODE -ne 0) { throw "Gradle 빌드 실패 (exit $LASTEXITCODE)" }
 } finally {

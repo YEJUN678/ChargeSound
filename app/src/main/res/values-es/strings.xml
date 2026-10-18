@@ -421,4 +421,56 @@
     <!-- 충전 애니메이션 화면 HUD -->
     <string name="anim_full_label">Completamente cargada</string>
 
+<!-- ═══════════════ 배터리 진단 ═══════════════ -->
+
+    <!-- 충전 출력 (W) -->
+
+    <!-- 배터리 건강도 (SOH) -->
+
+    <!-- 온도 추이 -->
+
+<!-- =============== Batería diagnóstico =============== -->
+
+<!-- Consumo (W) -->
+    <string name="power_watts_charging">%1$s W de entrada</string>
+    <string name="power_watts_discharging">%1$s W de salida</string>
+    <string name="power_label">Consumo</string>
+    <string name="power_unsupported">Este dispositivo no lo comunica</string>
+    <string name="power_measuring">Midiendo …</string>
+
+<!-- Tendencia de temperatura -->
+    <string name="temp_trend_title">Temperatura de carga</string>
+    <string name="temp_trend_sub">Temperatura máxima de las últimas %1$d sesiones</string>
+    <string name="temp_trend_avg">Media %1$s °C</string>
+    <string name="temp_trend_rising">Últimamente %1$s °C más caliente que antes. Mantener la batería más fría ralentiza su desgaste</string>
+    <string name="temp_trend_falling">Últimamente %1$s °C más frío que antes</string>
+    <string name="temp_trend_stable">Estable frente a las sesiones anteriores</string>
+    <string name="temp_trend_unknown">Se necesitan más sesiones para juzgar la tendencia</string>
+    <string name="temp_zone_cool">Fría</string>
+    <string name="temp_zone_warm">Cálida</string>
+    <string name="temp_zone_hot">Caliente</string>
+    <string name="temp_trend_empty">Aún no hay datos de temperatura</string>
+
+<!-- Hábitos de carga -->
+    <string name="habits_title">Hábitos de carga</string>
+    <string name="habits_sub">Lo que dicen tus sesiones registradas sobre el desgaste</string>
+    <string name="habits_full_ratio">El %1$d %% de las sesiones terminó en 95 %% o más</string>
+    <string name="habits_deep_ratio">El %1$d %% empezó por debajo del 15 %%</string>
+    <string name="habits_overnight_ratio">El %1$d %% empezó por la noche</string>
+    <string name="habits_avg_start">Nivel medio inicial</string>
+    <string name="habits_total_time">Tiempo total conectado</string>
+
+    <string name="concern_pinned_title">La dejas al 100 %% a menudo</string>
+    <string name="concern_pinned_body">Mantener una batería de litio al 100 %% acelera el desgaste. Desconectar al 80 %% ya alarga la vida de forma notable</string>
+    <string name="concern_deep_title">Cargas a menudo desde cero</string>
+    <string name="concern_deep_body">Dejar que baje del 15 %% y volver a cargar estresa las células. Prueba a rellenar antes de que baje tanto</string>
+    <string name="concern_overnight_title">Suele quedarse conectada por la noche</string>
+    <string name="concern_overnight_body">La batería pasa horas al 100 %% cada noche. Desconectarla cuando está llena lo evita</string>
+    <string name="concern_none_title">Buenos hábitos</string>
+    <string name="concern_none_body">Rara vez la deja llena, rara vez la agota y no la mantiene conectada toda la noche</string>
+    <string name="habits_unknown">Se necesitan más sesiones para juzgar tus hábitos</string>
+
+    <string name="insights_why_title">A¿Por qué no hay un porcentaje de salud?</string>
+    <string name="insights_why_body">Android no expone la capacidad a plena carga y su capacidad de diseño es una API de sistema oculta que las apps no pueden leer. Cualquier porcentaje sería una suposición. Todo lo de arriba viene de valores que esta app midió por sía misma</string>
+
 </resources>

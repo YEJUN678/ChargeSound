@@ -418,4 +418,56 @@
     <!-- 충전 애니메이션 화면 HUD -->
     <string name="anim_full_label">Fully charged</string>
 
+<!-- ═══════════════ Battery diagnostics ═══════════════ -->
+
+    <!-- Power draw (W) -->
+
+    <!-- Battery health (SOH) -->
+
+    <!-- Temperature trend -->
+
+<!-- ═══════════════ Battery diagnostics ═══════════════ -->
+
+    <!-- Power draw (W) -->
+    <string name="power_watts_charging">%1$s W in</string>
+    <string name="power_watts_discharging">%1$s W out</string>
+    <string name="power_label">Power draw</string>
+    <string name="power_unsupported">Not reported by this device</string>
+    <string name="power_measuring">Measuring…</string>
+
+    <!-- Temperature trend -->
+    <string name="temp_trend_title">Charging temperature</string>
+    <string name="temp_trend_sub">Peak temperature of the last %1$d sessions</string>
+    <string name="temp_trend_avg">Average %1$s°C</string>
+    <string name="temp_trend_rising">Recently %1$s°C hotter than before. Keeping the battery cooler slows wear.</string>
+    <string name="temp_trend_falling">Recently %1$s°C cooler than before.</string>
+    <string name="temp_trend_stable">Stable compared with earlier sessions.</string>
+    <string name="temp_trend_unknown">More sessions needed to judge a trend.</string>
+    <string name="temp_zone_cool">Cool</string>
+    <string name="temp_zone_warm">Warm</string>
+    <string name="temp_zone_hot">Hot</string>
+    <string name="temp_trend_empty">No temperature data yet.</string>
+
+    <!-- Charging habits -->
+    <string name="habits_title">Charging habits</string>
+    <string name="habits_sub">What your recorded sessions say about battery wear</string>
+    <string name="habits_full_ratio">%1$d%% of sessions ended at 95%% or above</string>
+    <string name="habits_deep_ratio">%1$d%% started below 15%%</string>
+    <string name="habits_overnight_ratio">%1$d%% started overnight</string>
+    <string name="habits_avg_start">Average start level</string>
+    <string name="habits_total_time">Total time plugged in</string>
+
+    <string name="concern_pinned_title">Left at 100%% too often</string>
+    <string name="concern_pinned_body">Holding a lithium battery at 100%% speeds up wear. Unplugging around 80%% alone makes it last noticeably longer.</string>
+    <string name="concern_deep_title">Charged too often from empty</string>
+    <string name="concern_deep_body">Letting the battery drop below 15%% and then charging stresses the cells. Try topping up before it gets low.</string>
+    <string name="concern_overnight_title">Usually plugged in overnight</string>
+    <string name="concern_overnight_body">The battery stays at 100%% for hours every night. Unplugging once it is full avoids that.</string>
+    <string name="concern_none_title">Good habits</string>
+    <string name="concern_none_body">You rarely leave it full, rarely drain it, and do not keep it plugged in overnight.</string>
+    <string name="habits_unknown">More sessions needed to judge your habits.</string>
+
+    <string name="insights_why_title">Why no battery health percentage?</string>
+    <string name="insights_why_body">Android does not expose full-charge capacity, and its design-capacity field is a hidden system API that apps cannot read. Any percentage here would be a guess. Everything above comes from values this app measured itself.</string>
+
 </resources>

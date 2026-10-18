@@ -412,4 +412,56 @@
     <!-- 충전 애니메이션 화면 HUD -->
     <string name="anim_full_label">충전 완료</string>
 
+<!-- ═══════════════ 배터리 진단 ═══════════════ -->
+
+    <!-- 충전 출력 (W) -->
+
+    <!-- 배터리 건강도 (SOH) -->
+
+    <!-- 온도 추이 -->
+
+<!-- ═══════════════ 배터리 진단 ═══════════════ -->
+
+    <!-- 충전 출력 (W) -->
+    <string name="power_watts_charging">%1$s W 유입</string>
+    <string name="power_watts_discharging">%1$s W 유출</string>
+    <string name="power_label">전력</string>
+    <string name="power_unsupported">이 기기는 값을 알려주지 않습니다</string>
+    <string name="power_measuring">측정 중…</string>
+
+    <!-- 온도 추이 -->
+    <string name="temp_trend_title">충전 온도</string>
+    <string name="temp_trend_sub">최근 %1$d회 충전의 최고 온도</string>
+    <string name="temp_trend_avg">평균 %1$s°C</string>
+    <string name="temp_trend_rising">최근에 %1$s°C 더 뜨거워졌습니다. 배터리를 차갑게 두면 손상이 느려집니다</string>
+    <string name="temp_trend_falling">최근에 %1$s°C 낮아졌습니다</string>
+    <string name="temp_trend_stable">이전과 비슷한 온도입니다</string>
+    <string name="temp_trend_unknown">추세를 판단하려면 충전 기록이 더 필요합니다</string>
+    <string name="temp_zone_cool">저온</string>
+    <string name="temp_zone_warm">다뜻</string>
+    <string name="temp_zone_hot">고온</string>
+    <string name="temp_trend_empty">아직 온도 기록이 없습니다</string>
+
+    <!-- 충전 습관 -->
+    <string name="habits_title">충전 습관</string>
+    <string name="habits_sub">기록된 충전 세션이 말하는 배터리 관리</string>
+    <string name="habits_full_ratio">전체 세션의 %1$d%%가 95%% 이상에서 끝났습니다</string>
+    <string name="habits_deep_ratio">전체 세션의 %1$d%%가 15%% 아래에서 시작했습니다</string>
+    <string name="habits_overnight_ratio">전체 세션의 %1$d%%가 밤에 시작했습니다</string>
+    <string name="habits_avg_start">평균 시작 잔량</string>
+    <string name="habits_total_time">총 충전 시간</string>
+
+    <string name="concern_pinned_title">100% 에 오래 머무르는 편입니다</string>
+    <string name="concern_pinned_body">리튬 배터리를 100% 로 오래 유지하면 손상이 빨라집니다. 80% 정도에서 빼는 것만으로 체감할 수 있을 정도의 차이가 납니다</string>
+    <string name="concern_deep_title">거의 바닥에서 충전합니다</string>
+    <string name="concern_deep_body">15% 아래까지 내려갔다가 올리는 습관은 셀에 부담을 줍니다. 낮아지기 전에 조금씩 채워 보세요</string>
+    <string name="concern_overnight_title">밤새 충전기에 꽂아둡니다</string>
+    <string name="concern_overnight_body">매일 밤 몇 시간 동안 100% 상태로 유지됩니다. 가득 찼으면 빼면 됩니다</string>
+    <string name="concern_none_title">좋은 습관입니다</string>
+    <string name="concern_none_body">만충 유지도 적고, 완전 방전도 적고, 밤새 꽂아두지도 않습니다</string>
+    <string name="habits_unknown">습관을 판단하려면 충전 기록이 더 필요합니다</string>
+
+    <string name="insights_why_title">배터리 건강도 % 는 왜 없나요</string>
+    <string name="insights_why_body">Android 는 만충 용량을 알려주지 않고, 설계 용량 값은 앱이 읽을 수 없는 숨김 시스템 API 입니다. 여기서 % 를 보여주면 지어낸 숫자가 됩니다. 위의 값들은 모두 이 앱이 직접 측정한 값입니다</string>
+
 </resources>
