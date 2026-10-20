@@ -91,6 +91,11 @@ data class ChargeSettings(
     val overlayPromptSeen: Boolean = false,
     /** 사용자 맞춤 고빈도 설정 (프리미엄 콘텐츠 용량 해제 후 활성화) */
     val premiumUnlocked: Boolean = false,
+
+    /** 온보딩(권한 안내 + 자동실행 토글)을 완료했는지 */
+    val onboardingDone: Boolean = false,
+    /** 충전기 연결 시 애니메이션을 자동으로 시작할지 */
+    val autoStartAnimation: Boolean = true,
     /**
      * 광고 시청으로 지급된 무료 잠금 해제 크레딧.
      * 커스텀 오디오/영상 적용 후 보상형 광고를 시청하면 1개씩 쌓입니다.

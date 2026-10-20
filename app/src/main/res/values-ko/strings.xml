@@ -464,4 +464,16 @@
     <string name="insights_why_title">배터리 건강도 % 는 왜 없나요</string>
     <string name="insights_why_body">Android 는 만충 용량을 알려주지 않고, 설계 용량 값은 앱이 읽을 수 없는 숨김 시스템 API 입니다. 여기서 % 를 보여주면 지어낸 숫자가 됩니다. 위의 값들은 모두 이 앱이 직접 측정한 값입니다</string>
 
+<!-- ═══════════════ 첫 실행 온보딩 ═══════════════ -->
+    <string name="onboard_permission_title">필요한 권한</string>
+    <string name="onboard_permission_body">충전기를 꽂으면 전체화면 애니메이션을 띄우려면 "다른 앱 위에 표시" 권한이 필요합니다. 이 권한이 있어야 잠금 화면 위에도 애니메이션이 나타납니다.</string>
+    <string name="onboard_permission_button">권한 허용</string>
+    <string name="onboard_permission_granted">권한이 허용되었습니다</string>
+    <string name="onboard_autostart_title">자동 실행</string>
+    <string name="onboard_autostart_body">켜두면 충전기를 연결할 때마다 애니메이션이 자동으로 시작됩니다. 나중에 설정에서 언제든 바꿀 수 있습니다.</string>
+    <string name="onboard_autostart_label">충전 시 애니메이션 자동 시작</string>
+    <string name="onboard_autostart_sub">설정 → 사운드 에서 언제든 변경 가능</string>
+    <string name="onboard_next">다음</string>
+    <string name="onboard_finish">시작하기</string>
+
 </resources>

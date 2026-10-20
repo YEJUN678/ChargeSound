@@ -473,4 +473,16 @@
     <string name="insights_why_title">A¿Por qué no hay un porcentaje de salud?</string>
     <string name="insights_why_body">Android no expone la capacidad a plena carga y su capacidad de diseño es una API de sistema oculta que las apps no pueden leer. Cualquier porcentaje sería una suposición. Todo lo de arriba viene de valores que esta app midió por sía misma</string>
 
+<!-- ═══════════════ Primer inicio ═══════════════ -->
+    <string name="onboard_permission_title">Permiso necesario</string>
+    <string name="onboard_permission_body">Para mostrar la animación a pantalla completa al conectar el cargador, ChargeSound necesita el permiso "Mostrar sobre otras apps". Esto permite que la animación aparezca encima de cualquier pantalla, incluso la de bloqueo.</string>
+    <string name="onboard_permission_button">Conceder permiso</string>
+    <string name="onboard_permission_granted">Permiso concedido</string>
+    <string name="onboard_autostart_title">Inicio automático</string>
+    <string name="onboard_autostart_body">Si está activado, la animación se inicia automáticamente cada vez que conectas el cargador. Puedes cambiarlo después en Ajustes.</string>
+    <string name="onboard_autostart_label">Iniciar animación al conectar</string>
+    <string name="onboard_autostart_sub">Cambia en cualquier momento en Ajustes → Sonido</string>
+    <string name="onboard_next">Siguiente</string>
+    <string name="onboard_finish">Empezar</string>
+
 </resources>

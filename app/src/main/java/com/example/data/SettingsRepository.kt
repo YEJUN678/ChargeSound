@@ -97,6 +97,8 @@ class SettingsRepository(private val context: Context) {
     val KEY_SESSION_START_LEVEL = intPreferencesKey("session_start_level")
     val KEY_SESSION_LAST_LEVEL = intPreferencesKey("session_last_level")
     val KEY_SESSION_LAST_CHANGED_AT = longPreferencesKey("session_last_changed_at")
+    val KEY_ONBOARDING_DONE = booleanPreferencesKey("onboarding_done")
+    val KEY_AUTO_START = booleanPreferencesKey("auto_start")
 
     // ── 다중 알람 ──
     val KEY_ALARM_TARGETS = stringPreferencesKey("alarm_targets_csv")
@@ -218,6 +220,8 @@ class SettingsRepository(private val context: Context) {
             overlayPermissionGranted = prefs[KEY_OVERLAY_GRANTED] ?: false,
             overlayPromptSeen = prefs[KEY_OVERLAY_PROMPT_SEEN] ?: false,
             premiumUnlocked = prefs[KEY_PREMIUM_UNLOCKED] ?: false,
+            onboardingDone = prefs[KEY_ONBOARDING_DONE] ?: false,
+            autoStartAnimation = prefs[KEY_AUTO_START] ?: true,
             freeUnlockCredits = prefs[KEY_FREE_UNLOCK_CREDITS] ?: 0,
             alarmEnabled = prefs[KEY_ALARM_ENABLED] ?: false,
             alarmTargetPercent = alarmTargets.last(),
@@ -398,6 +402,14 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setOverlayPromptSeen(seen: Boolean) {
         context.dataStore.edit { it[KEY_OVERLAY_PROMPT_SEEN] = seen }
+    }
+
+    suspend fun setOnboardingDone(done: Boolean) {
+        context.dataStore.edit { it[KEY_ONBOARDING_DONE] = done }
+    }
+
+    suspend fun setAutoStartAnimation(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_AUTO_START] = enabled }
     }
 
     suspend fun setPremiumUnlocked(unlocked: Boolean) {
@@ -733,4 +745,11 @@ class SettingsRepository(private val context: Context) {
         }
         return name ?: uri.lastPathSegment
     }
+
+    /** 온보딩 완료 여부를 한 번만 읽습니다. */
+    suspend fun onboardingDone(): Boolean = context.dataStore.data.first()[KEY_ONBOARDING_DONE] ?: false
+
+    /** 자동실행 설정(충전 시 애니메이션 자동 시작)을 읽습니다. */
+    suspend fun autoStartAnimation(): Boolean = context.dataStore.data.first()[KEY_AUTO_START] ?: true
+
 }

@@ -470,4 +470,16 @@
     <string name="insights_why_title">Why no battery health percentage?</string>
     <string name="insights_why_body">Android does not expose full-charge capacity, and its design-capacity field is a hidden system API that apps cannot read. Any percentage here would be a guess. Everything above comes from values this app measured itself.</string>
 
+<!-- ═══════════════ 첫 실행 온보딩 ═══════════════ -->
+    <string name="onboard_permission_title">Permission needed</string>
+    <string name="onboard_permission_body">To show the full-screen charging animation when you plug in, ChargeSound needs the "Display over other apps" permission. This lets the animation appear on top of any screen — even the lock screen.</string>
+    <string name="onboard_permission_button">Grant permission</string>
+    <string name="onboard_permission_granted">Permission granted</string>
+    <string name="onboard_autostart_title">Auto-start animation</string>
+    <string name="onboard_autostart_body">When enabled, the animation starts automatically every time you connect a charger. You can always change this later in Settings.</string>
+    <string name="onboard_autostart_label">Start animation on plug</string>
+    <string name="onboard_autostart_sub">Toggle anytime in Settings → Sound</string>
+    <string name="onboard_next">Next</string>
+    <string name="onboard_finish">Get started</string>
+
 </resources>
