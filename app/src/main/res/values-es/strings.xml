@@ -308,7 +308,6 @@
     <string name="widget_description">Nivel de batería y estado de carga en tu pantalla de inicio</string>
     <string name="widget_level_fmt">%1$d %%</string>
     <string name="widget_plug_fmt">%1$s • %2$.1f °C</string>
-    <string name="widget_hint">Consejo: añade el widget de ChargeSound a tu pantalla de inicio y activa el acceso rápido de la barra de notificaciones para controlar la detección sin abrir la app.</string>
     <string name="tile_label">Detección de carga</string>
     <string name="tile_label_on">Detección de carga activada</string>
     <string name="tile_label_off">Detección de carga desactivada</string>
@@ -484,5 +483,20 @@
     <string name="onboard_autostart_sub">Cambia en cualquier momento en Ajustes → Sonido</string>
     <string name="onboard_next">Siguiente</string>
     <string name="onboard_finish">Empezar</string>
+
+<!-- Textos del widget -->
+    <string name="widget_level_placeholder">85%</string>
+    <string name="widget_status_charging">Cargando</string>
+    <string name="widget_status_charging_short">⚡ Cargando</string>
+    <string name="widget_status_discharging">Descargando</string>
+    <string name="widget_plug_placeholder">CA</string>
+    <string name="widget_plug_temp">%1$s · %2$s °C</string>
+    <string name="widget_speed_placeholder">Rápido (18W)</string>
+    <string name="widget_size_config_title">Tamaño del widget</string>
+    <string name="widget_size_compact">2×1 (Compacto)</string>
+    <string name="widget_size_standard">4×1 (Estándar)</string>
+    <string name="widget_size_detailed">4×2 (Detallado)</string>
+
+    <string name="widget_hint">Toca para abrir animación</string>
 
 </resources>

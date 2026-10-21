@@ -187,7 +187,6 @@
     <string name="widget_description">홈 화면에서 배터리 잔량과 충전 상태를 확인하세요</string>
     <string name="widget_level_fmt">%1$d%%</string>
     <string name="widget_plug_fmt">%1$s • %2$.1f℃</string>
-    <string name="widget_hint">팁: 홈 화면에 ChargeSound 위젯을 추가하고, 알림바 빠른 설정 타일을 켜면 앱을 열지 않고 충전 감지를 제어할 수 있습니다.</string>
     <string name="tile_label">충전 감지</string>
     <string name="tile_label_on">충전 감지 켜짐</string>
     <string name="tile_label_off">충전 감지 꺼짐</string>
@@ -475,5 +474,20 @@
     <string name="onboard_autostart_sub">설정 → 사운드 에서 언제든 변경 가능</string>
     <string name="onboard_next">다음</string>
     <string name="onboard_finish">시작하기</string>
+
+<!-- 위젯 레이아웃 하드코딩 텍스트 -->
+    <string name="widget_level_placeholder">85%</string>
+    <string name="widget_status_charging">충전 중</string>
+    <string name="widget_status_charging_short">⚡ 충전 중</string>
+    <string name="widget_status_discharging">방전 중</string>
+    <string name="widget_plug_placeholder">AC</string>
+    <string name="widget_plug_temp">%1$s · %2$s°C</string>
+    <string name="widget_speed_placeholder">고속 (18W)</string>
+    <string name="widget_size_config_title">위젯 크기 선택</string>
+    <string name="widget_size_compact">2×1 (컴팩트)</string>
+    <string name="widget_size_standard">4×1 (표준)</string>
+    <string name="widget_size_detailed">4×2 (상세)</string>
+
+    <string name="widget_hint">탭해서 애니메이션 열기</string>
 
 </resources>

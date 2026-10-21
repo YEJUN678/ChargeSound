@@ -772,7 +772,7 @@ fun AlertSettingsSheet(
 
         Spacer(Modifier.height(16.dp))
         Text(
-            text = stringResource(R.string.widget_hint),
+            text = stringResource(R.string.anim_exit_hint),
             style = MaterialTheme.typography.labelSmall,
             color = Slate600,
             lineHeight = 16.sp

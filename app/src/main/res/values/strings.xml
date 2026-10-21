@@ -192,7 +192,6 @@
     <string name="widget_description">Battery level and charging status on your home screen</string>
     <string name="widget_level_fmt">%1$d%%</string>
     <string name="widget_plug_fmt">%1$s • %2$.1f°C</string>
-    <string name="widget_hint">Tip: add the ChargeSound widget to your home screen, and turn on the quick settings tile to toggle charging detection without opening the app.</string>
     <string name="tile_label">Charging detection</string>
     <string name="tile_label_on">Charging detection on</string>
     <string name="tile_label_off">Charging detection off</string>
@@ -481,5 +480,20 @@
     <string name="onboard_autostart_sub">Toggle anytime in Settings → Sound</string>
     <string name="onboard_next">Next</string>
     <string name="onboard_finish">Get started</string>
+
+<!-- Widget layout texts -->
+    <string name="widget_level_placeholder">85%</string>
+    <string name="widget_status_charging">Charging</string>
+    <string name="widget_status_charging_short">⚡ Charging</string>
+    <string name="widget_status_discharging">Discharging</string>
+    <string name="widget_plug_placeholder">AC</string>
+    <string name="widget_plug_temp">%1$s · %2$s°C</string>
+    <string name="widget_speed_placeholder">Fast (18W)</string>
+    <string name="widget_size_config_title">Widget Size</string>
+    <string name="widget_size_compact">2×1 (Compact)</string>
+    <string name="widget_size_standard">4×1 (Standard)</string>
+    <string name="widget_size_detailed">4×2 (Detailed)</string>
+
+    <string name="widget_hint">Tap to open animation</string>
 
 </resources>
