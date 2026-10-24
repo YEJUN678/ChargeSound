@@ -173,7 +173,7 @@
     <string name="shortcut_alarm_long">Open charge alarm settings</string>
 
     <!-- ═══════════════ charging session (ETA) ═══════════════ -->
-    <string name="session_rate">+%1$s%/h</string>
+    <string name="session_rate">+%1$s%%/h</string>
 
     <!-- ═══════════════ charge alarm ═══════════════ -->
     <string name="alarm_enable_title">Charge alarm</string>

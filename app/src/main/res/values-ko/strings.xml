@@ -168,7 +168,7 @@
     <string name="shortcut_alarm_long">충전 알람 설정 열기</string>
 
     <!-- ═══════════════ 충전 세션 (ETA) ═══════════════ -->
-    <string name="session_rate">+%1$s%/시간</string>
+    <string name="session_rate">+%1$s%%/시간</string>
 
     <!-- ═══════════════ 충전 알람 ═══════════════ -->
     <string name="alarm_enable_title">충전 알람</string>

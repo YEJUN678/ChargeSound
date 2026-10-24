@@ -292,6 +292,8 @@ object BatteryAlertManager {
                 )
                 .build()
 
+            // 이전에 같은 수치로 올라온 제한 알림이 있다면 함께 지웁니다.
+            manager.cancel(LIMIT_NOTIFICATION_ID)
             manager.notify(ALARM_NOTIFICATION_ID, notification)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to post alarm notification", e)
@@ -314,6 +316,15 @@ object BatteryAlertManager {
     ) {
         if (settings.chargeLimitNotifiedThisSession) return
         if (info.level < settings.chargeLimitPercent) return
+
+        // 같은 수치의 목표 알람과 충전 제한 알림을 둘 다 켜면 동일한 안내가
+        // 두 장 쌓입니다. 제어가 더 많은 목표 알림 하나만 남깁니다.
+        val targetAlarmCoversLimit = settings.alarmEnabled &&
+            settings.alarmTargets.any { it == settings.chargeLimitPercent }
+        if (targetAlarmCoversLimit) {
+            repository.setChargeLimitNotified()
+            return
+        }
 
         repository.setChargeLimitNotified()
         try {
