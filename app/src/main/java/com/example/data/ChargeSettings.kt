@@ -65,6 +65,8 @@ data class SoundPreset(
 data class ChargeSettings(
     val isServiceEnabled: Boolean = true,
     val soundEnabled: Boolean = true,
+    /** 충전 시작/목표 도달을 음성(TTS)으로 안내 */
+    val voiceAnnounceEnabled: Boolean = false,
     val volume: Float = 0.85f,
     val soundMode: SoundMode = SoundMode.PRESET,
     val presetSoundId: String = "cyber_chime",

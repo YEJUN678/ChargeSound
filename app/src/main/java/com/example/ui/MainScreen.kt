@@ -474,6 +474,7 @@ fun MainScreen(viewModel: MainViewModel) {
                         onVolumeChange = { viewModel.setVolume(it) },
                         onSelectPreset = { viewModel.selectPresetSound(it) },
                         onToggleVibration = { viewModel.toggleVibration(it) },
+                        onToggleVoiceAnnounce = { viewModel.setVoiceAnnounce(it) },
                         onPlayCurrent = {
                             // 사운드 미리듣기 중에는 전면류 광고를 차단합니다
                             AdManager.setCoreFeatureBusy(true)
@@ -850,6 +851,7 @@ fun SoundSettingsTab(
     onVolumeChange: (Float) -> Unit,
     onSelectPreset: (String) -> Unit,
     onToggleVibration: (Boolean) -> Unit,
+    onToggleVoiceAnnounce: (Boolean) -> Unit,
     onPlayCurrent: () -> Unit,
     onStopSound: () -> Unit,
     onWatchAdToUnlock: (String) -> Unit,
@@ -922,6 +924,24 @@ fun SoundSettingsTab(
                             uncheckedTrackColor = Slate800
                         ),
                         modifier = Modifier.testTag("sound_enable_switch")
+                    )
+                }
+            }
+        }
+
+        // 음성 안내 (TTS) — 충전 시작/목표 도달을 말로 알려줍니다.
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = AppShapes.md,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+                    ToggleRow(
+                        title = stringResource(R.string.voice_announce_title),
+                        subtitle = stringResource(R.string.voice_announce_sub),
+                        checked = settings.voiceAnnounceEnabled,
+                        onCheckedChange = onToggleVoiceAnnounce
                     )
                 }
             }

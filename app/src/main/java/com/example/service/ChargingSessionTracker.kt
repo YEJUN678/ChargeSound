@@ -65,6 +65,7 @@ object ChargingSessionTracker {
                     )
                 }
                 repo.writeSession(ChargingSession())
+                SessionLive.clearEta(appContext)
                 peakTempC = 0f
                 lastSeenLevel = -1
             } catch (e: Exception) {
@@ -87,6 +88,7 @@ object ChargingSessionTracker {
                 if (!info.isCharging) {
                     // 충전 종료 — 세션을 비웁니다.
                     if (session.startedAt > 0L) repo.writeSession(ChargingSession())
+                    SessionLive.clearEta(appContext)
                     return@launch
                 }
 
@@ -119,6 +121,25 @@ object ChargingSessionTracker {
                         session.copy(lastLevel = info.level, lastChangedAt = now)
                     )
                 }
+
+                // 위젯이 바로 읽을 수 있도록 완충(100%) 예상 시각을 남깁니다.
+                // 세션이 1분 미만이면 분모가 너무 작아 ETA 가 터무니없어지므로 건너뜁니다.
+                val elapsed = now - session.startedAt
+                val gained = info.level - session.startLevel
+                if (elapsed >= 60_000L && gained > 0) {
+                    val perHour = gained.toFloat() / (elapsed / 3_600_000f)
+                    if (perHour > 0.05f) {
+                        val remaining = (100 - info.level).coerceAtLeast(0)
+                        if (remaining == 0) {
+                            SessionLive.clearEta(appContext)
+                        } else {
+                            SessionLive.writeEta(
+                                appContext,
+                                now + (remaining.toFloat() / perHour * 3_600_000f).toLong()
+                            )
+                        }
+                    }
+                }
             } catch (e: Exception) {
                 Log.w(TAG, "record failed", e)
             }
@@ -132,6 +153,7 @@ object ChargingSessionTracker {
             try {
                 val repo = SettingsRepository(appContext)
                 repo.writeSession(ChargingSession())
+                SessionLive.clearEta(appContext)
             } catch (e: Exception) {
                 Log.w(TAG, "reset failed", e)
             }

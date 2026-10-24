@@ -19,7 +19,10 @@ class ChargeApplication : Application() {
         super.onCreate()
         Log.d(TAG, "Application onCreate")
 
-        // ironSource LevelPlay SDK 초기화 (배너/스폰서 카드/보상형 프리로드)
+        // 크래시 기록기는 가장 먼저 설치합니다 — 아래 초기화가 죽어도 원인이 남도록.
+        com.example.diagnostics.CrashReporter.install(this)
+
+        // AdMob SDK 초기화 (배너/네이티브 카드/보상형 광고 로드)
         com.example.ad.AdManager.initialize(this)
 
         // Initialize built-in sound presets on background thread

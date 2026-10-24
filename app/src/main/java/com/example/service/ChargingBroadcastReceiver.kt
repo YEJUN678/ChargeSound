@@ -111,6 +111,14 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
             )
         }
 
+        // 2-1. 음성 안내 (TTS) — 조용한 시간에는 말하지 않습니다.
+        if (settings.voiceAnnounceEnabled && !quietNow) {
+            com.example.voice.VoiceAnnouncer.announce(
+                context,
+                context.getString(R.string.voice_charging_started)
+            )
+        }
+
         // 3. Show Animation Screen
         if (settings.animationEnabled) {
             val batteryInfo = BatteryInfoHelper.getBatteryInfo(context)

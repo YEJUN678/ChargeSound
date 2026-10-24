@@ -339,6 +339,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun setVoiceAnnounce(enabled: Boolean) {
+        viewModelScope.launch {
+            repository.setVoiceAnnounceEnabled(enabled)
+        }
+    }
+
     fun setVolume(volume: Float) {
         viewModelScope.launch {
             repository.setVolume(volume)

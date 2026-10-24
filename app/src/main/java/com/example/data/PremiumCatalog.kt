@@ -75,6 +75,39 @@ object PremiumCatalog {
             iconName = "speed",
             accentArgb = 0xFF22D3EE,
             remoteUrl = null
+        ),
+        // ── 시즌 사운드 팩 ────────────────────────────────────────────────
+        PremiumSound(
+            id = "prm_spring",
+            nameRes = R.string.prm_spring_name,
+            descriptionRes = R.string.prm_spring_desc,
+            iconName = "bell",
+            accentArgb = 0xFFF9A8D4,
+            remoteUrl = null
+        ),
+        PremiumSound(
+            id = "prm_summer",
+            nameRes = R.string.prm_summer_name,
+            descriptionRes = R.string.prm_summer_desc,
+            iconName = "waves",
+            accentArgb = 0xFF38BDF8,
+            remoteUrl = null
+        ),
+        PremiumSound(
+            id = "prm_autumn",
+            nameRes = R.string.prm_autumn_name,
+            descriptionRes = R.string.prm_autumn_desc,
+            iconName = "music",
+            accentArgb = 0xFFF59E0B,
+            remoteUrl = null
+        ),
+        PremiumSound(
+            id = "prm_winter",
+            nameRes = R.string.prm_winter_name,
+            descriptionRes = R.string.prm_winter_desc,
+            iconName = "bell",
+            accentArgb = 0xFFA5B4FC,
+            remoteUrl = null
         )
     )
 

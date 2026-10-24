@@ -273,6 +273,95 @@ object SoundManager {
         when (presetId) {
             // ── 프리미엄 사운드 (보상형 광고로 해제) ──
             // 모두 실시간 PCM 합성이라 배포/ 저작권 문제가 없습니다.
+            // ── 시즌 사운드 팩 (계절 이벤트용, 모두 실시간 합성) ──────────────
+            "prm_spring" -> {
+                // 벚꽃: 밝은 벨 아르페지오 (E5 → G#5 → B5 → E6)
+                durationSec = 2.8
+                val total = (durationSec * sampleRate).toInt()
+                val out = ShortArray(total)
+                val freqs = doubleArrayOf(659.25, 830.61, 987.77, 1318.51)
+                val step = (0.16 * sampleRate).toInt()
+                for (i in 0 until total) {
+                    val idx = (i / step).coerceAtMost(freqs.size - 1)
+                    val local = i - idx * step
+                    val t = local.toDouble() / sampleRate
+                    val env = kotlin.math.exp(-local.toDouble() / (0.45 * sampleRate))
+                    val f = freqs[idx]
+                    val wave = sin(2.0 * PI * f * t) +
+                        0.35 * sin(2.0 * PI * f * 2.0 * t) +
+                        0.18 * sin(2.0 * PI * f * 3.01 * t)
+                    out[i] = (wave * env * 19000)
+                        .toInt().coerceIn(-32768, 32767).toShort()
+                }
+                return out
+            }
+            "prm_summer" -> {
+                // 여름 파도: 저역 통과 노이즈 스웰 + 낮은 패드
+                durationSec = 3.6
+                val total = (durationSec * sampleRate).toInt()
+                val out = ShortArray(total)
+                var lowpass = 0.0
+                for (i in 0 until total) {
+                    val t = i.toDouble() / sampleRate
+                    val fadeIn = (t / 0.5).coerceAtMost(1.0)
+                    val fadeOut = ((durationSec - t) / 0.9).coerceAtMost(1.0)
+                    val env = (fadeIn * fadeOut).coerceIn(0.0, 1.0)
+                    val noise = Math.random() * 2.0 - 1.0
+                    lowpass += (noise - lowpass) * 0.06
+                    val swell = 0.35 + 0.65 * sin(2.0 * PI * 0.28 * t)
+                    val pad = 0.35 * sin(2.0 * PI * 98.0 * t) +
+                        0.20 * sin(2.0 * PI * 146.83 * t)
+                    val wave = lowpass * 1.6 * swell + pad
+                    out[i] = (wave * env * 20000)
+                        .toInt().coerceIn(-32768, 32767).toShort()
+                }
+                return out
+            }
+            "prm_autumn" -> {
+                // 가을 낙엽: 따뜻한 마림바 하행 (펜타토닉)
+                durationSec = 3.0
+                val total = (durationSec * sampleRate).toInt()
+                val out = ShortArray(total)
+                val freqs = doubleArrayOf(523.25, 466.16, 392.00, 349.23, 293.66)
+                val step = (0.22 * sampleRate).toInt()
+                for (i in 0 until total) {
+                    val idx = (i / step).coerceAtMost(freqs.size - 1)
+                    val local = i - idx * step
+                    val t = local.toDouble() / sampleRate
+                    val attack = (local / (0.008 * sampleRate)).coerceAtMost(1.0)
+                    val f = freqs[idx]
+                    val wave = sin(2.0 * PI * f * t) * kotlin.math.exp(-t * 7.0) +
+                        0.5 * sin(2.0 * PI * f * 2.0 * t) * kotlin.math.exp(-t * 11.0) +
+                        0.2 * sin(2.0 * PI * f * 3.0 * t) * kotlin.math.exp(-t * 15.0)
+                    out[i] = (wave * attack * 20000)
+                        .toInt().coerceIn(-32768, 32767).toShort()
+                }
+                return out
+            }
+            "prm_winter" -> {
+                // 겨울 종소리: 비화성 배음 종을 두 번 타종
+                durationSec = 3.2
+                val total = (durationSec * sampleRate).toInt()
+                val out = ShortArray(total)
+                fun bell(t: Double, start: Double): Double {
+                    val dt = t - start
+                    if (dt < 0.0) return 0.0
+                    val env = kotlin.math.exp(-dt * 2.2)
+                    val f = 880.0
+                    return (sin(2.0 * PI * f * dt) +
+                        0.60 * sin(2.0 * PI * f * 2.76 * dt) +
+                        0.35 * sin(2.0 * PI * f * 5.40 * dt) +
+                        0.20 * sin(2.0 * PI * f * 8.10 * dt)) * env
+                }
+                for (i in 0 until total) {
+                    val t = i.toDouble() / sampleRate
+                    val wave = bell(t, 0.0) + 0.7 * bell(t, 1.1)
+                    out[i] = (wave * 15000)
+                        .toInt().coerceIn(-32768, 32767).toShort()
+                }
+                return out
+            }
+
             "prm_synthwave" -> {
                 val semitone = 2.0 * (2.0.pow(1.0 / 12.0))
                 durationSec = 3.2

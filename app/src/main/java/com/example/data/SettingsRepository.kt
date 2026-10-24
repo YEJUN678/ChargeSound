@@ -36,6 +36,7 @@ class SettingsRepository(private val context: Context) {
 
         val KEY_SERVICE_ENABLED = booleanPreferencesKey("service_enabled")
         val KEY_SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
+        val KEY_VOICE_ANNOUNCE = booleanPreferencesKey("voice_announce_enabled")
         val KEY_VOLUME = floatPreferencesKey("volume")
         val KEY_SOUND_MODE = stringPreferencesKey("sound_mode")
         val KEY_PRESET_SOUND_ID = stringPreferencesKey("preset_sound_id")
@@ -201,6 +202,7 @@ class SettingsRepository(private val context: Context) {
         ChargeSettings(
             isServiceEnabled = prefs[KEY_SERVICE_ENABLED] ?: true,
             soundEnabled = prefs[KEY_SOUND_ENABLED] ?: true,
+            voiceAnnounceEnabled = prefs[KEY_VOICE_ANNOUNCE] ?: false,
             volume = prefs[KEY_VOLUME] ?: 0.85f,
             soundMode = soundMode,
             presetSoundId = prefs[KEY_PRESET_SOUND_ID] ?: "cyber_chime",
@@ -359,6 +361,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVibrationEnabled(enabled: Boolean) {
         context.dataStore.edit { it[KEY_VIBRATION_ENABLED] = enabled }
+    }
+
+    suspend fun setVoiceAnnounceEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_VOICE_ANNOUNCE] = enabled }
     }
 
     suspend fun setAnimationEnabled(enabled: Boolean) {

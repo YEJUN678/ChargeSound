@@ -122,7 +122,15 @@ class ChargingWidgetProvider : AppWidgetProvider() {
             info.level >= 100 -> R.string.widget_status_full_short
             else -> R.string.widget_status_discharging
         }
-        views.setTextViewText(R.id.widget_status, context.getString(statusRes))
+        // 충전 중이면 완충 예상 시각을 상태 줄에 덧붙입니다.
+        val etaAt = if (isCharging) com.example.service.SessionLive.etaAt(context) else 0L
+        val etaLabel = if (etaAt > 0L) DateFormat.getTimeFormat(context).format(Date(etaAt)) else null
+        val statusText = if (etaLabel != null) {
+            context.getString(statusRes) + " · " + context.getString(R.string.widget_eta_fmt, etaLabel)
+        } else {
+            context.getString(statusRes)
+        }
+        views.setTextViewText(R.id.widget_status, statusText)
         views.setTextColor(
             R.id.widget_status,
             if (isCharging) palette.accent else palette.textSecondary
@@ -134,7 +142,15 @@ class ChargingWidgetProvider : AppWidgetProvider() {
 
         when (sizeMode) {
             WidgetSize.COMPACT -> {
-                views.setTextViewText(R.id.widget_speed, wattsLabel)
+                // 컴팩트는 한 줄뿐이라 ETA 가 있으면 ETA 를, 없으면 전력을 보여줍니다.
+                views.setTextViewText(
+                    R.id.widget_speed,
+                    if (etaLabel != null) {
+                        context.getString(R.string.widget_eta_fmt, etaLabel)
+                    } else {
+                        wattsLabel
+                    }
+                )
                 views.setTextColor(R.id.widget_speed, palette.textSecondary)
             }
 

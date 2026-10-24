@@ -187,6 +187,19 @@ fun OverflowMenu(
                 onOpenStats()
             }
         )
+        // 크래시 기록이 남아 있으면 여기에 나타납니다 (로컬 저장, 서버 전송 없음).
+        val crashContext = LocalContext.current
+        val crashCount = remember { com.example.diagnostics.CrashReporter.count(crashContext) }
+        if (crashCount > 0) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.menu_crash_report, crashCount)) },
+                leadingIcon = { Icon(Icons.Default.Warning, contentDescription = null) },
+                onClick = {
+                    expanded = false
+                    com.example.diagnostics.CrashReporter.share(crashContext)
+                }
+            )
+        }
         DropdownMenuItem(
             text = { Text(stringResource(R.string.menu_about)) },
             leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },

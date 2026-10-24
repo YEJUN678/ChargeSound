@@ -145,6 +145,44 @@ fun ChargeStatsSheet(
             )
         }
 
+        // ── 이번 주(최근 7일) 요약 ───────────────────────────────────────
+        // 세션 단위 통계만 보면 "요즘 어떻게 달라졌나"를 알 수 없어서,
+        // 저장된 기록을 7일 창으로 다시 접습니다. 새로 수집하는 데이터는 없습니다.
+        val weekStart = System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000
+        val week = records.filter { it.endedAt >= weekStart }
+        if (week.isNotEmpty()) {
+            val weekGain = week.sumOf { it.gainedPercent }
+            val bestGain = week.maxOf { it.gainedPercent }
+            Spacer(Modifier.height(20.dp))
+            Text(
+                text = stringResource(R.string.stats_week_title),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.stats_week_sub, week.size),
+                style = MaterialTheme.typography.labelSmall,
+                color = Slate600
+            )
+            Spacer(Modifier.height(10.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                StatTile(
+                    modifier = Modifier.weight(1f),
+                    value = stringResource(R.string.stats_week_total_gain, weekGain),
+                    label = stringResource(R.string.stats_week_total_gain_label),
+                    tint = ElectricGreen
+                )
+                StatTile(
+                    modifier = Modifier.weight(1f),
+                    value = stringResource(R.string.stats_week_best_gain, bestGain),
+                    label = stringResource(R.string.stats_week_best_gain_label),
+                    tint = ElectricAmber
+                )
+            }
+        }
+
         Spacer(Modifier.height(20.dp))
 
         Text(

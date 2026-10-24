@@ -144,6 +144,13 @@ object BatteryAlertManager {
             playAlarmTone(context)
         }
 
+        if (settings.voiceAnnounceEnabled) {
+            com.example.voice.VoiceAnnouncer.announce(
+                context,
+                context.getString(R.string.voice_alarm_target, info.level)
+            )
+        }
+
         postAlarmNotification(context, info, target, settings.alarmSnoozeMinutes)
     }
 

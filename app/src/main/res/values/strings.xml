@@ -512,4 +512,29 @@
 <string name="btn_youtube_audio">Download YouTube audio free</string>
 <string name="youtube_audio_desc">Opens a free YouTube audio extraction site</string>
 
+<!-- v1.7: voice announcements, weekly stats, seasonal sounds, crash report -->
+<string name="voice_announce_title">Voice announcement</string>
+<string name="voice_announce_sub">Speaks when charging starts and when your target level is reached. Muted during quiet hours.</string>
+<string name="voice_charging_started">Charging started</string>
+<string name="voice_alarm_target">Battery is at %1$d percent</string>
+<string name="widget_eta_fmt">full %1$s</string>
+
+<string name="stats_week_title">This week</string>
+<string name="stats_week_sub">%1$d sessions in the last 7 days</string>
+<string name="stats_week_total_gain">+%1$d%%</string>
+<string name="stats_week_total_gain_label">Gained this week</string>
+<string name="stats_week_best_gain">+%1$d%%</string>
+<string name="stats_week_best_gain_label">Best session</string>
+
+<string name="prm_spring_name">Spring Blossom</string>
+<string name="prm_spring_desc">A bright bell arpeggio that blooms upward, like petals opening.</string>
+<string name="prm_summer_name">Summer Waves</string>
+<string name="prm_summer_desc">A soft surf swell over a warm pad. Made for hot afternoons.</string>
+<string name="prm_autumn_name">Autumn Leaves</string>
+<string name="prm_autumn_desc">Warm wooden marimba notes drifting down, one by one.</string>
+<string name="prm_winter_name">Winter Bells</string>
+<string name="prm_winter_desc">Two clear strikes of a bell with a long, cold tail.</string>
+
+<string name="menu_crash_report">Send error report (%1$d)</string>
+
 </resources>

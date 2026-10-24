@@ -515,4 +515,29 @@
 <string name="btn_youtube_audio">Descargar audio de YouTube gratis</string>
 <string name="youtube_audio_desc">Abre el sitio gratuito para extraer audio de YouTube</string>
 
+<!-- v1.7: aviso por voz, estadisticas semanales, sonidos de temporada, informe de errores -->
+<string name="voice_announce_title">Aviso por voz</string>
+<string name="voice_announce_sub">Lo dice cuando empieza la carga y al alcanzar el nivel objetivo. Se silencia en las horas tranquilas.</string>
+<string name="voice_charging_started">Carga iniciada</string>
+<string name="voice_alarm_target">La bateria esta al %1$d por ciento</string>
+<string name="widget_eta_fmt">lleno %1$s</string>
+
+<string name="stats_week_title">Esta semana</string>
+<string name="stats_week_sub">%1$d sesiones en los ultimos 7 dias</string>
+<string name="stats_week_total_gain">+%1$d%%</string>
+<string name="stats_week_total_gain_label">Ganado esta semana</string>
+<string name="stats_week_best_gain">+%1$d%%</string>
+<string name="stats_week_best_gain_label">Mejor sesion</string>
+
+<string name="prm_spring_name">Flor de primavera</string>
+<string name="prm_spring_desc">Un arpegio de campanas que florece hacia arriba, como petalos que se abren.</string>
+<string name="prm_summer_name">Olas de verano</string>
+<string name="prm_summer_desc">Un oleaje suave sobre un pad calido. Para tardes de calor.</string>
+<string name="prm_autumn_name">Hojas de otono</string>
+<string name="prm_autumn_desc">Notas de marimba que caen una a una, con calidez de madera.</string>
+<string name="prm_winter_name">Campanas de invierno</string>
+<string name="prm_winter_desc">Dos toques claros de campana con un eco largo y frio.</string>
+
+<string name="menu_crash_report">Enviar informe de errores (%1$d)</string>
+
 </resources>

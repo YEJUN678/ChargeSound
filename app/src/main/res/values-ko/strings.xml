@@ -506,4 +506,29 @@
 <string name="btn_youtube_audio">유튜브 음원 무료 다운로드</string>
 <string name="youtube_audio_desc">무료 유튜브 음원 추출 사이트로 이동합니다</string>
 
+<!-- v1.7: 음성 안내, 주간 통계, 시즌 사운드, 오류 보고서 -->
+<string name="voice_announce_title">음성 안내</string>
+<string name="voice_announce_sub">충전이 시작될 때와 목표 잔량에 도달했을 때 말로 알려줍니다. 조용한 시간에는 나오지 않습니다.</string>
+<string name="voice_charging_started">충전을 시작합니다</string>
+<string name="voice_alarm_target">배터리가 %1$d퍼센트입니다</string>
+<string name="widget_eta_fmt">%1$s 완충</string>
+
+<string name="stats_week_title">이번 주</string>
+<string name="stats_week_sub">최근 7일 동안 %1$d회 충전</string>
+<string name="stats_week_total_gain">+%1$d%%</string>
+<string name="stats_week_total_gain_label">이번 주 총 상승</string>
+<string name="stats_week_best_gain">+%1$d%%</string>
+<string name="stats_week_best_gain_label">최고 기록</string>
+
+<string name="prm_spring_name">봄꽃</string>
+<string name="prm_spring_desc">꽃잎이 열리듯 위로 피어오르는 맑은 종소리 아르페지오.</string>
+<string name="prm_summer_name">여름 파도</string>
+<string name="prm_summer_desc">따뜻한 패드 위로 밀려오는 부드러운 파도 소리.</string>
+<string name="prm_autumn_name">가을 낙엽</string>
+<string name="prm_autumn_desc">나무 마림바 소리가 한 음씩 떨어지는 가을.</string>
+<string name="prm_winter_name">겨울 종소리</string>
+<string name="prm_winter_desc">길게 여운이 남는 맑은 종소리 두 번.</string>
+
+<string name="menu_crash_report">오류 보고서 보내기 (%1$d)</string>
+
 </resources>
