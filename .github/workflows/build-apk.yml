@@ -121,6 +121,9 @@ jobs:
           STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          # 현재 스토어 게시본(v10)보다 높은 값. 배포 때마다 올려야 합니다.
+          VERSION_CODE: 11
+          VERSION_NAME: 1.7.1
         run: bash ./gradlew :app:assembleRelease :app:bundleRelease --stacktrace
 
       - name: Upload release artifacts
