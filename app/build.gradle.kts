@@ -152,6 +152,8 @@ dependencies {
   // implementation(libs.play.services.ads)
   // implementation(libs.app.lovin.sdk)
   implementation(libs.unity.levelplay.sdk)
+  // Wear OS 동반 앱과의 상태/명령 교환 (Wearable Data Layer)
+  implementation(libs.play.services.wearable)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.logging.interceptor)

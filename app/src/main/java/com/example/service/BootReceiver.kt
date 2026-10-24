@@ -31,6 +31,14 @@ class BootReceiver : BroadcastReceiver() {
         }
         Log.d(TAG, "Boot completed or package replaced: $action")
 
+        // 재부팅/업데이트 직후 위젯은 마지막으로 그려진 값을 그대로 들고 있습니다.
+        // 서비스 시작 여부와 무관하게 여기서 한 번 새로 그립니다.
+        try {
+            com.example.widget.ChargingWidgetProvider.requestUpdate(context)
+        } catch (e: Exception) {
+            Log.w(TAG, "Widget update on boot failed", e)
+        }
+
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {

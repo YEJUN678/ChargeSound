@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ChargeSound</string>
+
+    <string name="wear_status_charging">Charging</string>
+    <string name="wear_status_discharging">On battery</string>
+    <string name="wear_battery_fmt">%1$d%%</string>
+    <string name="wear_temp_fmt">%1$d°C</string>
+
+    <string name="wear_speed_unavailable">Speed unavailable</string>
+    <string name="wear_speed_fmt">%1$s · %2$.1f W</string>
+    <string name="wear_speed_super">Super fast</string>
+    <string name="wear_speed_fast">Fast</string>
+    <string name="wear_speed_normal">Normal</string>
+    <string name="wear_speed_slow">Slow</string>
+
+    <string name="wear_sync_fmt">Synced %1$s</string>
+    <string name="wear_waiting_title">Waiting for phone</string>
+    <string name="wear_waiting_desc">Open ChargeSound on your phone once</string>
+
+    <string name="wear_action_toggle_on">Turn on detection</string>
+    <string name="wear_action_toggle_off">Turn off detection</string>
+    <string name="wear_action_open_phone">Open phone app</string>
+    <string name="wear_action_refresh">Refresh</string>
+</resources>

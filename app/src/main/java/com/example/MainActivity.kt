@@ -60,6 +60,10 @@ class MainActivity : ComponentActivity() {
         viewModel.refreshOverlayPermission()
         // 런처 롱프레스 바로가기를 등록합니다 (앱을 한 번 실행하면 자동 생성).
         com.example.service.ShortcutsHelper.install(this)
+        // 홈 화면 위젯도 현재 배터리 값으로 맞춰둡니다.
+        com.example.widget.ChargingWidgetProvider.requestUpdate(this)
+        // 워치 앱이 마지막 값을 들고 있으면 여기서 최신으로 갱신합니다.
+        com.example.wear.PhoneWearSync.requestPush(this)
     }
 
     override fun onResume() {

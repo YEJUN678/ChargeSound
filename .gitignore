@@ -35,6 +35,7 @@ debug.keystore
 *.aab
 /apk/
 /app/build/
+/wear/build/
 /build/
 
 # Firebase — AI Studio가 주입합니다

@@ -24,7 +24,10 @@
 [CmdletBinding()]
 param(
     [int]$VersionCode = 3,
-    [string]$VersionName = "1.2.0"
+    [string]$VersionName = "1.2.0",
+    # 0 이면 워치 APK 를 만들지 않습니다.
+    [int]$WearVersionCode = 0,
+    [string]$WearVersionName = "1.0.0"
 )
 
 $ErrorActionPreference = "Stop"
@@ -88,6 +91,31 @@ $dist = Join-Path $Root "dist"
 New-Item -ItemType Directory -Force -Path $dist | Out-Null
 $dest = Join-Path $dist "ChargeSound-$VersionName-vc$VersionCode.apk"
 Copy-Item $built $dest -Force
+
+# ── 워치 APK (선택) ─────────────────────────────────────────────
+# 워치 앱은 휴대폰 앱과 같은 패키지명을 쓰지만 별도 APK 입니다.
+# -WearVersionCode 를 넘겼을 때만 빌드합니다.
+if ($WearVersionCode -gt 0) {
+    if ([string]::IsNullOrWhiteSpace($WearVersionName)) { $WearVersionName = "1.0.0" }
+    Write-Host "워치 빌드 중... versionCode=$WearVersionCode versionName=$WearVersionName" -ForegroundColor Cyan
+    Push-Location $Root
+    try {
+        & ".\gradlew.bat" ":wear:assembleRelease" `
+            "-PWEAR_VERSION_CODE=$WearVersionCode" "-PWEAR_VERSION_NAME=$WearVersionName" `
+            "-Dorg.gradle.jvmargs=$gradleJvmArgs" `
+            --no-parallel --max-workers=1 `
+            --console=plain --no-configuration-cache
+        if ($LASTEXITCODE -ne 0) { throw "워치 Gradle 빌드 실패 (exit $LASTEXITCODE)" }
+    } finally {
+        Pop-Location
+    }
+
+    $wearBuilt = Join-Path $Root "wear\build\outputs\apk\release\wear-release.apk"
+    if (-not (Test-Path $wearBuilt)) { throw "워치 APK 가 없습니다: $wearBuilt" }
+    $wearDest = Join-Path $dist "ChargeSound-Wear-$WearVersionName-vc$WearVersionCode.apk"
+    Copy-Item $wearBuilt $wearDest -Force
+    Write-Host ("  워치 APK : {0} ({1:N2} MB)" -f (Split-Path $wearDest -Leaf), ((Get-Item $wearDest).Length / 1MB)) -ForegroundColor Green
+}
 
 $bt = Join-Path $env:LOCALAPPDATA "Android\Sdk\build-tools\36.0.0"
 

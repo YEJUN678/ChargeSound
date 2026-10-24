@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 워치 런처 아이콘: 번개. adaptive icon 안전 영역(66dp) 안에 맞춥니다. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M60,26 L40,60 L53,60 L48,84 L70,50 L56,50 Z" />
+</vector>

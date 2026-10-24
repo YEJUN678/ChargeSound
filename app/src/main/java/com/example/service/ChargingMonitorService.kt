@@ -15,6 +15,8 @@ import androidx.core.app.NotificationCompat
 import com.example.MainActivity
 import com.example.R
 import com.example.data.SettingsRepository
+import com.example.widget.ChargingWidgetProvider
+import com.example.wear.PhoneWearSync
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -29,6 +31,9 @@ class ChargingMonitorService : Service() {
         const val NOTIFICATION_ID = 1001
         private const val ALERT_CHANNEL_ID = "charge_service_alert"
         private const val ALERT_NOTIFICATION_ID = 1003
+
+        /** 위젯을 다시 그리는 최소 간격. 충전 중 1%마다 그리면 과합니다. */
+        private const val WIDGET_MIN_INTERVAL_MS = 30_000L
 
         fun start(context: Context) {
             val intent = Intent(context, ChargingMonitorService::class.java)
@@ -90,6 +95,23 @@ class ChargingMonitorService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var dynamicReceiver: ChargingBroadcastReceiver? = null
     private var batteryReceiver: android.content.BroadcastReceiver? = null
+
+    /**
+     * 위젯 갱신 스로틀.
+     *
+     * ACTION_BATTERY_CHANGED 는 충전 중 1%마다, 그리고 전압/온도 변화마다
+     * 훨씬 자주 발생합니다. 매번 RemoteViews 를 다시 만들면 배터리를 낭비하므로
+     * [WIDGET_MIN_INTERVAL_MS] 보다 자주 갱신하지 않습니다.
+     */
+    private var lastWidgetUpdateMs = 0L
+
+    /** 위젯 인스턴스가 없으면 [ChargingWidgetProvider.requestUpdate] 가 조용히 무시합니다. */
+    private fun maybeUpdateWidget(context: Context) {
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (now - lastWidgetUpdateMs < WIDGET_MIN_INTERVAL_MS) return
+        lastWidgetUpdateMs = now
+        ChargingWidgetProvider.requestUpdate(context)
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -155,8 +177,11 @@ class ChargingMonitorService : Service() {
         val receiver = object : android.content.BroadcastReceiver() {
             override fun onReceive(ctx: Context?, intent: Intent?) {
                 if (intent?.action != Intent.ACTION_BATTERY_CHANGED) return
-                ChargingWidgetProvider.requestUpdate(ctx ?: return)
-                BatteryAlertManager.evaluate(ctx)
+                val appContext = ctx ?: return
+                maybeUpdateWidget(appContext)
+                BatteryAlertManager.evaluate(appContext)
+                // 워치가 연결돼 있으면 상태를 밀어 넣습니다 (60초 스로틀).
+                PhoneWearSync.requestPush(appContext)
             }
         }
         batteryReceiver = receiver

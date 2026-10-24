@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ChargeSound</string>
+
+    <string name="wear_status_charging">충전 중</string>
+    <string name="wear_status_discharging">방전 중</string>
+    <string name="wear_battery_fmt">%1$d%%</string>
+    <string name="wear_temp_fmt">%1$d°C</string>
+
+    <string name="wear_speed_unavailable">속도 측정 불가</string>
+    <string name="wear_speed_fmt">%1$s · %2$.1f W</string>
+    <string name="wear_speed_super">초고속</string>
+    <string name="wear_speed_fast">고속</string>
+    <string name="wear_speed_normal">일반</string>
+    <string name="wear_speed_slow">저속</string>
+
+    <string name="wear_sync_fmt">%1$s 동기화</string>
+    <string name="wear_waiting_title">휴대폰 연결 대기 중</string>
+    <string name="wear_waiting_desc">휴대폰에서 ChargeSound 를 한 번 실행해 주세요</string>
+
+    <string name="wear_action_toggle_on">감지 켜기</string>
+    <string name="wear_action_toggle_off">감지 끄기</string>
+    <string name="wear_action_open_phone">휴대폰 앱 열기</string>
+    <string name="wear_action_refresh">새로 고침</string>
+</resources>

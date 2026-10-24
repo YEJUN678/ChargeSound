@@ -21,6 +21,7 @@ import com.example.data.SettingsRepository
 import com.example.data.SoundMode
 import com.example.sound.SoundManager
 import com.example.ui.ChargingAnimationActivity
+import com.example.widget.ChargingWidgetProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -40,6 +41,17 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
         val isPowerDisconnected = action == Intent.ACTION_POWER_DISCONNECTED
 
         if (!isPowerConnected && !isPowerDisconnected) return
+
+        // 위젯은 서비스 활성 여부와 무관하게 항상 즉시 갱신합니다.
+        // (충전기를 꽂는 순간이 사용자가 위젯을 가장 먼저 보는 시점입니다)
+        try {
+            ChargingWidgetProvider.requestUpdate(context)
+        } catch (e: Exception) {
+            Log.w(TAG, "Widget update failed", e)
+        }
+
+        // 워치는 충전기 연결/해제를 즉시 알아야 합니다.
+        com.example.wear.PhoneWearSync.requestPush(context, force = true)
 
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {

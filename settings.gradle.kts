@@ -25,3 +25,4 @@ dependencyResolutionManagement {
 rootProject.name = "ChargeSound"
 
 include(":app")
+include(":wear")

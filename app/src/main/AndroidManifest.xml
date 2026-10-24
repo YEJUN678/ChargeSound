@@ -152,6 +152,23 @@
             </intent-filter>
         </receiver>
 
+        <!--
+          워치 명령 수신 (Wearable Data Layer).
+          휴대폰 앱과 워치 앱의 applicationId 가 같아야 이 경로로 메시지가 옵니다.
+        -->
+        <service
+            android:name=".wear.WearCommandListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/chargesound" />
+            </intent-filter>
+        </service>
+
 
     <!-- 충전 알림 액션 (스누즈 · 해제). 알림 버튼이 이 리시버를 호출합니다. -->
     <receiver
