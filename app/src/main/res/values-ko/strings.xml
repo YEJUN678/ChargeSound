@@ -490,4 +490,7 @@
 
     <string name="widget_hint">탭해서 애니메이션 열기</string>
 
+<string name="btn_youtube_audio">유튜브 음원 무료 다운로드</string>
+<string name="youtube_audio_desc">무료 유튜브 음원 추출 사이트로 이동합니다</string>
+
 </resources>

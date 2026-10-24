@@ -499,4 +499,7 @@
 
     <string name="widget_hint">Toca para abrir animación</string>
 
+<string name="btn_youtube_audio">Descargar audio de YouTube gratis</string>
+<string name="youtube_audio_desc">Abre el sitio gratuito para extraer audio de YouTube</string>
+
 </resources>

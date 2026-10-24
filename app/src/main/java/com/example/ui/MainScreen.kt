@@ -860,6 +860,8 @@ fun SoundSettingsTab(
     overlayGranted: Boolean,
     onRequestOverlayPermission: () -> Unit
 ) {
+    val context = LocalContext.current
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -1172,6 +1174,51 @@ fun SoundSettingsTab(
                             fontWeight = FontWeight.SemiBold
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // 유튜브 음원 무료 다운로드 — 외부 사이트로 이동
+                    OutlinedButton(
+                        onClick = {
+                            val intent = android.content.Intent(
+                                android.content.Intent.ACTION_VIEW,
+                                Uri.parse("https://ybaudio.hiroobabo0.workers.dev")
+                            )
+                            try {
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                // 브라우저가 없으면 무시합니다
+                            }
+                        },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Slate800,
+                            contentColor = ElectricCyan
+                        ),
+                        border = BorderStroke(1.dp, ElectricCyan.copy(alpha = 0.5f)),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("youtube_audio_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            tint = ElectricCyan,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.btn_youtube_audio),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    Text(
+                        text = stringResource(R.string.youtube_audio_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Slate400,
+                        modifier = Modifier.padding(top = 6.dp, start = 4.dp)
+                    )
                 }
             }
         }
