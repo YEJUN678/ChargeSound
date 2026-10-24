@@ -31,6 +31,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
 
+        <!--
+          AdMob 앱 ID. 값은 app/build.gradle.kts 의 manifestPlaceholders["admobAppId"] 에서
+          주입됩니다. 광고 단위 ID(AdUnits.kt)와 같은 AdMob 앱의 것이어야 하며,
+          이 meta-data 가 없으면 SDK 초기화 시 앱이 죽습니다.
+        -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+
         <!-- 스플래시/온보딩 진입점 — LAUNCHER 는 여기만 둡니다. -->
         <activity
             android:name=".ui.LaunchActivity"

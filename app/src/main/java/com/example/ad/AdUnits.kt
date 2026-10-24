@@ -1,41 +1,83 @@
 package com.example.ad
 
 /**
- * 광고 단위 설정 (ironSource / Unity LevelPlay).
+ * 광고 단위 설정 (Google AdMob / Google Mobile Ads SDK).
  *
- * ## 왜 AdMob을 떠났는가
- * AdMob은 **자사가 지원하는 스토어에 앱이 게시되어 있어야** 광고를 게재합니다.
- * 지원 스토어는 Google Play / Amazon Appstore / OPPO App Market / Samsung Galaxy Store /
- * VIVO App Store / Xiaomi GetApps 뿐이며, OneStore는 포함되지 않습니다.
- * OneStore에 게시된 앱은 "게재 제한(limited ad serving)" 상태에 머물러 실 단위가 채워지지 않습니다.
+ * ## 현재 상태
+ * `USE_TEST_ADS = true` 입니다. Google 공식 테스트 광고 단위를 쓰므로 **수익이 없고**,
+ * 광고가 실제로 뜨는지만 확인할 수 있습니다. 실 광고로 바꾸려면 아래 두 곳을 함께
+ * 바꿔야 합니다.
  *
- * AppLovin도 계정 가입 단계에서 Application store URL을 Play / App Store로만 검증해
- * OneStore URL을 거부했습니다. LevelPlay는 스토어 URL을 요구하지 않아 그대로 진행 가능합니다.
+ * 1. 이 파일의 `USE_TEST_ADS` → false
+ * 2. `app/build.gradle.kts` 의 `admobAppId` → 실제 앱 ID
+ *    (AdMob 콘솔 → 앱 선택 → 앱 설정에 `ca-app-pub-XXXX~YYYY` 형태로 있습니다)
  *
- * ## 채워야 할 값
- * 1. APP_KEY — LevelPlay 대시보드 Account > My Account > Keys
- * 2. 아래 placement ID 3개 — 대시보드 광고 단위 목록에서 복사
+ * 앱 ID 와 광고 단위 ID 는 같은 AdMob 앱의 것이어야 합니다. 서로 다르면
+ * 광고 요청이 실패하고 앱에는 광고가 표시되지 않습니다(앱은 정상 동작).
  *
- * ⚠️ 빈 상태로 빌드해도 앱은 100% 정상 동작합니다 (광고만 표시되지 않음).
+ * ## 광고 정책
+ * - 광고를 거부하거나 로드에 실패해도 앱의 핵심 기능은 그대로 동작합니다.
+ * - 전면(Interstitial) · 앱오픈 광고는 사용하지 않습니다 ([AdPolicy] 참고).
+ * - 충전 애니메이션/사운드 재생 중에는 어떤 광고도 띄우지 않습니다.
  */
 object AdUnits {
 
-    /** LevelPlay App Key (SDK Key) */
-    const val APP_KEY: String = ""
+    /**
+     * 테스트 광고 사용 여부.
+     * 배포용 빌드에서는 반드시 false 로 바꾸세요. true 인 채로 배포하면
+     * 수익이 발생하지 않습니다.
+     */
+    const val USE_TEST_ADS: Boolean = true
+
+    // ─────────────────── 실제 광고 단위 (AdMob 콘솔) ───────────────────
+
+    /** 앱 ID — 물결표(~) 형태입니다. 광고 단위 ID 와 다릅니다. */
+    const val PROD_APP_ID: String = "ca-app-pub-4709628417690363~PUT_APP_ID_HERE"
 
     /** 배너 (앱 하단 고정) */
-    const val BANNER_PLACEMENT: String = "9mcw3kw9sziwg1jz"
+    const val PROD_BANNER_UNIT: String = "ca-app-pub-4709628417690363/2642367320"
 
-    /** 스폰서 카드 — 네이티브 단위를.rectangle 배너로 사용 (아래 주석 참고) */
-    const val NATIVE_PLACEMENT: String = "ucwxlw42iknaw9ra"
+    /** 네이티브 (스폰서 카드) */
+    const val PROD_NATIVE_UNIT: String = "ca-app-pub-4709628417690363/3616451924"
 
-    /** 보상형 — 프리미엄 잠금 해제 / 광고 없는 시간 / 크레딧 지급 */
-    const val REWARDED_PLACEMENT: String = "25usihf6uxpszb0u"
+    /** 보상형 (프리미엄 잠금 해제 / 광고 없는 시간) */
+    const val PROD_REWARDED_UNIT: String = "ca-app-pub-4709628417690363/7208212575"
 
+    /**
+     * 전면 광고 단위 — **사용하지 않습니다.**
+     * 충전 감지 유틸리티는 시작/종료 지점이 모호해 전면 광고를 넣으면
+     * 스토어 심사와 사용자 경험 양쪽에서 문제가 됩니다. ([AdPolicy] 참고)
+     */
+    const val PROD_INTERSTITIAL_UNIT: String = "ca-app-pub-4709628417690363/4929533596"
+
+    // ─────────────────── Google 공식 테스트 단위 ───────────────────
+
+    private const val TEST_APP_ID: String = "ca-app-pub-3940256099942544~3347511713"
+    private const val TEST_BANNER_UNIT: String = "ca-app-pub-3940256099942544/6300978111"
+    private const val TEST_NATIVE_UNIT: String = "ca-app-pub-3940256099942544/2247696110"
+    private const val TEST_REWARDED_UNIT: String = "ca-app-pub-3940256099942544/5224354917"
+
+    val appId: String get() = if (USE_TEST_ADS) TEST_APP_ID else PROD_APP_ID
+    val bannerUnit: String get() = if (USE_TEST_ADS) TEST_BANNER_UNIT else PROD_BANNER_UNIT
+    val nativeUnit: String get() = if (USE_TEST_ADS) TEST_NATIVE_UNIT else PROD_NATIVE_UNIT
+    val rewardedUnit: String get() = if (USE_TEST_ADS) TEST_REWARDED_UNIT else PROD_REWARDED_UNIT
+
+    /**
+     * 광고를 시도해도 되는 상태인지.
+     *
+     * 실제 단위로 전환했는데 앱 ID 를 아직 채우지 않은 경우(placeholder 가 남아 있으면)
+     * false 가 되어 SDK 초기화를 건너뜁니다. 잘못된 ID 로 초기화하면 앱이 죽을 수
+     * 있으므로 이 가드가 필요합니다.
+     */
     val isConfigured: Boolean
-        get() = APP_KEY.isNotBlank() &&
-            BANNER_PLACEMENT.isNotBlank() &&
-            REWARDED_PLACEMENT.isNotBlank()
+        get() = if (USE_TEST_ADS) {
+            true
+        } else {
+            appId.startsWith("ca-app-pub-") &&
+                !appId.contains("PUT_APP_ID_HERE") &&
+                bannerUnit.isNotBlank() &&
+                rewardedUnit.isNotBlank()
+        }
 }
 
 /**
@@ -54,9 +96,6 @@ object AdPolicy {
      * 충전 감지 유틸리티는 명확한 시작/종료 지점이 없어 전면 광고를 쓰기 어렵고,
      * 강제 노출 시 스토어 심사에서 걸릴 수 있습니다.
      * 배너 · 스폰서 카드 · 보상형만 사용합니다.
-     *
-     * 전면 형식을 다시 도입하려면 아래 상수를 되살리고 AdManager 에
-     * 노출 로직을 추가해야 합니다. 현재는 정책적으로 차단되어 있습니다.
      */
 
     /** 보상형 광고: 연속 실패 시 노출을 중단하는 최대 시도 횟수 */

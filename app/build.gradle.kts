@@ -49,6 +49,13 @@ android {
     versionCode = appVersionCode
     versionName = appVersionName
 
+    // AdMob 앱 ID. 광고 단위 ID 와 같은 앱의 것이어야 합니다.
+    // 실 광고로 바꿀 때는 이 값과 app/src/main/java/com/example/ad/AdUnits.kt 의
+    // USE_TEST_ADS 를 **함께** 바꿔야 합니다.
+    //   테스트: ca-app-pub-3940256099942544~3347511713
+    //   실제  : AdMob 콘솔 → 앱 → 앱 설정에 표시되는 ca-app-pub-4709628417690363~XXXXXXXXXX
+    manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
+
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
@@ -143,15 +150,12 @@ dependencies {
   // implementation(libs.googleid)
   implementation(libs.firebase.appcheck.recaptcha)
   implementation(libs.firebase.appcheck.debug)
-  // Google Mobile Ads SDK (배너 / 네이티브 / 보상형 / 앱 오픈)
-  // Google Mobile Ads(AdMob) and AppLovin were both removed.
-  // AdMob only serves to apps published in a store it supports (Play / Amazon / OPPO /
-  // Samsung / VIVO / Xiaomi), and AppLovin rejects non-Play/App-Store URLs at signup.
-  // This app is published on OneStore only, so ironSource / Unity LevelPlay is used,
-  // which does not gate on a store listing.
-  // implementation(libs.play.services.ads)
-  // implementation(libs.app.lovin.sdk)
-  implementation(libs.unity.levelplay.sdk)
+  // Google Mobile Ads SDK (배너 / 네이티브 / 보상형)
+  //
+  // ironSource(Unity LevelPlay) 에서 AdMob 으로 전환했습니다.
+  // 광고 단위 ID 는 app/src/main/java/com/example/ad/AdUnits.kt 에 있습니다.
+  // 전면·앱오픈 광고는 정책상 사용하지 않습니다.
+  implementation(libs.play.services.ads)
   // Wear OS 동반 앱과의 상태/명령 교환 (Wearable Data Layer)
   implementation(libs.play.services.wearable)
   implementation(libs.kotlinx.coroutines.android)

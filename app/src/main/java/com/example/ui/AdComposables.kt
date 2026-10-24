@@ -34,7 +34,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import com.example.ad.AdManager
-import com.example.ad.AdUnits
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
@@ -76,10 +75,15 @@ fun AdBannerSlot(
     if (isAdFreeActive) return
 
     val activity = LocalContext.current.findActivity() ?: return
-    // 미설정(앱 키/단위 ID 없음)이면 광고 영역 자체를 그리지 않습니다.
+    // 미설정(앱 ID/단위 ID 없음)이면 광고 영역 자체를 그리지 않습니다.
     val adView = remember(activity) {
-        AdManager.createBannerView(activity, AdUnits.BANNER_PLACEMENT)
+        AdManager.createBanner(activity)
     } ?: return
+
+    // 화면에서 사라질 때 AdView 를 해제하지 않으면 액티비티가 새어 나갑니다.
+    DisposableEffect(adView) {
+        onDispose { AdManager.destroyBanner(adView) }
+    }
 
     AndroidView(
         factory = { adView },
@@ -101,24 +105,22 @@ fun AdNativeCard(isAdFreeActive: Boolean) {
     if (isAdFreeActive) return
 
     val activity = LocalContext.current.findActivity() ?: return
-    val adView = remember(activity) { AdManager.createSponsoredCardView(activity) } ?: return
+    val container = remember(activity) { AdManager.createSponsoredCard(activity) } ?: return
 
-    DisposableEffect(adView) {
-        AdManager.loadBanner(adView)
-        onDispose { AdManager.destroyBanner(adView) }
+    DisposableEffect(container) {
+        onDispose { AdManager.destroySponsoredCard() }
     }
 
     AndroidView(
-        factory = { adView },
+        factory = { container },
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
             .background(Slate900, RoundedCornerShape(14.dp))
             .padding(horizontal = 12.dp, vertical = 10.dp)
     )
 }
 
-/** Compose Context에서 Activity를 찾습니다. ironSource 배너는 Activity가 필요합니다. */
+/** Compose Context에서 Activity를 찾습니다. 네이티브 광고 클릭 처리를 위해 필요합니다. */
 internal fun android.content.Context.findActivity(): Activity? {
     var ctx = this
     while (ctx is ContextWrapper) {
