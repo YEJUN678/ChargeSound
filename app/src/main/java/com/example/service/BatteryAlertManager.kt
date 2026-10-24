@@ -62,6 +62,15 @@ object BatteryAlertManager {
     private var lastTempNotifiedAt = 0L
     private const val HEALTH_NOTIFY_COOLDOWN_MS = 6L * 60L * 60L * 1000L
 
+    /** 잔량 톤을 울릴 마일스톤 */
+    private val LEVEL_TONE_MILESTONES = intArrayOf(50, 80, 100)
+
+    /** 이번 충전에서 이미 울린 마일스톤 (재충전하면 초기화) */
+    private val firedLevelTones = mutableSetOf<Int>()
+
+    /** 직전에 본 잔량 — 새로 넘은 마일스톤만 울리게 하는 기준 */
+    private var lastLevelForTones = -1
+
     /**
      * 배터리 상태가 바뀔 때마다 호출됩니다.
      * 충전 중일 때만 알람/경고를 평가합니다.
@@ -75,6 +84,10 @@ object BatteryAlertManager {
                 if (!settings.isServiceEnabled) return@launch
 
                 val info = BatteryInfoHelper.getBatteryInfo(appContext)
+
+                // 잔량 톤은 알람 설정과 무관하게 항상 추적합니다
+                // (껃다가 켰을 때 지나간 구간을 몰아서 울리지 않도록).
+                evaluateLevelTones(appContext, settings, info)
 
                 if (info.isCharging) {
                     if (settings.alarmEnabled) evaluateAlarm(appContext, settings, info, repository)
@@ -110,6 +123,49 @@ object BatteryAlertManager {
      * 한 번에 하나만 울립니다 — 50·80·100 을 한꺼번에 통과했다면
      * 세 번 연속 울리는 대신 가장 높은 임계값 하나만 알립니다.
      */
+    /**
+     * 잔량이 50/80/100% 를 지날 때 짧은 톤을 재생합니다.
+     *
+     * 꽂은 시점의 잔량(예: 82%)을 그대로 "통과"로 보면 꽂자마자 울리므로,
+     * **직전에 관측한 잔량보다 높아졌을 때**만 울립니다.
+     */
+    private fun evaluateLevelTones(
+        context: Context,
+        settings: ChargeSettings,
+        info: BatteryInfo
+    ) {
+        if (!info.isCharging) {
+            lastLevelForTones = -1
+            firedLevelTones.clear()
+            return
+        }
+
+        val previous = lastLevelForTones
+        lastLevelForTones = info.level
+        if (!settings.levelTonesEnabled) return
+        // 이번 세션의 첫 관측 — 기준점만 잡고 넘어갑니다.
+        if (previous < 0) return
+
+        val crossed = LEVEL_TONE_MILESTONES.filter {
+            it > previous && it <= info.level && it !in firedLevelTones
+        }
+        if (crossed.isEmpty()) return
+        firedLevelTones.addAll(crossed)
+
+        val minuteOfDay = java.util.Calendar.getInstance().let {
+            it.get(java.util.Calendar.HOUR_OF_DAY) * 60 + it.get(java.util.Calendar.MINUTE)
+        }
+        if (settings.isQuietHourNow(minuteOfDay)) return
+
+        val chime = com.example.sound.SoundManager.ensureLevelChime(context) ?: return
+        com.example.sound.SoundManager.playSound(
+            context = context,
+            filePath = chime.absolutePath,
+            volume = settings.volume * 0.8f,
+            durationSeconds = 2
+        )
+    }
+
     private suspend fun evaluateAlarm(
         context: Context,
         settings: ChargeSettings,
@@ -137,21 +193,52 @@ object BatteryAlertManager {
     ) {
         Log.d(TAG, "Firing charge alarm at ${info.level}% (target $target)")
 
-        // 사용자가 진동을 켜둔 상태를 따릅니다.
-        if (settings.vibrationEnabled) vibrate(context, longArrayOf(0, 400, 200, 400, 200, 800))
+        // 루틴에서 켠 동작만 실행합니다. 앱 전체 진동 설정도 함께 존중합니다.
+        if (settings.completionRoutineVibration && settings.vibrationEnabled) {
+            vibrate(context, longArrayOf(0, 400, 200, 400, 200, 800))
+        }
 
-        if (settings.alarmWithSound) {
+        if (settings.completionRoutineSound) {
             playAlarmTone(context)
         }
 
-        if (settings.voiceAnnounceEnabled) {
+        if (settings.completionRoutineTts && settings.voiceAnnounceEnabled) {
             com.example.voice.VoiceAnnouncer.announce(
                 context,
-                context.getString(R.string.voice_alarm_target, info.level)
+                com.example.voice.VoiceTemplate.expand(
+                    settings.voiceTargetTemplate,
+                    info.level,
+                    etaMillis = null
+                )
             )
         }
 
-        postAlarmNotification(context, info, target, settings.alarmSnoozeMinutes)
+        if (settings.completionRoutineNotification) {
+            postAlarmNotification(context, info, target, settings.alarmSnoozeMinutes)
+        }
+
+        if (settings.completionRoutineAnimation && settings.animationEnabled) {
+            launchCompletionAnimation(context, settings, info)
+        }
+    }
+
+    /** 백그라운드 시작 제한에 막히면 무시합니다. 알림 루틴은 별도로 계속 보장됩니다. */
+    private fun launchCompletionAnimation(context: Context, settings: ChargeSettings, info: BatteryInfo) {
+        try {
+            context.startActivity(
+                Intent(context, com.example.ui.ChargingAnimationActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    putExtra(com.example.ui.ChargingAnimationActivity.EXTRA_BATTERY_LEVEL, info.level)
+                    putExtra(com.example.ui.ChargingAnimationActivity.EXTRA_PLUG_NAME, context.getString(info.plugType.displayNameRes))
+                    putExtra(com.example.ui.ChargingAnimationActivity.EXTRA_ANIM_MODE, settings.animationMode.name)
+                    putExtra(com.example.ui.ChargingAnimationActivity.EXTRA_VIDEO_PATH, settings.customVideoPath)
+                    putExtra(com.example.ui.ChargingAnimationActivity.EXTRA_DURATION_SEC, 5)
+                    putExtra(com.example.ui.ChargingAnimationActivity.EXTRA_LOOP, false)
+                }
+            )
+        } catch (e: Exception) {
+            Log.i(TAG, "Completion animation could not start", e)
+        }
     }
 
     private fun postAlarmNotification(

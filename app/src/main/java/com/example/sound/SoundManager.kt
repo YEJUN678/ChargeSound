@@ -29,11 +29,11 @@ object SoundManager {
     private val scope = CoroutineScope(Dispatchers.Main + Job())
 
     val PRESETS = listOf(
-        SoundPreset("cyber_chime", R.string.preset_cyber_chime_name, R.string.preset_cyber_chime_desc, "bolt"),
-        SoundPreset("lightning_spark", R.string.preset_lightning_spark_name, R.string.preset_lightning_spark_desc, "flash_on"),
-        SoundPreset("super_charge", R.string.preset_super_charge_name, R.string.preset_super_charge_desc, "upgrade"),
-        SoundPreset("gentle_ding", R.string.preset_gentle_ding_name, R.string.preset_gentle_ding_desc, "notifications"),
-        SoundPreset("turbo_surge", R.string.preset_turbo_surge_name, R.string.preset_turbo_surge_desc, "speed")
+        SoundPreset("cyber_chime", R.string.preset_cyber_chime_name, R.string.preset_cyber_chime_desc, "bolt", 2_800, R.string.sound_mood_futuristic, listOf(.22f, .72f, .38f, .92f, .48f, .68f, .34f, .82f)),
+        SoundPreset("lightning_spark", R.string.preset_lightning_spark_name, R.string.preset_lightning_spark_desc, "flash_on", 900, R.string.sound_mood_crisp, listOf(.18f, .86f, .36f, .68f, .25f, .55f, .22f, .42f)),
+        SoundPreset("super_charge", R.string.preset_super_charge_name, R.string.preset_super_charge_desc, "upgrade", 3_600, R.string.sound_mood_energetic, listOf(.25f, .38f, .64f, .86f, .55f, .94f, .66f, .82f)),
+        SoundPreset("gentle_ding", R.string.preset_gentle_ding_name, R.string.preset_gentle_ding_desc, "notifications", 3_000, R.string.sound_mood_calm, listOf(.2f, .52f, .76f, .46f, .33f, .64f, .84f, .4f)),
+        SoundPreset("turbo_surge", R.string.preset_turbo_surge_name, R.string.preset_turbo_surge_desc, "speed", 3_200, R.string.sound_mood_powerful, listOf(.32f, .6f, .9f, .5f, .96f, .7f, .88f, .58f))
     )
 
     /**
@@ -63,6 +63,44 @@ object SoundManager {
             Log.e(TAG, "Failed to create premium sound: $presetId", e)
             null
         }
+    }
+
+    /**
+     * 잔량 마일스톤(50/80/100%)에서 재생할 짧은 톤을 준비합니다.
+     *
+     * 프리셋 카탈로그에는 넣지 않습니다 — 사용자가 고르는 소리가 아니라
+     * 알림 전용 효과음이라서, 목록에 노출되면 오히려 혼란스럽습니다.
+     */
+    fun ensureLevelChime(context: Context): File? {
+        val targetFile = File(File(context.filesDir, "presets"), "level_chime.wav")
+        if (targetFile.exists() && targetFile.length() > 0L) return targetFile
+        return try {
+            targetFile.parentFile?.mkdirs()
+            writeWavFile(targetFile, generatePresetSamples("level_chime"), sampleRate = 44100)
+            targetFile
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to create level chime", e)
+            null
+        }
+    }
+
+    /**
+     * 셔플 모드에서 재생할 프리셋을 고릅니다.
+     *
+     * 기본 프리셋 + **해금한** 프리미엄 프리셋만 후보입니다. 잠긴 프리미엄을
+     * 무작위로 들려주면 해금 유인이 사라지므로 제외합니다.
+     * 직전에 쓴 소리는 피해서 "또 이 소리" 느낌을 줄입니다.
+     */
+    fun pickShufflePresetId(
+        settings: com.example.data.ChargeSettings,
+        avoidId: String?
+    ): String {
+        val unlocked = PREMIUM_PRESETS
+            .filter { settings.isUnlocked(it.id) }
+            .map { it.id }
+        val pool = (PRESETS.map { it.id } + unlocked).filter { it != avoidId }
+        if (pool.isEmpty()) return "gentle_ding"
+        return pool.random()
     }
 
     fun initializePresets(context: Context) {
@@ -273,6 +311,33 @@ object SoundManager {
         when (presetId) {
             // ── 프리미엄 사운드 (보상형 광고로 해제) ──
             // 모두 실시간 PCM 합성이라 배포/ 저작권 문제가 없습니다.
+            // ── 잔량 마일스톤 알림음 (카탈로그 비노출) ─────────────────────
+            "level_chime" -> {
+                // C6 → G6 로 올라가는 0.9초 톤. 짧고 부드럽게.
+                durationSec = 0.9
+                val total = (durationSec * sampleRate).toInt()
+                val out = ShortArray(total)
+                val freqs = doubleArrayOf(1046.50, 1567.98)
+                val noteSamples = (0.18 * sampleRate).toInt()
+                for (i in 0 until total) {
+                    var v = 0.0
+                    for (n in freqs.indices) {
+                        val start = n * noteSamples
+                        if (i < start) continue
+                        val dt = (i - start).toDouble() / sampleRate
+                        val env = kotlin.math.exp(-dt * 6.0) *
+                            (1.0 - kotlin.math.exp(-dt * 220.0))
+                        v += env * (
+                            sin(2.0 * PI * freqs[n] * dt) +
+                                0.30 * sin(2.0 * PI * freqs[n] * 2.0 * dt)
+                            )
+                    }
+                    out[i] = (v * 15000)
+                        .toInt().coerceIn(-32768, 32767).toShort()
+                }
+                return out
+            }
+
             // ── 시즌 사운드 팩 (계절 이벤트용, 모두 실시간 합성) ──────────────
             "prm_spring" -> {
                 // 벚꽃: 밝은 벨 아르페지오 (E5 → G#5 → B5 → E6)

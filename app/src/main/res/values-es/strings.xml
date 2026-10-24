@@ -518,6 +518,12 @@
 <!-- v1.7: aviso por voz, estadisticas semanales, sonidos de temporada, informe de errores -->
 <string name="voice_announce_title">Aviso por voz</string>
 <string name="voice_announce_sub">Lo dice cuando empieza la carga y al alcanzar el nivel objetivo. Se silencia en las horas tranquilas.</string>
+<string name="level_tone_title">Tono de nivel</string>
+<string name="level_tone_sub">Un tono corto al 50, 80 y 100%. Silenciado en horas tranquilas.</string>
+<string name="shuffle_title">Sonidos aleatorios</string>
+<string name="shuffle_sub">Suena uno distinto cada vez que conectas. El sonido por conector tiene prioridad.</string>
+<string name="widget_sound_on_cd">Sonido activado. Toca para silenciar.</string>
+<string name="widget_sound_off_cd">Sonido desactivado. Toca para activar.</string>
 <string name="voice_charging_started">Carga iniciada</string>
 <string name="voice_alarm_target">La bateria esta al %1$d por ciento</string>
 <string name="widget_eta_fmt">lleno %1$s</string>

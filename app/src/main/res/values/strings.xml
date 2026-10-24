@@ -55,6 +55,12 @@
     <!-- ═══════════════ vibration ═══════════════ -->
     <string name="vibration_title">Vibration on plug-in</string>
     <string name="vibration_sub">Adds haptic feedback alongside the sound</string>
+    <string name="sound_mood_futuristic">Futuristic</string>
+    <string name="sound_mood_crisp">Crisp</string>
+    <string name="sound_mood_energetic">Energetic</string>
+    <string name="sound_mood_calm">Calm</string>
+    <string name="sound_mood_powerful">Powerful</string>
+    <string name="sound_duration_seconds">%1$.1f s</string>
 
     <!-- ═══════════════ animation settings ═══════════════ -->
     <string name="anim_enable_title">Charging animation</string>
@@ -115,10 +121,10 @@
 
     <!-- ═══════════════ ad-free period ═══════════════ -->
     <string name="adfree_dialog_title">Go ad-free</string>
-    <string name="adfree_dialog_sub">Watch one ad to hide the banner for your chosen time.</string>
+    <string name="adfree_dialog_sub">Each duration shows the number of rewarded ads needed. Your progress is saved until the reward is complete.</string>
     <string name="adfree_card_title">Go ad-free</string>
     <string name="adfree_card_active_title">Ad-free time is running</string>
-    <string name="adfree_card_desc">Watch one ad to hide the banner and the sponsored card for a while.</string>
+    <string name="adfree_card_desc">Earn an ad-free period by completing the rewarded ads shown for your selected duration.</string>
     <string name="adfree_card_active_desc">Ads come back when this timer runs out.</string>
     <string name="adfree_btn_hide">Watch ad to hide ads</string>
     <string name="adfree_btn_choose">Pick a duration</string>
@@ -126,6 +132,9 @@
     <string name="duration_minutes">%1$d min</string>
     <string name="duration_hours">%1$d h</string>
     <string name="duration_days">%1$d d</string>
+    <string name="adfree_ads_required">%1$d ads required</string>
+    <string name="adfree_progress">%1$d / %2$d watched</string>
+    <string name="msg_adfree_rewards_remaining">Watch %1$d more rewarded ad(s) to start your ad-free time.</string>
 
     <!-- ═══════════════ overflow menu (⋯) ═══════════════ -->
     <string name="menu_more">More options</string>
@@ -335,6 +344,11 @@
     <string name="accent_ember">Ember</string>
     <string name="accent_sub">Pick the colour used across the app</string>
     <string name="accent_lime">Lime</string>
+    <string name="accent_custom_title">Custom colour</string>
+    <string name="accent_custom_sub">Fine-tune the app accent with RGB sliders</string>
+    <string name="accent_red">R</string>
+    <string name="accent_green">G</string>
+    <string name="accent_blue">B</string>
     <string name="session_elapsed_short">for %1$s</string>
 
     <!-- ═══════════════ 다중 알람 · 충전 중단 ═══════════════ -->
@@ -515,6 +529,28 @@
 <!-- v1.7: voice announcements, weekly stats, seasonal sounds, crash report -->
 <string name="voice_announce_title">Voice announcement</string>
 <string name="voice_announce_sub">Speaks when charging starts and when your target level is reached. Muted during quiet hours.</string>
+    <string name="voice_template_hint">Tokens: (%) battery level · (t) estimated time to target · (d) today’s date</string>
+    <string name="voice_template_start">When charging starts</string>
+    <string name="voice_template_target">When target level is reached</string>
+    <string name="voice_template_save">Save announcement</string>
+    <string name="completion_routine_title">Completion routine</string>
+    <string name="completion_routine_sub">Choose what happens whenever a selected charge target is reached.</string>
+    <string name="completion_routine_sound">Completion sound</string>
+    <string name="completion_routine_sound_sub">Play the selected completion tone</string>
+    <string name="completion_routine_tts">Voice announcement</string>
+    <string name="completion_routine_tts_sub">Speak your target-reached template</string>
+    <string name="completion_routine_vibration">Vibration</string>
+    <string name="completion_routine_vibration_sub">Use a short haptic pattern</string>
+    <string name="completion_routine_animation">Completion animation</string>
+    <string name="completion_routine_animation_sub">Show the selected charging animation when Android allows it</string>
+    <string name="completion_routine_notification">Home notification</string>
+    <string name="completion_routine_notification_sub">Show a target-reached notification with snooze controls</string>
+<string name="level_tone_title">Level chime</string>
+<string name="level_tone_sub">A short tone at 50, 80 and 100%. Muted during quiet hours.</string>
+<string name="shuffle_title">Shuffle sounds</string>
+<string name="shuffle_sub">Plays a different sound each time you plug in. Plug-specific sounds still take priority.</string>
+<string name="widget_sound_on_cd">Sound on. Tap to mute.</string>
+<string name="widget_sound_off_cd">Sound off. Tap to unmute.</string>
 <string name="voice_charging_started">Charging started</string>
 <string name="voice_alarm_target">Battery is at %1$d percent</string>
 <string name="widget_eta_fmt">full %1$s</string>

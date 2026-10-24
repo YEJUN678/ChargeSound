@@ -50,6 +50,12 @@
     <!-- ═══════════════ 진동 ═══════════════ -->
     <string name="vibration_title">충전 연결 시 햅틱 진동</string>
     <string name="vibration_sub">사운드와 함께 진동 피드백을 전달합니다</string>
+    <string name="sound_mood_futuristic">미래적인</string>
+    <string name="sound_mood_crisp">또렷한</string>
+    <string name="sound_mood_energetic">에너지 넘치는</string>
+    <string name="sound_mood_calm">차분한</string>
+    <string name="sound_mood_powerful">강렬한</string>
+    <string name="sound_duration_seconds">%1$.1f초</string>
 
     <!-- ═══════════════ 애니메이션 설정 ═══════════════ -->
     <string name="anim_enable_title">충전 애니메이션 화면 표시</string>
@@ -110,10 +116,10 @@
 
     <!-- ═══════════════ 광고 없는 시간 ═══════════════ -->
     <string name="adfree_dialog_title">광고 없이 사용하기</string>
-    <string name="adfree_dialog_sub">광고 1회 시청으로 선택한 시간 동안 배너가 숨겨집니다.</string>
+    <string name="adfree_dialog_sub">시간별 필요 광고 횟수를 확인하세요. 광고를 끝까지 본 횟수는 완료할 때까지 저장됩니다.</string>
     <string name="adfree_card_title">광고 없이 사용하기</string>
     <string name="adfree_card_active_title">광고 없는 시간 실행 중</string>
-    <string name="adfree_card_desc">광고 1회 시청으로 원하는 시간 동안 배너와 추천 영역을 숨길 수 있습니다.</string>
+    <string name="adfree_card_desc">선택한 시간에 표시된 횟수만큼 보상형 광고를 완료하면 배너와 추천 영역이 숨겨집니다.</string>
     <string name="adfree_card_active_desc">이 시간이 끝나면 광고가 다시 표시됩니다.</string>
     <string name="adfree_btn_hide">광고 보고 잠시 숨기기</string>
     <string name="adfree_btn_choose">시간 선택</string>
@@ -121,6 +127,9 @@
     <string name="duration_minutes">%1$d분</string>
     <string name="duration_hours">%1$d시간</string>
     <string name="duration_days">%1$d일</string>
+    <string name="adfree_ads_required">광고 %1$d회 필요</string>
+    <string name="adfree_progress">%1$d / %2$d회 시청 완료</string>
+    <string name="msg_adfree_rewards_remaining">광고 없는 시간을 시작하려면 보상형 광고를 %1$d회 더 시청하세요.</string>
 
     <!-- ═══════════════ 점3개 메뉴 ═══════════════ -->
     <string name="menu_more">더보기</string>
@@ -330,6 +339,11 @@
     <string name="accent_ember">엠버 오렌지</string>
     <string name="accent_sub">앱 전체에 쓰이는 색을 고릅니다</string>
     <string name="accent_lime">라임 그린</string>
+    <string name="accent_custom_title">직접 색상 선택</string>
+    <string name="accent_custom_sub">RGB 슬라이더로 앱 강조색을 세밀하게 조절합니다</string>
+    <string name="accent_red">R</string>
+    <string name="accent_green">G</string>
+    <string name="accent_blue">B</string>
     <string name="session_elapsed_short">%1$s 경과</string>
 
 <!-- ═══════════════ 다중 알람 · 충전 중단 ═══════════════ -->
@@ -509,6 +523,28 @@
 <!-- v1.7: 음성 안내, 주간 통계, 시즌 사운드, 오류 보고서 -->
 <string name="voice_announce_title">음성 안내</string>
 <string name="voice_announce_sub">충전이 시작될 때와 목표 잔량에 도달했을 때 말로 알려줍니다. 조용한 시간에는 나오지 않습니다.</string>
+    <string name="voice_template_hint">토큰: (%) 현재 배터리 · (t) 목표까지 예상 시간 · (d) 오늘 날짜</string>
+    <string name="voice_template_start">충전 시작 시</string>
+    <string name="voice_template_target">목표 잔량 도달 시</string>
+    <string name="voice_template_save">음성 문구 저장</string>
+    <string name="completion_routine_title">충전 완료 루틴</string>
+    <string name="completion_routine_sub">선택한 충전 목표에 도달할 때 실행할 동작을 골라보세요.</string>
+    <string name="completion_routine_sound">완료 사운드</string>
+    <string name="completion_routine_sound_sub">선택한 완료 알림음을 재생합니다</string>
+    <string name="completion_routine_tts">음성 안내</string>
+    <string name="completion_routine_tts_sub">목표 도달 음성 문구를 읽어줍니다</string>
+    <string name="completion_routine_vibration">진동</string>
+    <string name="completion_routine_vibration_sub">짧은 햅틱 패턴으로 알려줍니다</string>
+    <string name="completion_routine_animation">완료 애니메이션</string>
+    <string name="completion_routine_animation_sub">Android가 허용하는 경우 선택한 충전 애니메이션을 보여줍니다</string>
+    <string name="completion_routine_notification">홈 알림</string>
+    <string name="completion_routine_notification_sub">다시 알림 기능이 포함된 목표 도달 알림을 표시합니다</string>
+<string name="level_tone_title">잔량 알림음</string>
+<string name="level_tone_sub">50·80·100%를 지날 때 짧은 톤이 납니다. 조용한 시간에는 나오지 않습니다.</string>
+<string name="shuffle_title">셔플</string>
+<string name="shuffle_sub">충전할 때마다 다른 소리가 납니다. 플러그별 지정이 있으면 그쪽이 우선입니다.</string>
+<string name="widget_sound_on_cd">소리 켜짐. 눌러서 끄기.</string>
+<string name="widget_sound_off_cd">소리 꺼짐. 눌러서 켜기.</string>
 <string name="voice_charging_started">충전을 시작합니다</string>
 <string name="voice_alarm_target">배터리가 %1$d퍼센트입니다</string>
 <string name="widget_eta_fmt">%1$s 완충</string>

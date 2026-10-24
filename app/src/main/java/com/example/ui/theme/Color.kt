@@ -96,6 +96,19 @@ data class AccentPalette(
             purple = Color(0xFFC77DFF)
         )
 
+        /** 완충 상태용: 눈부신 네온 대신 안정적인 그린 톤을 사용합니다. */
+        val FullyCharged = AccentPalette(
+            cyan = Color(0xFF5EE6A8),
+            cyanDark = Color(0xFF28B978),
+            cyanContainer = Color(0xFF123D2B),
+            amber = Color(0xFFA7F3D0),
+            amberDark = Color(0xFF5ACF91),
+            amberContainer = Color(0xFF1A4A34),
+            green = Color(0xFF86EFAC),
+            greenDark = Color(0xFF35B86A),
+            purple = Color(0xFF9DE8C1)
+        )
+
         val ALL = listOf(Default, Magenta, Violet, Lime, Ember)
 
         /** 프리셋 이름을 안정적으로 저장하기 위한 키 */
@@ -108,14 +121,46 @@ data class AccentPalette(
             else -> "cyan"
         }
 
-        fun fromKey(key: String?): AccentPalette = when (key) {
+        fun fromKey(key: String?, customArgb: Long = 0xFF00E5FF): AccentPalette = when (key) {
             "magenta" -> Magenta
             "violet" -> Violet
             "lime" -> Lime
             "ember" -> Ember
+            "custom" -> custom(Color(customArgb.toInt()))
             else -> Default
         }
+
+        /**
+         * 한 가지 사용자 선택색으로부터 대비가 유지되는 팔레트를 만듭니다.
+         * 같은 계열을 쓰되 명도만 달리해 버튼·배지·컨테이너가 섞이지 않게 합니다.
+         */
+        fun custom(base: Color): AccentPalette {
+            fun mix(to: Color, amount: Float) = androidx.compose.ui.graphics.lerp(base, to, amount)
+            return AccentPalette(
+                cyan = base,
+                cyanDark = mix(Color.Black, 0.28f),
+                cyanContainer = mix(Color.Black, 0.68f),
+                amber = mix(Color.White, 0.22f),
+                amberDark = mix(Color.Black, 0.12f),
+                amberContainer = mix(Color.Black, 0.58f),
+                green = mix(Color.White, 0.12f),
+                greenDark = mix(Color.Black, 0.18f),
+                purple = mix(Color.White, 0.34f),
+            )
+        }
     }
+}
+
+/** 두 팔레트 사이의 색을 보간해 상태 전환을 부드럽게 만듭니다. */
+fun AccentPalette.interpolateTo(target: AccentPalette, fraction: Float): AccentPalette {
+    fun blend(from: Color, to: Color) = androidx.compose.ui.graphics.lerp(from, to, fraction)
+    return AccentPalette(
+        cyan = blend(cyan, target.cyan), cyanDark = blend(cyanDark, target.cyanDark),
+        cyanContainer = blend(cyanContainer, target.cyanContainer), amber = blend(amber, target.amber),
+        amberDark = blend(amberDark, target.amberDark), amberContainer = blend(amberContainer, target.amberContainer),
+        green = blend(green, target.green), greenDark = blend(greenDark, target.greenDark),
+        purple = blend(purple, target.purple)
+    )
 }
 
 // Electric High-Tech Palette

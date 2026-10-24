@@ -8,6 +8,8 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -16,6 +18,7 @@ import com.example.ui.MainScreen
 import com.example.ui.MainViewModel
 import com.example.ui.theme.AccentPalette
 import com.example.ui.theme.MyApplicationTheme
+import com.example.ui.theme.interpolateTo
 
 class MainActivity : ComponentActivity() {
 
@@ -32,6 +35,23 @@ class MainActivity : ComponentActivity() {
             // 강조색은 설정에서 바꾸므로 상태로 읽어야 테마가 다시 그려집니다.
             // (전역 색 상수에 반영하는 방식은 MyApplicationTheme 참조)
             val settings by viewModel.settings.collectAsStateWithLifecycle()
+            val batteryInfo by viewModel.batteryInfo.collectAsStateWithLifecycle()
+
+            // 충전 중에는 선명한 네온, 완충 상태에서는 차분한 그린으로 자연스럽게 전환합니다.
+            // 연결이 끊긴 평소 화면에서는 사용자가 선택한 팔레트를 그대로 유지합니다.
+            val userAccent = AccentPalette.fromKey(settings.accentKey, settings.customAccentArgb)
+            val completionProgress by animateFloatAsState(
+                targetValue = if (batteryInfo.isCharging && batteryInfo.level >= 100) 1f else 0f,
+                animationSpec = tween(durationMillis = 1_100),
+                label = "full_charge_green_transition"
+            )
+            val activeAccent = when {
+                batteryInfo.isCharging -> AccentPalette.Default.interpolateTo(
+                    AccentPalette.FullyCharged,
+                    completionProgress
+                )
+                else -> userAccent
+            }
 
             // 앱 전용 글자 크기 배율.
             // Density 의 fontScale 만 올려서 sp 단위가 전부 함께 커집니다 —
@@ -46,7 +66,7 @@ class MainActivity : ComponentActivity() {
                     darkTheme = true,
                     dynamicColor = settings.dynamicColor,
                     highContrast = settings.highContrast,
-                    accent = AccentPalette.fromKey(settings.accentKey)
+                    accent = activeAccent
                 ) {
                     MainScreen(viewModel = viewModel)
                 }

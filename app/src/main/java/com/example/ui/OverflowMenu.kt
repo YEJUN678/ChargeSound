@@ -443,7 +443,8 @@ fun AlarmSettingsSheet(
     onSelectSnoozeMinutes: (Int) -> Unit,
     onToggleChargeLimit: (Boolean) -> Unit,
     onSelectChargeLimitPercent: (Int) -> Unit,
-    onToggleWithSound: (Boolean) -> Unit
+    onToggleWithSound: (Boolean) -> Unit,
+    onRoutineChange: (Boolean, Boolean, Boolean, Boolean, Boolean) -> Unit,
 ) {
     SheetScaffold(titleRes = R.string.menu_alarm, onDismiss = onDismiss) {
         ToggleRow(
@@ -556,6 +557,31 @@ fun AlarmSettingsSheet(
             checked = settings.alarmWithSound,
             onCheckedChange = onToggleWithSound
         )
+
+        Spacer(Modifier.height(18.dp))
+        Text(
+            text = stringResource(R.string.completion_routine_title),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        Text(
+            text = stringResource(R.string.completion_routine_sub),
+            style = MaterialTheme.typography.labelSmall,
+            color = Slate400
+        )
+        fun updateRoutine(
+            sound: Boolean = settings.completionRoutineSound,
+            tts: Boolean = settings.completionRoutineTts,
+            vibration: Boolean = settings.completionRoutineVibration,
+            animation: Boolean = settings.completionRoutineAnimation,
+            notification: Boolean = settings.completionRoutineNotification,
+        ) = onRoutineChange(sound, tts, vibration, animation, notification)
+        ToggleRow(stringResource(R.string.completion_routine_sound), stringResource(R.string.completion_routine_sound_sub), settings.completionRoutineSound) { updateRoutine(sound = it) }
+        ToggleRow(stringResource(R.string.completion_routine_tts), stringResource(R.string.completion_routine_tts_sub), settings.completionRoutineTts) { updateRoutine(tts = it) }
+        ToggleRow(stringResource(R.string.completion_routine_vibration), stringResource(R.string.completion_routine_vibration_sub), settings.completionRoutineVibration) { updateRoutine(vibration = it) }
+        ToggleRow(stringResource(R.string.completion_routine_animation), stringResource(R.string.completion_routine_animation_sub), settings.completionRoutineAnimation) { updateRoutine(animation = it) }
+        ToggleRow(stringResource(R.string.completion_routine_notification), stringResource(R.string.completion_routine_notification_sub), settings.completionRoutineNotification) { updateRoutine(notification = it) }
 
         HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Slate800)
 

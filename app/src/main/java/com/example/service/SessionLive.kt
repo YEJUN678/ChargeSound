@@ -16,6 +16,7 @@ object SessionLive {
 
     private const val PREFS = "session_live"
     private const val KEY_ETA_AT = "eta_at"
+    private const val KEY_SOUND_ENABLED = "sound_enabled"
 
     fun writeEta(context: Context, etaAtMillis: Long) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
@@ -35,4 +36,20 @@ object SessionLive {
             .getLong(KEY_ETA_AT, 0L)
         return if (at > System.currentTimeMillis()) at else 0L
     }
+
+    /**
+     * 사운드 on/off 캐시.
+     *
+     * 위젯의 스피커 버튼 아이콘은 RemoteViews 빌드 시점에 **동기적으로** 알아야
+     * 해서 DataStore 대신 여기에 미러링합니다. 쓰는 곳은 앱(vm)과 위젯 자신입니다.
+     */
+    fun writeSoundEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putBoolean(KEY_SOUND_ENABLED, enabled)
+            .apply()
+    }
+
+    fun soundEnabled(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(KEY_SOUND_ENABLED, true)
 }

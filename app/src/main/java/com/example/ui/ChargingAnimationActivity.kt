@@ -100,6 +100,7 @@ class ChargingAnimationActivity : ComponentActivity() {
 
     /** 테마 진입점에서 읽을 강조색 키 (onCreate에서 설정 저장소를 읽어 채웁니다) */
     private var accentKey: String = "cyan"
+    private var customAccentArgb: Long = 0xFF00E5FF
 
     companion object {
         private const val TAG = "ChargingAnimationActivity"
@@ -122,8 +123,11 @@ class ChargingAnimationActivity : ComponentActivity() {
             SettingsRepository(applicationContext).settingsFlow.first().showOnLockScreen
         }
         // 강조색도 한 번만 읽습니다 (세션 동안 바뀔 일은 없습니다).
-        accentKey = runBlocking {
-            SettingsRepository(applicationContext).settingsFlow.first().accentKey
+        runBlocking {
+            SettingsRepository(applicationContext).settingsFlow.first().also { settings ->
+                accentKey = settings.accentKey
+                customAccentArgb = settings.customAccentArgb
+            }
         }
         configureScreenWakeAndLock()
         enableEdgeToEdge()
@@ -150,7 +154,7 @@ class ChargingAnimationActivity : ComponentActivity() {
             // 충전 애니메이션도 사용자 강조색을 따라갑니다 (onCreate에서 이미 읽은 설정 재사용).
             MyApplicationTheme(
                 darkTheme = true,
-                accent = AccentPalette.fromKey(accentKey)
+                accent = AccentPalette.fromKey(accentKey, customAccentArgb)
             ) {
                 ChargingScreenContent(
                     initialLevel = initialLevel,

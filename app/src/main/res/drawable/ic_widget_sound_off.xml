@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 위젯 스피커 버튼: 소리 꺼짐 (사선) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFF">
+
+    <!-- 스피커 본체 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M3,9v6h4l5,4V5L7,9H3z" />
+
+    <!-- 사선 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M4.27,3L21,19.73L19.73,21L3,4.27z" />
+</vector>

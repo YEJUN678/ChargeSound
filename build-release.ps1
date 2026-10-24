@@ -23,14 +23,47 @@
 #>
 [CmdletBinding()]
 param(
-    [int]$VersionCode = 3,
-    [string]$VersionName = "1.2.0",
+    # 0 이면 dist\ 의 기존 APK 에서 최대값 +1 로 자동 산정합니다.
+    [int]$VersionCode = 0,
+    # 비우면 dist\ 의 최신 APK 버전에서 patch +1 로 자동 산정합니다.
+    [string]$VersionName = "",
     # 0 이면 워치 APK 를 만들지 않습니다.
     [int]$WearVersionCode = 0,
     [string]$WearVersionName = "1.0.0"
 )
 
 $ErrorActionPreference = "Stop"
+
+# ─── 버전 자동 산정 ──────────────────────────────────────────────────────────
+# versionCode 를 손으로 올리다 잊으면 스토어가 업로드를 거부합니다.
+# 기본값을 "dist\ 에서 자동 계산"으로 두어 그 실수를 없앱니다.
+$DistDir = Join-Path $PSScriptRoot "dist"
+$existing = @()
+if (Test-Path $DistDir) {
+    $existing = @(Get-ChildItem $DistDir -Filter "ChargeSound-*-vc*.apk" |
+        Where-Object { $_.Name -match "-vc(\d+)\.apk$" } |
+        ForEach-Object {
+            $n = [int]([regex]::Match($_.Name, "-vc(\d+)\.apk$").Groups[1].Value)
+            [pscustomobject]@{ Code = $n; Name = $_.Name }
+        })
+}
+
+if ($VersionCode -le 0) {
+    $maxCode = 0
+    if ($existing.Count -gt 0) { $maxCode = ($existing | Measure-Object -Property Code -Maximum).Maximum }
+    $VersionCode = $maxCode + 1
+}
+
+if ([string]::IsNullOrWhiteSpace($VersionName)) {
+    $latest = $existing | Sort-Object Code -Descending | Select-Object -First 1
+    $base = "1.0.0"
+    if ($latest -and $latest.Name -match "ChargeSound-(\d+)\.(\d+)\.(\d+)-vc") {
+        $base = "{0}.{1}.{2}" -f $Matches[1], $Matches[2], ([int]$Matches[3] + 1)
+    }
+    $VersionName = $base
+}
+
+Write-Host "  버전 자동 산정: $VersionName (versionCode $VersionCode)" -ForegroundColor DarkGray
 
 # OneStore 에 게시된 앱의 서명 지문.
 # 이 값이 다르면 업데이트가 불가능해집니다(서명 불일치로 설치 거부됨).

@@ -25,6 +25,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,6 +56,7 @@ fun ThemeSettingsSheet(
     settings: ChargeSettings,
     onDismiss: () -> Unit,
     onSelectAccent: (String) -> Unit,
+    onCustomAccentChange: (Long) -> Unit = {},
     fontScale: Float = 1.0f,
     onSelectFontScale: (Float) -> Unit = {},
     dynamicColor: Boolean = false,
@@ -122,6 +125,72 @@ fun ThemeSettingsSheet(
                         modifier = Modifier.size(18.dp)
                     )
                 }
+            }
+        }
+
+        Spacer(Modifier.height(Spacing.md))
+        val customColor = Color(settings.customAccentArgb.toInt())
+        val customSelected = settings.accentKey == "custom"
+        Surface(
+            color = if (customSelected) customColor.copy(alpha = 0.16f) else Slate800,
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(1.dp, if (customSelected) customColor else Slate700),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(Modifier.padding(14.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(customColor)
+                            .border(2.dp, Color.White.copy(alpha = 0.85f), CircleShape)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.accent_custom_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = stringResource(R.string.accent_custom_sub),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Slate400
+                        )
+                    }
+                    Text(
+                        text = String.format("#%06X", 0xFFFFFF and settings.customAccentArgb.toInt()),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = customColor
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
+                ColorChannelSlider(
+                    label = stringResource(R.string.accent_red),
+                    value = customColor.red,
+                    color = Color(0xFFFF5A5F),
+                    onValueChange = { red ->
+                        onCustomAccentChange(argbOf(red, customColor.green, customColor.blue))
+                    }
+                )
+                ColorChannelSlider(
+                    label = stringResource(R.string.accent_green),
+                    value = customColor.green,
+                    color = Color(0xFF42D392),
+                    onValueChange = { green ->
+                        onCustomAccentChange(argbOf(customColor.red, green, customColor.blue))
+                    }
+                )
+                ColorChannelSlider(
+                    label = stringResource(R.string.accent_blue),
+                    value = customColor.blue,
+                    color = Color(0xFF5BA8FF),
+                    onValueChange = { blue ->
+                        onCustomAccentChange(argbOf(customColor.red, customColor.green, blue))
+                    }
+                )
             }
         }
 
@@ -228,6 +297,40 @@ private fun accentLabelRes(key: String): Int = when (key) {
     "lime" -> R.string.accent_lime
     "ember" -> R.string.accent_ember
     else -> R.string.accent_cyan
+}
+
+@Composable
+private fun ColorChannelSlider(
+    label: String,
+    value: Float,
+    color: Color,
+    onValueChange: (Float) -> Unit,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = Slate400,
+            modifier = Modifier.width(18.dp)
+        )
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            colors = SliderDefaults.colors(
+                thumbColor = color,
+                activeTrackColor = color,
+                inactiveTrackColor = Slate700,
+            ),
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+private fun argbOf(red: Float, green: Float, blue: Float): Long {
+    val r = (red.coerceIn(0f, 1f) * 255).toInt()
+    val g = (green.coerceIn(0f, 1f) * 255).toInt()
+    val b = (blue.coerceIn(0f, 1f) * 255).toInt()
+    return (0xFF000000L or (r.toLong() shl 16) or (g.toLong() shl 8) or b.toLong())
 }
 
 /**

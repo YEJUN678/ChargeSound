@@ -14,11 +14,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.R
 import com.example.ad.AdManager
-import com.example.ad.AdPolicy
 import com.example.battery.BatteryInfo
 import com.example.battery.BatteryInfoHelper
 import com.example.battery.PlugType
 import com.example.data.AnimationMode
+import com.example.data.AdFreePlan
 import com.example.data.ChargeRecord
 import com.example.data.ChargeSettings
 import com.example.data.PremiumCatalog
@@ -96,12 +96,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // ─────────────────────── 보상형 광고 ───────────────────────
 
-    /** "광고 없이 N분" 카드에서 광고를 눌렀을 때. Activity가 없으면 무시합니다. */
-    fun watchAdForAdFree(activity: Activity?) {
+    /** 선택한 광고 없는 시간 플랜에 보상형 광고 1회를 적립합니다. */
+    fun watchAdForAdFree(activity: Activity?, plan: AdFreePlan) {
         val act = activity ?: return
         AdManager.showRewarded(
             activity = act,
-            onReward = { startAdFreePeriod(AdPolicy.DEFAULT_AD_FREE_MINUTES) },
+            onReward = {
+                viewModelScope.launch {
+                    val result = repository.recordAdFreeReward(plan.minutes, plan.rewardsRequired)
+                    _userMessage.value = if (result.completed) {
+                        msg(R.string.msg_adfree_started, plan.minutes)
+                    } else {
+                        msg(R.string.msg_adfree_rewards_remaining, result.remainingRewards)
+                    }
+                }
+            },
             onDismiss = { },
             onNotAvailable = {
                 viewModelScope.launch {
@@ -336,12 +345,38 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleSoundEnabled(enabled: Boolean) {
         viewModelScope.launch {
             repository.setSoundEnabled(enabled)
+            // 위젯은 DataStore(suspend)를 읽을 수 없어서, 사운드 토글 아이콘용
+            // 값을 SharedPreferences 에 같이 남깁니다.
+            com.example.service.SessionLive.writeSoundEnabled(getApplication(), enabled)
+            com.example.widget.ChargingWidgetProvider.requestUpdate(getApplication())
         }
     }
 
     fun setVoiceAnnounce(enabled: Boolean) {
         viewModelScope.launch {
             repository.setVoiceAnnounceEnabled(enabled)
+        }
+    }
+
+    fun setVoiceTemplates(start: String, target: String) {
+        viewModelScope.launch { repository.setVoiceTemplates(start, target) }
+    }
+
+    fun setCompletionRoutine(sound: Boolean, tts: Boolean, vibration: Boolean, animation: Boolean, notification: Boolean) {
+        viewModelScope.launch {
+            repository.setCompletionRoutine(sound, tts, vibration, animation, notification)
+        }
+    }
+
+    fun setLevelTones(enabled: Boolean) {
+        viewModelScope.launch {
+            repository.setLevelTonesEnabled(enabled)
+        }
+    }
+
+    fun setShuffleSounds(enabled: Boolean) {
+        viewModelScope.launch {
+            repository.setShuffleSoundsEnabled(enabled)
         }
     }
 
@@ -534,6 +569,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setAccentKey(key: String) {
         viewModelScope.launch { repository.setAccentKey(key) }
+    }
+
+    fun setCustomAccentArgb(argb: Long) {
+        viewModelScope.launch { repository.setCustomAccentArgb(argb) }
     }
 
     fun setQuietHoursEnabled(enabled: Boolean) {

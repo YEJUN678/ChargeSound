@@ -30,6 +30,11 @@ data class ChargingSession(
     val lastChangedAt: Long = 0L
 )
 
+data class AdFreeRewardResult(
+    val completed: Boolean,
+    val remainingRewards: Int,
+)
+
 class SettingsRepository(private val context: Context) {
     companion object {
         private const val TAG = "SettingsRepository"
@@ -37,6 +42,10 @@ class SettingsRepository(private val context: Context) {
         val KEY_SERVICE_ENABLED = booleanPreferencesKey("service_enabled")
         val KEY_SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
         val KEY_VOICE_ANNOUNCE = booleanPreferencesKey("voice_announce_enabled")
+        val KEY_VOICE_START_TEMPLATE = stringPreferencesKey("voice_start_template")
+        val KEY_VOICE_TARGET_TEMPLATE = stringPreferencesKey("voice_target_template")
+        val KEY_LEVEL_TONES = booleanPreferencesKey("level_tones_enabled")
+        val KEY_SHUFFLE_SOUNDS = booleanPreferencesKey("shuffle_sounds_enabled")
         val KEY_VOLUME = floatPreferencesKey("volume")
         val KEY_SOUND_MODE = stringPreferencesKey("sound_mode")
         val KEY_PRESET_SOUND_ID = stringPreferencesKey("preset_sound_id")
@@ -55,6 +64,8 @@ class SettingsRepository(private val context: Context) {
         val KEY_UNLOCKED_PREMIUM = stringSetPreferencesKey("unlocked_premium")
         val KEY_REWARD_PROGRESS = stringPreferencesKey("reward_progress")
         val KEY_AD_FREE_UNTIL = longPreferencesKey("ad_free_until")
+        val KEY_AD_FREE_PENDING_MINUTES = intPreferencesKey("ad_free_pending_minutes")
+        val KEY_AD_FREE_REWARD_PROGRESS = intPreferencesKey("ad_free_reward_progress")
         val KEY_OVERLAY_GRANTED = booleanPreferencesKey("overlay_granted")
         val KEY_OVERLAY_PROMPT_SEEN = booleanPreferencesKey("overlay_prompt_seen")
         val KEY_PREMIUM_UNLOCKED = booleanPreferencesKey("premium_unlocked")
@@ -65,6 +76,11 @@ class SettingsRepository(private val context: Context) {
     val KEY_ALARM_TARGET = intPreferencesKey("alarm_target_percent")
     val KEY_ALARM_FIRED = booleanPreferencesKey("alarm_fired_session")
     val KEY_ALARM_WITH_SOUND = booleanPreferencesKey("alarm_with_sound")
+    val KEY_ROUTINE_SOUND = booleanPreferencesKey("completion_routine_sound")
+    val KEY_ROUTINE_TTS = booleanPreferencesKey("completion_routine_tts")
+    val KEY_ROUTINE_VIBRATION = booleanPreferencesKey("completion_routine_vibration")
+    val KEY_ROUTINE_ANIMATION = booleanPreferencesKey("completion_routine_animation")
+    val KEY_ROUTINE_NOTIFICATION = booleanPreferencesKey("completion_routine_notification")
 
     // ── 배터리 경고 ──
     val KEY_TEMP_ALERT_ENABLED = booleanPreferencesKey("temp_alert_enabled")
@@ -92,6 +108,7 @@ class SettingsRepository(private val context: Context) {
     val KEY_QUIET_START = intPreferencesKey("quiet_start_minute")
     val KEY_QUIET_END = intPreferencesKey("quiet_end_minute")
     val KEY_ACCENT = stringPreferencesKey("accent_key")
+    val KEY_CUSTOM_ACCENT_ARGB = longPreferencesKey("custom_accent_argb")
 
     // ── 충전 세션 추적 (ETA) ──
     val KEY_SESSION_STARTED_AT = longPreferencesKey("session_started_at")
@@ -203,6 +220,10 @@ class SettingsRepository(private val context: Context) {
             isServiceEnabled = prefs[KEY_SERVICE_ENABLED] ?: true,
             soundEnabled = prefs[KEY_SOUND_ENABLED] ?: true,
             voiceAnnounceEnabled = prefs[KEY_VOICE_ANNOUNCE] ?: false,
+            voiceStartTemplate = prefs[KEY_VOICE_START_TEMPLATE] ?: "충전을 시작합니다. 현재 배터리는 (%)퍼센트입니다.",
+            voiceTargetTemplate = prefs[KEY_VOICE_TARGET_TEMPLATE] ?: "배터리가 (%)퍼센트입니다. 오늘은 (d)입니다.",
+            levelTonesEnabled = prefs[KEY_LEVEL_TONES] ?: false,
+            shuffleSoundsEnabled = prefs[KEY_SHUFFLE_SOUNDS] ?: false,
             volume = prefs[KEY_VOLUME] ?: 0.85f,
             soundMode = soundMode,
             presetSoundId = prefs[KEY_PRESET_SOUND_ID] ?: "cyber_chime",
@@ -219,6 +240,8 @@ class SettingsRepository(private val context: Context) {
             unlockedPremiumIds = prefs[KEY_UNLOCKED_PREMIUM] ?: emptySet(),
             rewardProgress = decodeProgress(prefs[KEY_REWARD_PROGRESS]),
             adFreeUntil = prefs[KEY_AD_FREE_UNTIL] ?: 0L,
+            adFreePendingMinutes = prefs[KEY_AD_FREE_PENDING_MINUTES] ?: 0,
+            adFreeRewardProgress = prefs[KEY_AD_FREE_REWARD_PROGRESS] ?: 0,
             overlayPermissionGranted = prefs[KEY_OVERLAY_GRANTED] ?: false,
             overlayPromptSeen = prefs[KEY_OVERLAY_PROMPT_SEEN] ?: false,
             premiumUnlocked = prefs[KEY_PREMIUM_UNLOCKED] ?: false,
@@ -232,6 +255,11 @@ class SettingsRepository(private val context: Context) {
             snoozeUntilMillis = prefs[KEY_SNOOZE_UNTIL] ?: 0L,
             alarmSnoozeMinutes = (prefs[KEY_ALARM_SNOOZE_MIN] ?: 10).coerceIn(1, 60),
             alarmWithSound = prefs[KEY_ALARM_WITH_SOUND] ?: true,
+            completionRoutineSound = prefs[KEY_ROUTINE_SOUND] ?: (prefs[KEY_ALARM_WITH_SOUND] ?: true),
+            completionRoutineTts = prefs[KEY_ROUTINE_TTS] ?: true,
+            completionRoutineVibration = prefs[KEY_ROUTINE_VIBRATION] ?: true,
+            completionRoutineAnimation = prefs[KEY_ROUTINE_ANIMATION] ?: false,
+            completionRoutineNotification = prefs[KEY_ROUTINE_NOTIFICATION] ?: true,
             chargeLimitEnabled = prefs[KEY_CHARGE_LIMIT_ENABLED] ?: false,
             chargeLimitPercent = (prefs[KEY_CHARGE_LIMIT_PERCENT] ?: 80).coerceIn(50, 95),
             chargeLimitNotifiedThisSession = prefs[KEY_CHARGE_LIMIT_NOTIFIED] ?: false,
@@ -252,6 +280,7 @@ class SettingsRepository(private val context: Context) {
             quietStartMinute = (prefs[KEY_QUIET_START] ?: 1320).coerceIn(0, 1440),
             quietEndMinute = (prefs[KEY_QUIET_END] ?: 420).coerceIn(0, 1440),
             accentKey = prefs[KEY_ACCENT] ?: "cyan",
+            customAccentArgb = prefs[KEY_CUSTOM_ACCENT_ARGB] ?: 0xFF00E5FF,
             fontScale = (prefs[KEY_FONT_SCALE] ?: 1.0f).coerceIn(0.85f, 1.5f),
             dynamicColor = prefs[KEY_DYNAMIC_COLOR] ?: false,
             highContrast = prefs[KEY_HIGH_CONTRAST] ?: false,
@@ -325,6 +354,16 @@ class SettingsRepository(private val context: Context) {
         context.dataStore.edit { it[KEY_ACCENT] = key }
     }
 
+    /** 직접 선택한 색을 저장하고 즉시 커스텀 팔레트를 활성화합니다. */
+    suspend fun setCustomAccentArgb(argb: Long) {
+        context.dataStore.edit {
+            it[KEY_CUSTOM_ACCENT_ARGB] = argb
+            it[KEY_ACCENT] = "custom"
+            // 직접 색을 고른 의도가 월페이퍼 팔레트보다 우선합니다.
+            it[KEY_DYNAMIC_COLOR] = false
+        }
+    }
+
     suspend fun setQuietHoursEnabled(enabled: Boolean) {
         context.dataStore.edit { it[KEY_QUIET_ENABLED] = enabled }
     }
@@ -365,6 +404,31 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVoiceAnnounceEnabled(enabled: Boolean) {
         context.dataStore.edit { it[KEY_VOICE_ANNOUNCE] = enabled }
+    }
+
+    suspend fun setCompletionRoutine(sound: Boolean, tts: Boolean, vibration: Boolean, animation: Boolean, notification: Boolean) {
+        context.dataStore.edit {
+            it[KEY_ROUTINE_SOUND] = sound
+            it[KEY_ROUTINE_TTS] = tts
+            it[KEY_ROUTINE_VIBRATION] = vibration
+            it[KEY_ROUTINE_ANIMATION] = animation
+            it[KEY_ROUTINE_NOTIFICATION] = notification
+        }
+    }
+
+    suspend fun setVoiceTemplates(start: String, target: String) {
+        context.dataStore.edit {
+            it[KEY_VOICE_START_TEMPLATE] = start.take(240)
+            it[KEY_VOICE_TARGET_TEMPLATE] = target.take(240)
+        }
+    }
+
+    suspend fun setLevelTonesEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_LEVEL_TONES] = enabled }
+    }
+
+    suspend fun setShuffleSoundsEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_SHUFFLE_SOUNDS] = enabled }
     }
 
     suspend fun setAnimationEnabled(enabled: Boolean) {
@@ -544,7 +608,10 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun setAlarmWithSound(enabled: Boolean) {
-        context.dataStore.edit { it[KEY_ALARM_WITH_SOUND] = enabled }
+        context.dataStore.edit {
+            it[KEY_ALARM_WITH_SOUND] = enabled
+            it[KEY_ROUTINE_SOUND] = enabled
+        }
     }
 
     // 발화 기록은 [markAlarmFired] / [resetAlarmFired] 로 관리합니다.
@@ -668,7 +735,42 @@ class SettingsRepository(private val context: Context) {
      */
     suspend fun startAdFreePeriod(minutes: Int) {
         val until = System.currentTimeMillis() + minutes * 60_000L
-        context.dataStore.edit { it[KEY_AD_FREE_UNTIL] = until }
+        context.dataStore.edit {
+            it[KEY_AD_FREE_UNTIL] = until
+            it.remove(KEY_AD_FREE_PENDING_MINUTES)
+            it.remove(KEY_AD_FREE_REWARD_PROGRESS)
+        }
+    }
+
+    /**
+     * 선택된 광고 없는 시간 플랜에 보상 시청 1회를 적립합니다.
+     * 플랜을 바꾸면 이전 플랜의 적립은 새 플랜에 섞이지 않도록 초기화합니다.
+     */
+    suspend fun recordAdFreeReward(minutes: Int, rewardsRequired: Int): AdFreeRewardResult {
+        var result = AdFreeRewardResult(completed = false, remainingRewards = rewardsRequired)
+        context.dataStore.edit { prefs ->
+            val previousMinutes = prefs[KEY_AD_FREE_PENDING_MINUTES] ?: 0
+            val previousProgress = if (previousMinutes == minutes) {
+                prefs[KEY_AD_FREE_REWARD_PROGRESS] ?: 0
+            } else {
+                0
+            }
+            val progress = (previousProgress + 1).coerceAtMost(rewardsRequired)
+            if (progress >= rewardsRequired) {
+                prefs[KEY_AD_FREE_UNTIL] = System.currentTimeMillis() + minutes * 60_000L
+                prefs.remove(KEY_AD_FREE_PENDING_MINUTES)
+                prefs.remove(KEY_AD_FREE_REWARD_PROGRESS)
+                result = AdFreeRewardResult(completed = true, remainingRewards = 0)
+            } else {
+                prefs[KEY_AD_FREE_PENDING_MINUTES] = minutes
+                prefs[KEY_AD_FREE_REWARD_PROGRESS] = progress
+                result = AdFreeRewardResult(
+                    completed = false,
+                    remainingRewards = rewardsRequired - progress
+                )
+            }
+        }
+        return result
     }
 
     suspend fun saveCustomAudio(uri: Uri): Result<String> {

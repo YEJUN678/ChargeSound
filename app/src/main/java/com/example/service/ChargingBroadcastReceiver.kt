@@ -22,6 +22,8 @@ import com.example.data.SoundMode
 import com.example.sound.SoundManager
 import com.example.ui.ChargingAnimationActivity
 import com.example.widget.ChargingWidgetProvider
+import com.example.service.ChargingSessionTracker
+import com.example.voice.VoiceTemplate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -77,7 +79,7 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun handlePowerConnected(context: Context, settings: com.example.data.ChargeSettings) {
+    private suspend fun handlePowerConnected(context: Context, settings: com.example.data.ChargeSettings) {
         // 조용한 시간대에는 사운드만 끕니다.
         // 진동 · 애니메이션 · 알림은 그대로 동작합니다 (기능 손실 없음).
         val quietNow = settings.isQuietHourNow(currentMinuteOfDay())
@@ -101,6 +103,15 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
                     SoundManager.getPresetFile(context, presetId).absolutePath
                 }
 
+                // 셔플: 플러그별 지정이 없을 때만. 매번 같은 소리에 지루해지는 걸 막습니다.
+                settings.shuffleSoundsEnabled -> {
+                    val presetId = SoundManager.pickShufflePresetId(
+                        settings,
+                        avoidId = settings.presetSoundId
+                    )
+                    SoundManager.getPresetFile(context, presetId).absolutePath
+                }
+
                 else -> SoundManager.getPresetFile(context, settings.presetSoundId).absolutePath
             }
             SoundManager.playSound(
@@ -113,9 +124,11 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
 
         // 2-1. 음성 안내 (TTS) — 조용한 시간에는 말하지 않습니다.
         if (settings.voiceAnnounceEnabled && !quietNow) {
+            val info = batteryInfoOf(context)
+            val eta = ChargingSessionTracker.snapshot(context, info).etaMillis
             com.example.voice.VoiceAnnouncer.announce(
                 context,
-                context.getString(R.string.voice_charging_started)
+                VoiceTemplate.expand(settings.voiceStartTemplate, info.level, eta)
             )
         }
 

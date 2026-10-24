@@ -15,6 +15,7 @@ import com.example.battery.BatteryInfo
 import com.example.battery.BatteryInfoHelper
 import com.example.battery.PowerTracker
 import java.util.Date
+import kotlinx.coroutines.flow.first
 import kotlin.math.abs
 
 /**
@@ -49,6 +50,12 @@ class ChargingWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
+
+        if (intent.action == ACTION_TOGGLE_SOUND) {
+            toggleSoundAsync(context)
+            return
+        }
+
         if (intent.action == ACTION_REFRESH || intent.action == AppWidgetManager.ACTION_APPWIDGET_UPDATE) {
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(
@@ -56,6 +63,40 @@ class ChargingWidgetProvider : AppWidgetProvider() {
             )
             if (ids.isNotEmpty()) onUpdate(context, manager, ids)
         }
+    }
+
+    /**
+     * 위젯의 스피커 버튼 처리.
+     *
+     * 설정은 DataStore(suspend)라 onReceive 에서 바로 못 읽습니다. `goAsync()` 로
+     * 브로드캐스트 수명을 잠깐 늘리고 백그라운드 스레드에서 처리한 뒤 갱신합니다.
+     */
+    private fun toggleSoundAsync(context: Context) {
+        val pendingResult = goAsync()
+        val appContext = context.applicationContext
+        Thread {
+            try {
+                val repo = com.example.data.SettingsRepository(appContext)
+                val next = !kotlinx.coroutines.runBlocking {
+                    repo.settingsFlow.first()
+                }.soundEnabled
+                kotlinx.coroutines.runBlocking { repo.setSoundEnabled(next) }
+                com.example.service.SessionLive.writeSoundEnabled(appContext, next)
+            } catch (e: Exception) {
+                android.util.Log.w("ChargingWidget", "toggle sound failed", e)
+            } finally {
+                try {
+                    val manager = AppWidgetManager.getInstance(appContext)
+                    val ids = manager.getAppWidgetIds(
+                        ComponentName(appContext, ChargingWidgetProvider::class.java)
+                    )
+                    if (ids.isNotEmpty()) onUpdate(appContext, manager, ids)
+                } catch (e: Exception) {
+                    android.util.Log.w("ChargingWidget", "refresh after toggle failed", e)
+                }
+                pendingResult.finish()
+            }
+        }.start()
     }
 
     override fun onAppWidgetOptionsChanged(
@@ -210,6 +251,31 @@ class ChargingWidgetProvider : AppWidgetProvider() {
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 views.setOnClickPendingIntent(R.id.widget_refresh, refresh)
+
+                // 스피커 버튼 — 앱을 열지 않고 사운드만 끄고 켤 수 있게.
+                val soundOn = com.example.service.SessionLive.soundEnabled(context)
+                views.setImageViewResource(
+                    R.id.widget_sound,
+                    if (soundOn) R.drawable.ic_widget_sound_on else R.drawable.ic_widget_sound_off
+                )
+                views.setInt(
+                    R.id.widget_sound,
+                    "setColorFilter",
+                    if (soundOn) palette.accent else palette.textDim
+                )
+                views.setContentDescription(
+                    R.id.widget_sound,
+                    context.getString(
+                        if (soundOn) R.string.widget_sound_on_cd else R.string.widget_sound_off_cd
+                    )
+                )
+                val toggle = PendingIntent.getBroadcast(
+                    context,
+                    appWidgetId * 31 + 11,
+                    Intent(context, ChargingWidgetProvider::class.java).setAction(ACTION_TOGGLE_SOUND),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                views.setOnClickPendingIntent(R.id.widget_sound, toggle)
             }
         }
 
@@ -261,6 +327,7 @@ class ChargingWidgetProvider : AppWidgetProvider() {
 
     companion object {
         private const val ACTION_REFRESH = "com.chargesound.app.widget.REFRESH"
+        private const val ACTION_TOGGLE_SOUND = "com.chargesound.app.widget.TOGGLE_SOUND"
 
         fun requestUpdate(context: Context) {
             try {

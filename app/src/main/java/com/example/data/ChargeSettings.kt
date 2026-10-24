@@ -59,7 +59,13 @@ data class SoundPreset(
     val id: String,
     @StringRes val nameRes: Int,
     @StringRes val descriptionRes: Int,
-    val iconName: String
+    val iconName: String,
+    /** 목록에서 보여 주는 실제 합성 사운드의 대략적인 길이 */
+    val previewDurationMs: Int = 2_000,
+    /** 사용자가 빠르게 분위기를 파악할 수 있는 짧은 태그 */
+    @StringRes val moodRes: Int? = null,
+    /** 재생하지 않아도 성격을 보여 주는 정규화 파형 막대 */
+    val waveform: List<Float> = listOf(0.35f, 0.7f, 0.48f, 0.85f, 0.42f, 0.65f)
 )
 
 data class ChargeSettings(
@@ -67,6 +73,13 @@ data class ChargeSettings(
     val soundEnabled: Boolean = true,
     /** 충전 시작/목표 도달을 음성(TTS)으로 안내 */
     val voiceAnnounceEnabled: Boolean = false,
+    /** TTS 문구 템플릿. (%), (t), (d)는 발화 직전에 실제 값으로 바뀝니다. */
+    val voiceStartTemplate: String = "충전을 시작합니다. 현재 배터리는 (%)퍼센트입니다.",
+    val voiceTargetTemplate: String = "배터리가 (%)퍼센트입니다. 오늘은 (d)입니다.",
+    /** 50/80/100% 를 지날 때 짧은 톤으로 알림 (충전 알람과 별개) */
+    val levelTonesEnabled: Boolean = false,
+    /** 충전할 때마다 프리셋을 무작위로 재생 */
+    val shuffleSoundsEnabled: Boolean = false,
     val volume: Float = 0.85f,
     val soundMode: SoundMode = SoundMode.PRESET,
     val presetSoundId: String = "cyber_chime",
@@ -87,6 +100,9 @@ data class ChargeSettings(
     val rewardProgress: Map<String, Int> = emptyMap(),
     /** 광고가 숨겨질 때까지의 epoch millis. 0이면 비활성 */
     val adFreeUntil: Long = 0L,
+    /** 광고 없는 시간을 위해 현재 선택한 플랜과 누적 보상 시청 횟수 */
+    val adFreePendingMinutes: Int = 0,
+    val adFreeRewardProgress: Int = 0,
     /** 사용자가 "다른 앱 위에 표시" 권한을 부여했는지 (캐시, 실제값은 설정 화면에서 재확인) */
     val overlayPermissionGranted: Boolean = false,
     /** 사용자가 권한 안내를 이미 확인했는지 */
@@ -135,6 +151,12 @@ data class ChargeSettings(
     val alarmSnoozeMinutes: Int = 10,
     /** 알람에 사운드를 함께 재생할지 (off면 진동 + 알림만) */
     val alarmWithSound: Boolean = true,
+    /** 목표 충전율 도달 루틴. 각 동작은 독립적으로 선택할 수 있습니다. */
+    val completionRoutineSound: Boolean = true,
+    val completionRoutineTts: Boolean = true,
+    val completionRoutineVibration: Boolean = true,
+    val completionRoutineAnimation: Boolean = false,
+    val completionRoutineNotification: Boolean = true,
 
     // ── 충전 중단 알림 (배터리 수명 보호) ──
     /**
@@ -188,6 +210,8 @@ data class ChargeSettings(
     val quietEndMinute: Int = 420,
     /** 강조색 프리셋 키 (com.example.ui.theme.AccentPalette.keyOf 참조) */
     val accentKey: String = "cyan",
+    /** 사용자가 직접 고른 강조색(ARGB). accentKey 가 custom 일 때 사용합니다. */
+    val customAccentArgb: Long = 0xFF00E5FF,
 
     // ── 접근성 ──
     /**

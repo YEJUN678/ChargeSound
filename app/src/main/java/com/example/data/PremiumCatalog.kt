@@ -24,8 +24,15 @@ object PremiumCatalog {
     /** 해제에 필요한 보상형 광고 시청 횟수 */
     const val ADS_REQUIRED_PER_UNLOCK = 2
 
-    /** 광고 없이 배너를 숨기는 시간(분) 옵션 */
-    val AD_FREE_DURATION_OPTIONS = listOf(30, 60, 180, 720)
+    /** 광고 없이 배너를 숨기는 시간별 보상형 광고 시청 횟수입니다. */
+    val AD_FREE_DURATION_OPTIONS = listOf(
+        AdFreePlan(minutes = 30, rewardsRequired = 2),
+        AdFreePlan(minutes = 60, rewardsRequired = 3),
+        AdFreePlan(minutes = 180, rewardsRequired = 5),
+        AdFreePlan(minutes = 720, rewardsRequired = 8),
+    )
+
+    val DEFAULT_AD_FREE_PLAN: AdFreePlan = AD_FREE_DURATION_OPTIONS.first()
 
     val sounds: List<PremiumSound> = listOf(
         PremiumSound(
@@ -180,6 +187,12 @@ object PremiumCatalog {
     fun soundToPreset(sound: PremiumSound): SoundPreset =
         SoundPreset(sound.id, sound.nameRes, sound.descriptionRes, sound.iconName)
 }
+
+/** 광고 없는 시간 하나를 얻기 위한 보상형 광고 계획입니다. */
+data class AdFreePlan(
+    val minutes: Int,
+    val rewardsRequired: Int,
+)
 
 data class PremiumSound(
     val id: String,

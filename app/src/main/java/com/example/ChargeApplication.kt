@@ -31,6 +31,11 @@ class ChargeApplication : Application() {
                 SoundManager.initializePresets(this@ChargeApplication)
                 val repo = SettingsRepository(this@ChargeApplication)
                 val settings = repo.settingsFlow.first()
+                // 위젯 스피커 버튼이 읽을 수 있게 사운드 상태를 미러링합니다.
+                com.example.service.SessionLive.writeSoundEnabled(
+                    this@ChargeApplication,
+                    settings.soundEnabled
+                )
                 if (settings.isServiceEnabled) {
                     ChargingMonitorService.start(this@ChargeApplication)
                 }

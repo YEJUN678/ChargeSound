@@ -10,6 +10,12 @@ import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -68,6 +74,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -77,6 +84,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -106,6 +114,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -122,6 +132,7 @@ import com.example.ad.AdManager
 import com.example.battery.BatteryInfo
 import com.example.battery.PowerTracker
 import com.example.data.AnimationMode
+import com.example.data.AdFreePlan
 import com.example.data.ChargeSettings
 import com.example.data.PremiumCatalog
 import com.example.data.SoundMode
@@ -135,6 +146,7 @@ import com.example.ui.theme.ElectricCyan
 import com.example.ui.theme.ElectricGreen
 import com.example.ui.theme.ElectricPurple
 import com.example.ui.theme.Spacing
+import com.example.ui.theme.Motion
 import com.example.ui.theme.Slate400
 import com.example.ui.theme.Slate600
 import com.example.ui.theme.Slate700
@@ -372,11 +384,13 @@ fun MainScreen(viewModel: MainViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             // Live Battery & Quick Test Banner with Hero Asset
             BatteryLiveHeaderCard(
                 batteryInfo = batteryInfo,
                 isServiceEnabled = settings.isServiceEnabled,
+                chargeRatePerHour = session.percentPerHour,
                 rateBadge = {
                     ChargingRateBadge(
                         percentPerHour = session.percentPerHour,
@@ -391,12 +405,29 @@ fun MainScreen(viewModel: MainViewModel) {
             // 인디케이터를 직접 그리지 않고 기본값을 씁니다.
             // 이전에 쓰던 SecondaryIndicator 는 Material 3 초기 스타일이라
             // 지금은 얇아 보입니다. 기본 Primary 인디케이터가 두껍고 현재 표준입니다.
-            TabRow(
-                selectedTabIndex = selectedTabIndex,
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = ElectricCyan,
-                divider = { HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant) },
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Spacing.screen, vertical = Spacing.xs),
+                shape = AppShapes.lg,
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
+                TabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = Color.Transparent,
+                    contentColor = ElectricCyan,
+                    divider = {},
+                    indicator = { tabPositions ->
+                        TabRowDefaults.PrimaryIndicator(
+                            modifier = Modifier
+                                .tabIndicatorOffset(tabPositions[selectedTabIndex])
+                                .padding(horizontal = Spacing.lg),
+                            width = 32.dp,
+                            color = ElectricCyan,
+                        )
+                    },
+                ) {
                 Tab(
                     selected = selectedTabIndex == 0,
                     onClick = { selectedTabIndex = 0 },
@@ -457,11 +488,29 @@ fun MainScreen(viewModel: MainViewModel) {
                     selectedContentColor = ElectricCyan,
                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                }
             }
 
             // Tab Content
             Box(modifier = Modifier.weight(1f)) {
-                when (selectedTabIndex) {
+                AnimatedContent(
+                    targetState = selectedTabIndex,
+                    transitionSpec = {
+                        val forward = targetState > initialState
+                        (fadeIn(animationSpec = tween(Motion.MEDIUM_MILLIS)) +
+                            slideInHorizontally(
+                                animationSpec = tween(Motion.MEDIUM_MILLIS),
+                                initialOffsetX = { width -> if (forward) width / 8 else -width / 8 }
+                            )) togetherWith
+                            (fadeOut(animationSpec = tween(Motion.FAST_MILLIS)) +
+                                slideOutHorizontally(
+                                    animationSpec = tween(Motion.FAST_MILLIS),
+                                    targetOffsetX = { width -> if (forward) -width / 12 else width / 12 }
+                                ))
+                    },
+                    label = "tab_content"
+                ) { tabIndex ->
+                when (tabIndex) {
                     0 -> SoundSettingsTab(
                         settings = settings,
                         isPlayingPreview = isPlayingPreview,
@@ -475,6 +524,9 @@ fun MainScreen(viewModel: MainViewModel) {
                         onSelectPreset = { viewModel.selectPresetSound(it) },
                         onToggleVibration = { viewModel.toggleVibration(it) },
                         onToggleVoiceAnnounce = { viewModel.setVoiceAnnounce(it) },
+                        onSaveVoiceTemplates = { start, target -> viewModel.setVoiceTemplates(start, target) },
+                        onToggleLevelTones = { viewModel.setLevelTones(it) },
+                        onToggleShuffle = { viewModel.setShuffleSounds(it) },
                         onPlayCurrent = {
                             // 사운드 미리듣기 중에는 전면류 광고를 차단합니다
                             AdManager.setCoreFeatureBusy(true)
@@ -489,7 +541,9 @@ fun MainScreen(viewModel: MainViewModel) {
                         },
                         isAdFreeActive = isAdFreeActive,
                         adFreeRemainingMinutes = adFreeMinutes,
-                        onWatchAdForAdFree = { viewModel.watchAdForAdFree(activity) },
+                        onWatchAdForAdFree = {
+                            viewModel.watchAdForAdFree(activity, PremiumCatalog.DEFAULT_AD_FREE_PLAN)
+                        },
                         onChooseAdFreeDuration = { showAdFreeDialog = true },
                         overlayGranted = overlayGranted,
                         onRequestOverlayPermission = {
@@ -513,6 +567,7 @@ fun MainScreen(viewModel: MainViewModel) {
                     )
                     2 -> BatteryInfoTab(batteryInfo = batteryInfo)
                 }
+                }
             }
 
             // 배너 광고 (앱 하단 고정)
@@ -533,23 +588,9 @@ fun MainScreen(viewModel: MainViewModel) {
     // "광고 없는 시간" 선택 다이얼로그
     if (showAdFreeDialog) {
         AdFreeDurationDialog(
+            settings = settings,
             onDismiss = { showAdFreeDialog = false },
-            onSelect = { minutes ->
-                showAdFreeDialog = false
-                val act = activity
-                if (act == null) {
-                    viewModel.startAdFreePeriod(minutes)
-                } else {
-                    AdManager.showRewarded(
-                        activity = act,
-                        onReward = { viewModel.startAdFreePeriod(minutes) },
-                        onDismiss = { },
-                        // 광고를 못 불러온 경우에도 시간 시작은 막지 않습니다
-                        // (광고 정책: 광고 실패가 앱 사용을 막아서는 안 됨)
-                        onNotAvailable = { viewModel.startAdFreePeriod(minutes) }
-                    )
-                }
-            }
+            onSelect = { plan -> viewModel.watchAdForAdFree(activity, plan) }
         )
     }
 
@@ -611,7 +652,10 @@ fun MainScreen(viewModel: MainViewModel) {
             onSelectSnoozeMinutes = { viewModel.setAlarmSnoozeMinutes(it) },
             onToggleChargeLimit = { viewModel.setChargeLimitEnabled(it) },
             onSelectChargeLimitPercent = { viewModel.setChargeLimitPercent(it) },
-            onToggleWithSound = { viewModel.setAlarmWithSound(it) }
+            onToggleWithSound = { viewModel.setAlarmWithSound(it) },
+            onRoutineChange = { sound, tts, vibration, animation, notification ->
+                viewModel.setCompletionRoutine(sound, tts, vibration, animation, notification)
+            }
         )
     }
 
@@ -648,6 +692,7 @@ fun MainScreen(viewModel: MainViewModel) {
             settings = settings,
             onDismiss = { showThemeSheet = false },
             onSelectAccent = { viewModel.setAccentKey(it) },
+            onCustomAccentChange = { viewModel.setCustomAccentArgb(it) },
             fontScale = settings.fontScale,
             onSelectFontScale = { viewModel.setFontScale(it) },
             dynamicColor = settings.dynamicColor,
@@ -693,6 +738,7 @@ fun MainScreen(viewModel: MainViewModel) {
 fun BatteryLiveHeaderCard(
     batteryInfo: BatteryInfo,
     isServiceEnabled: Boolean,
+    chargeRatePerHour: Float? = null,
     rateBadge: @Composable () -> Unit = {},
     onTestClick: () -> Unit
 ) {
@@ -706,15 +752,43 @@ fun BatteryLiveHeaderCard(
         ),
         label = "test_pulse"
     )
+    val batteryPulse by infiniteTransition.animateFloat(
+        initialValue = 0.99f,
+        targetValue = 1.018f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1_450, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "battery_percent_pulse"
+    )
+    val glowStrength by infiniteTransition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 0.7f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1_450, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "battery_percent_glow"
+    )
 
     val scheme = MaterialTheme.colorScheme
+    // 링은 위험(온도)을 가장 우선해서 알리고, 그 다음으로 완충·급속·일반 상태를 구분합니다.
+    val ringColor = when {
+        batteryInfo.temperatureC >= 42f -> Color(0xFFFB7185)
+        batteryInfo.temperatureC >= 38f -> ElectricAmber
+        batteryInfo.isCharging && batteryInfo.level >= 100 -> ElectricGreen
+        batteryInfo.isCharging && (chargeRatePerHour ?: 0f) >= 20f -> ElectricPurple
+        batteryInfo.isCharging -> ElectricCyan
+        batteryInfo.level <= 20 -> ElectricAmber
+        else -> Slate400
+    }
     // 히어로 카드에는 이미지 자산을 쓰지 않고 절차적 그라디언트를 그립니다.
     // 이유: 강조색을 바꾸면 카드가 같이 따라가고, APK 가 가볍고,
     // 어떤 화면 비율에서도 잘리지 않습니다.
     val heroBrush = Brush.linearGradient(
         colors = listOf(
-            ElectricCyan.copy(alpha = if (batteryInfo.isCharging) 0.20f else 0.05f),
-            ElectricPurple.copy(alpha = if (batteryInfo.isCharging) 0.10f else 0.02f),
+            ElectricCyan.copy(alpha = if (batteryInfo.isCharging) 0.32f else 0.10f),
+            ElectricPurple.copy(alpha = if (batteryInfo.isCharging) 0.18f else 0.07f),
             Color.Transparent,
         )
     )
@@ -724,18 +798,18 @@ fun BatteryLiveHeaderCard(
             .fillMaxWidth()
             .padding(horizontal = Spacing.screen, vertical = Spacing.sm),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
-        shape = AppShapes.lg,
-        border = BorderStroke(1.dp, if (batteryInfo.isCharging) ElectricCyan.copy(alpha = 0.45f) else scheme.outlineVariant)
+        shape = AppShapes.xl,
+        border = BorderStroke(1.dp, ringColor.copy(alpha = if (batteryInfo.isCharging) 0.60f else 0.38f))
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(132.dp)
+                    .height(156.dp)
                     .background(heroBrush)
             )
 
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(Spacing.lg)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -744,23 +818,30 @@ fun BatteryLiveHeaderCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(50.dp)
+                                .size(58.dp)
                                 .background(
-                                    if (batteryInfo.isCharging) ElectricCyan.copy(alpha = 0.25f) else Slate800,
+                                    ringColor.copy(alpha = if (batteryInfo.isCharging) 0.22f else 0.14f),
                                     CircleShape
                                 )
                                 .border(
                                     1.dp,
-                                    if (batteryInfo.isCharging) ElectricCyan else Color.Transparent,
+                                    ringColor.copy(alpha = if (batteryInfo.isCharging) 0.9f else 0.5f),
                                     CircleShape
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
+                            CircularProgressIndicator(
+                                progress = { (batteryInfo.level / 100f).coerceIn(0f, 1f) },
+                                modifier = Modifier.size(58.dp),
+                                color = ringColor,
+                                trackColor = Color.Transparent,
+                                strokeWidth = 2.dp
+                            )
                             Icon(
                                 imageVector = if (batteryInfo.isCharging) Icons.Default.BatteryChargingFull else Icons.Default.FlashOn,
                                 contentDescription = null,
-                                tint = if (batteryInfo.isCharging) ElectricCyan else ElectricAmber,
-                                modifier = Modifier.size(28.dp)
+                                tint = ringColor,
+                                modifier = Modifier.size(30.dp)
                             )
                         }
                         Spacer(modifier = Modifier.width(Spacing.md))
@@ -768,8 +849,17 @@ fun BatteryLiveHeaderCard(
                             Row(verticalAlignment = Alignment.Bottom) {
                                 Text(
                                     text = "${batteryInfo.level}%",
-                                    style = MaterialTheme.typography.displaySmall,
-                                    color = scheme.onSurface
+                                    style = MaterialTheme.typography.displaySmall.copy(
+                                        shadow = Shadow(
+                                            color = ElectricCyan.copy(
+                                                alpha = if (batteryInfo.isCharging) glowStrength else 0.16f
+                                            ),
+                                            offset = Offset.Zero,
+                                            blurRadius = if (batteryInfo.isCharging) 18f else 8f
+                                        )
+                                    ),
+                                    color = scheme.onSurface,
+                                    modifier = Modifier.scale(if (batteryInfo.isCharging) batteryPulse else 1f)
                                 )
                                 Spacer(modifier = Modifier.width(Spacing.xs))
                                 Text(
@@ -783,15 +873,23 @@ fun BatteryLiveHeaderCard(
                                     modifier = Modifier.padding(bottom = 5.dp)
                                 )
                             }
-                            Text(
-                                text = stringResource(
-                                    R.string.battery_header_plug,
-                                    stringResource(batteryInfo.plugType.displayNameRes),
-                                    batteryInfo.temperatureC
-                                ),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Slate400
-                            )
+                            Surface(
+                                color = scheme.surface.copy(alpha = 0.46f),
+                                shape = AppShapes.pill,
+                                border = BorderStroke(1.dp, scheme.outlineVariant.copy(alpha = 0.6f)),
+                                modifier = Modifier.padding(top = Spacing.xs)
+                            ) {
+                                Text(
+                                    text = stringResource(
+                                        R.string.battery_header_plug,
+                                        stringResource(batteryInfo.plugType.displayNameRes),
+                                        batteryInfo.temperatureC
+                                    ),
+                                    style = AppText.Badge,
+                                    color = scheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = Spacing.sm, vertical = Spacing.xs)
+                                )
+                            }
                             // 충전 속도 배지 (충전 중 + 측정 가능할 때만 그려짐)
                             rateBadge()
                         }
@@ -803,7 +901,7 @@ fun BatteryLiveHeaderCard(
                             containerColor = ElectricCyan,
                             contentColor = Slate950
                         ),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = AppShapes.pill,
                         modifier = Modifier
                             .scale(pulseScale)
                             .testTag("test_charging_simulation_button")
@@ -822,15 +920,15 @@ fun BatteryLiveHeaderCard(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(Spacing.md))
 
                 LinearProgressIndicator(
                     progress = { (batteryInfo.level / 100f).coerceIn(0f, 1f) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(7.dp)
+                        .height(8.dp)
                         .clip(CircleShape),
-                    color = if (batteryInfo.level > 20) ElectricCyan else ElectricAmber,
+                    color = ringColor,
                     trackColor = Slate800
                 )
             }
@@ -852,6 +950,9 @@ fun SoundSettingsTab(
     onSelectPreset: (String) -> Unit,
     onToggleVibration: (Boolean) -> Unit,
     onToggleVoiceAnnounce: (Boolean) -> Unit,
+    onSaveVoiceTemplates: (String, String) -> Unit,
+    onToggleLevelTones: (Boolean) -> Unit,
+    onToggleShuffle: (Boolean) -> Unit,
     onPlayCurrent: () -> Unit,
     onStopSound: () -> Unit,
     onWatchAdToUnlock: (String) -> Unit,
@@ -929,7 +1030,7 @@ fun SoundSettingsTab(
             }
         }
 
-        // 음성 안내 (TTS) — 충전 시작/목표 도달을 말로 알려줍니다.
+        // 음성 안내 · 레벨 톤 · 셔플 — 모두 "알림 방식" 설정이라 한 카드에 묶습니다.
         item {
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -942,6 +1043,37 @@ fun SoundSettingsTab(
                         subtitle = stringResource(R.string.voice_announce_sub),
                         checked = settings.voiceAnnounceEnabled,
                         onCheckedChange = onToggleVoiceAnnounce
+                    )
+                    if (settings.voiceAnnounceEnabled) {
+                        VoiceTemplateEditor(
+                            startTemplate = settings.voiceStartTemplate,
+                            targetTemplate = settings.voiceTargetTemplate,
+                            onSave = onSaveVoiceTemplates
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(MaterialTheme.colorScheme.outlineVariant)
+                    )
+                    ToggleRow(
+                        title = stringResource(R.string.level_tone_title),
+                        subtitle = stringResource(R.string.level_tone_sub),
+                        checked = settings.levelTonesEnabled,
+                        onCheckedChange = onToggleLevelTones
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(MaterialTheme.colorScheme.outlineVariant)
+                    )
+                    ToggleRow(
+                        title = stringResource(R.string.shuffle_title),
+                        subtitle = stringResource(R.string.shuffle_sub),
+                        checked = settings.shuffleSoundsEnabled,
+                        onCheckedChange = onToggleShuffle
                     )
                 }
             }
@@ -1307,6 +1439,44 @@ fun SoundSettingsTab(
                                             style = MaterialTheme.typography.labelSmall,
                                             color = Slate400
                                         )
+                                        Spacer(modifier = Modifier.height(5.dp))
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(7.dp)
+                                        ) {
+                                            PresetWaveform(
+                                                samples = preset.waveform,
+                                                accent = if (isSelected) ElectricCyan else Slate400
+                                            )
+                                            preset.moodRes?.let { moodRes ->
+                                                Surface(
+                                                    color = if (isSelected) {
+                                                        ElectricCyan.copy(alpha = 0.16f)
+                                                    } else {
+                                                        MaterialTheme.colorScheme.surfaceContainerHighest
+                                                    },
+                                                    shape = AppShapes.pill
+                                                ) {
+                                                    Text(
+                                                        text = stringResource(moodRes),
+                                                        style = AppText.Badge,
+                                                        color = if (isSelected) ElectricCyan else Slate400,
+                                                        modifier = Modifier.padding(
+                                                            horizontal = Spacing.sm,
+                                                            vertical = Spacing.xxs
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                            Text(
+                                                text = stringResource(
+                                                    R.string.sound_duration_seconds,
+                                                    preset.previewDurationMs / 1_000f
+                                                ),
+                                                style = AppText.Badge,
+                                                color = Slate400
+                                            )
+                                        }
                                     }
                                 }
 
@@ -1413,6 +1583,74 @@ fun SoundSettingsTab(
             OverlayPermissionCard(
                 isGranted = overlayGranted,
                 onRequestPermission = onRequestOverlayPermission
+            )
+        }
+    }
+}
+
+/** 음성 안내 문구와 토큰을 설정하는 인라인 편집기. */
+@Composable
+private fun VoiceTemplateEditor(
+    startTemplate: String,
+    targetTemplate: String,
+    onSave: (String, String) -> Unit,
+) {
+    var startDraft by remember(startTemplate) { mutableStateOf(startTemplate) }
+    var targetDraft by remember(targetTemplate) { mutableStateOf(targetTemplate) }
+    Column(modifier = Modifier.padding(bottom = Spacing.md)) {
+        Text(
+            text = stringResource(R.string.voice_template_hint),
+            style = MaterialTheme.typography.labelSmall,
+            color = Slate400,
+            modifier = Modifier.padding(top = Spacing.xs, bottom = Spacing.sm)
+        )
+        OutlinedTextField(
+            value = startDraft,
+            onValueChange = { startDraft = it },
+            label = { Text(stringResource(R.string.voice_template_start)) },
+            minLines = 2,
+            textStyle = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(Spacing.sm))
+        OutlinedTextField(
+            value = targetDraft,
+            onValueChange = { targetDraft = it },
+            label = { Text(stringResource(R.string.voice_template_target)) },
+            minLines = 2,
+            textStyle = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Text(
+                text = stringResource(R.string.voice_template_save),
+                color = ElectricCyan,
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier
+                    .clickable { onSave(startDraft, targetDraft) }
+                    .padding(top = Spacing.sm, bottom = Spacing.xs)
+            )
+        }
+    }
+}
+
+/** 정적인 막대로 프리셋의 리듬감을 보여 줍니다. 재생 권한이나 오디오 분석은 필요 없습니다. */
+@Composable
+private fun PresetWaveform(samples: List<Float>, accent: Color) {
+    Row(
+        modifier = Modifier.height(18.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        samples.forEach { sample ->
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height((5f + 13f * sample.coerceIn(0f, 1f)).dp)
+                    .background(accent.copy(alpha = 0.85f), AppShapes.pill)
             )
         }
     }
@@ -1940,8 +2178,9 @@ fun AnimationSettingsTab(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdFreeDurationDialog(
+    settings: ChargeSettings,
     onDismiss: () -> Unit,
-    onSelect: (Int) -> Unit
+    onSelect: (AdFreePlan) -> Unit
 ) {
     BasicAlertDialog(
         onDismissRequest = onDismiss,
@@ -1973,15 +2212,24 @@ fun AdFreeDurationDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                PremiumCatalog.AD_FREE_DURATION_OPTIONS.forEach { minutes ->
+                PremiumCatalog.AD_FREE_DURATION_OPTIONS.forEach { plan ->
+                    val minutes = plan.minutes
+                    val watched = if (settings.adFreePendingMinutes == minutes) {
+                        settings.adFreeRewardProgress
+                    } else {
+                        0
+                    }
                     Surface(
-                        color = Slate800,
+                        color = if (watched > 0) ElectricAmber.copy(alpha = 0.13f) else Slate800,
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Slate700),
+                        border = BorderStroke(
+                            1.dp,
+                            if (watched > 0) ElectricAmber.copy(alpha = 0.75f) else Slate700
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
-                            .clickable { onSelect(minutes) }
+                            .clickable { onSelect(plan) }
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
@@ -2005,12 +2253,28 @@ fun AdFreeDurationDialog(
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.titleLarge,
                             )
-                            Icon(
-                                imageVector = Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                tint = ElectricAmber,
-                                modifier = Modifier.size(20.dp)
-                            )
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = stringResource(
+                                        R.string.adfree_ads_required,
+                                        plan.rewardsRequired
+                                    ),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = ElectricAmber,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                if (watched > 0) {
+                                    Text(
+                                        text = stringResource(
+                                            R.string.adfree_progress,
+                                            watched,
+                                            plan.rewardsRequired
+                                        ),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Slate400
+                                    )
+                                }
+                            }
                         }
                     }
                 }
