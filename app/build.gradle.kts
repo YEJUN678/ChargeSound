@@ -128,6 +128,10 @@ dependencies {
   implementation(libs.androidx.compose.ui.graphics)
   implementation(libs.androidx.compose.ui.tooling.preview)
   implementation(libs.androidx.core.ktx)
+  // appcompat 은 UI 에 쓰지 않습니다(LaunchActivity 는 ComponentActivity).
+  // 다만 OnboardingActivity 가 FragmentActivity + registerForActivityResult 를 쓰는데,
+  // appcompat 을 빼면 androidx.fragment 가 1.2.x 로 내려가 lintVital 이 실패합니다.
+  // 그래서 fragment 버전을 끌어올리는 용도로만 유지합니다.
   implementation(libs.androidx.appcompat)
   implementation(libs.androidx.datastore.preferences)
   implementation(libs.androidx.lifecycle.runtime.compose)
