@@ -27,12 +27,12 @@ object AdUnits {
      * 배포용 빌드에서는 반드시 false 로 바꾸세요. true 인 채로 배포하면
      * 수익이 발생하지 않습니다.
      */
-    const val USE_TEST_ADS: Boolean = true
+    const val USE_TEST_ADS: Boolean = false
 
     // ─────────────────── 실제 광고 단위 (AdMob 콘솔) ───────────────────
 
     /** 앱 ID — 물결표(~) 형태입니다. 광고 단위 ID 와 다릅니다. */
-    const val PROD_APP_ID: String = "ca-app-pub-4709628417690363~PUT_APP_ID_HERE"
+    const val PROD_APP_ID: String = "ca-app-pub-4709628417690363~4678252154"
 
     /** 배너 (앱 하단 고정) */
     const val PROD_BANNER_UNIT: String = "ca-app-pub-4709628417690363/2642367320"

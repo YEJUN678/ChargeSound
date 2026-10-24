@@ -4,6 +4,8 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -210,7 +212,11 @@ fun PremiumSoundsSheet(
     onSelect: (String) -> Unit,
     onWatchAd: (String) -> Unit
 ) {
-    SheetScaffold(titleRes = R.string.premium_sounds_title, onDismiss = onDismiss) {
+    SheetScaffold(
+        titleRes = R.string.premium_sounds_title,
+        onDismiss = onDismiss,
+        scrollable = false
+    ) {
         Text(
             text = stringResource(
                 R.string.premium_sounds_sub,
@@ -259,7 +265,11 @@ fun PremiumAnimationsSheet(
     onSelect: (AnimationMode) -> Unit,
     onWatchAd: (String) -> Unit
 ) {
-    SheetScaffold(titleRes = R.string.premium_anims_title, onDismiss = onDismiss) {
+    SheetScaffold(
+        titleRes = R.string.premium_anims_title,
+        onDismiss = onDismiss,
+        scrollable = false
+    ) {
         Text(
             text = stringResource(
                 R.string.premium_anims_sub,
@@ -904,9 +914,21 @@ fun UpdateAvailableDialog(
 internal fun SheetScaffold(
     @androidx.annotation.StringRes titleRes: Int,
     onDismiss: () -> Unit,
+    /**
+     * 내용을 세로 스크롤로 감쌀지 여부.
+     *
+     * 기본값 true — 테마/충전 통계 시트처럼 내용이 화면보다 길어지면
+     * 아래쪽 항목(고대비 토글, 기록 목록 등)이 잘려서 만질 수 없었습니다.
+     *
+     * 단, 내용물이 이미 LazyColumn 인 시트(프리미엄 사운드/애니메이션)는
+     * 세로 스크롤을 겹치면 "infinite maximum height" 로 크래시하므로
+     * false 로 넘겨야 합니다.
+     */
+    scrollable: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scrollState = rememberScrollState()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -922,6 +944,7 @@ internal fun SheetScaffold(
                 .fillMaxWidth()
                 .padding(horizontal = Spacing.xl)
                 .padding(bottom = Spacing.xxl)
+                .then(if (scrollable) Modifier.verticalScroll(scrollState) else Modifier)
         ) {
             Text(
                 text = stringResource(titleRes),

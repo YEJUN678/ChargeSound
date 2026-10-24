@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 작은 정보 칩 (다크) — 충전기 / 온도 / 전력 / 전압 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#172335" />
+    <corners android:radius="9dp" />
+</shape>

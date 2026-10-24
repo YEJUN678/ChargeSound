@@ -496,6 +496,19 @@
 
     <string name="widget_hint">Tap to open animation</string>
 
+    <!-- Widget v2: ring gauge + info chips -->
+    <string name="widget_status_full_short">Fully charged</string>
+    <string name="widget_temp_fmt">%1$.1f°C</string>
+    <string name="widget_volt_fmt">%1$.2fV</string>
+    <string name="widget_watts_fmt">%1$.1fW</string>
+    <string name="widget_temp_placeholder">°C</string>
+    <string name="widget_volt_placeholder">V</string>
+    <string name="widget_watts_placeholder">W</string>
+    <string name="widget_measuring">Measuring…</string>
+    <string name="widget_unavailable">N/A</string>
+    <string name="widget_updated_fmt">as of %1$s</string>
+    <string name="widget_refresh_cd">Refresh</string>
+
 <string name="btn_youtube_audio">Download YouTube audio free</string>
 <string name="youtube_audio_desc">Opens a free YouTube audio extraction site</string>
 

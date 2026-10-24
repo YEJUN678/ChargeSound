@@ -499,6 +499,19 @@
 
     <string name="widget_hint">Toca para abrir animación</string>
 
+    <!-- Widget v2: indicador circular + chips -->
+    <string name="widget_status_full_short">Completa</string>
+    <string name="widget_temp_fmt">%1$.1f °C</string>
+    <string name="widget_volt_fmt">%1$.2f V</string>
+    <string name="widget_watts_fmt">%1$.1f W</string>
+    <string name="widget_temp_placeholder">°C</string>
+    <string name="widget_volt_placeholder">V</string>
+    <string name="widget_watts_placeholder">W</string>
+    <string name="widget_measuring">Midiendo…</string>
+    <string name="widget_unavailable">N/D</string>
+    <string name="widget_updated_fmt">a las %1$s</string>
+    <string name="widget_refresh_cd">Actualizar</string>
+
 <string name="btn_youtube_audio">Descargar audio de YouTube gratis</string>
 <string name="youtube_audio_desc">Abre el sitio gratuito para extraer audio de YouTube</string>
 

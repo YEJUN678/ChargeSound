@@ -490,6 +490,19 @@
 
     <string name="widget_hint">탭해서 애니메이션 열기</string>
 
+    <!-- 위젯 v2: 링 게이지 + 정보 칩 -->
+    <string name="widget_status_full_short">완충</string>
+    <string name="widget_temp_fmt">%1$.1f°C</string>
+    <string name="widget_volt_fmt">%1$.2fV</string>
+    <string name="widget_watts_fmt">%1$.1fW</string>
+    <string name="widget_temp_placeholder">°C</string>
+    <string name="widget_volt_placeholder">V</string>
+    <string name="widget_watts_placeholder">W</string>
+    <string name="widget_measuring">측정 중…</string>
+    <string name="widget_unavailable">측정 불가</string>
+    <string name="widget_updated_fmt">%1$s 기준</string>
+    <string name="widget_refresh_cd">새로고침</string>
+
 <string name="btn_youtube_audio">유튜브 음원 무료 다운로드</string>
 <string name="youtube_audio_desc">무료 유튜브 음원 추출 사이트로 이동합니다</string>
 

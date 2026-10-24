@@ -54,7 +54,10 @@ android {
     // USE_TEST_ADS 를 **함께** 바꿔야 합니다.
     //   테스트: ca-app-pub-3940256099942544~3347511713
     //   실제  : AdMob 콘솔 → 앱 → 앱 설정에 표시되는 ca-app-pub-4709628417690363~XXXXXXXXXX
-    manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
+    // ADMOB_APP_ID 프로퍼티나 환경변수로 덮어쓸 수 있어 테스트 빌드를 뽑을 때 편합니다.
+    manifestPlaceholders["admobAppId"] =
+      (project.findProperty("ADMOB_APP_ID") as String?)
+        ?: (System.getenv("ADMOB_APP_ID") ?: "ca-app-pub-4709628417690363~4678252154")
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
