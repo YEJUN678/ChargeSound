@@ -28,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Loop
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Icon
@@ -171,6 +172,27 @@ fun HudCloseButton(
         Icon(
             imageVector = Icons.Default.Close,
             contentDescription = stringResource(R.string.a11y_close),
+            tint = Color.White,
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
+/** 충전 오버레이에서도 바로 앱의 설정·상태 화면으로 들어가는 버튼. */
+@Composable
+fun HudOpenAppButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .clip(AppShapes.pill)
+            .background(HudScrim)
+            .border(1.dp, ElectricCyan.copy(alpha = HudBorderAlpha), AppShapes.pill)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Home,
+            contentDescription = stringResource(R.string.a11y_open_app),
             tint = Color.White,
             modifier = Modifier.size(20.dp)
         )

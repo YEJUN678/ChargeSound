@@ -176,21 +176,24 @@ object ChargingSessionTracker {
                 return Snapshot(0L, null, null, false)
             }
 
-            val elapsed = now - session.startedAt
-            if (elapsed <= 0L) return Snapshot(0L, null, null, true)
-
-            val gained = info.level - session.startLevel
-            if (gained <= 0) {
-                // 아직 충전량이 오르지 않았으면 예측할 수 없습니다.
-                return Snapshot(elapsed, null, null, true)
-            }
-
-            val perHour = gained.toFloat() / (elapsed / 3_600_000f)
             val settings = repo.settingsFlow.first()
             val target = settings.alarmTargetPercent
             val remainingPercent = target - info.level
+            val elapsed = now - session.startedAt
+            if (remainingPercent <= 0) return Snapshot(elapsed.coerceAtLeast(0L), null, null, true)
 
-            val eta = if (perHour <= 0.01f || remainingPercent <= 0) {
+            val gained = info.level - session.startLevel
+            // 시작 직후에는 아직 1%가 오르지 않아도, 같은 충전 방식의 최근 기록으로
+            // 대략적인 ETA를 먼저 보여줍니다. 1분 이상 실측되면 실측 속도가 우선입니다.
+            val measuredRate = if (elapsed >= 60_000L && gained > 0) {
+                gained.toFloat() / (elapsed / 3_600_000f)
+            } else {
+                null
+            }
+            val perHour = measuredRate?.takeIf { it > 0.01f }
+                ?: historicalRate(appContext, info.plugType.name.lowercase())
+
+            val eta = if (perHour == null || perHour <= 0.01f) {
                 null
             } else {
                 (remainingPercent.toFloat() / perHour * 3_600_000f).toLong()
@@ -201,5 +204,17 @@ object ChargingSessionTracker {
             Log.w(TAG, "snapshot failed", e)
             Snapshot(0L, null, null, false)
         }
+    }
+
+    /** 최근의 정상 충전 기록으로 초기 ETA를 보완합니다. */
+    private suspend fun historicalRate(context: android.content.Context, plugType: String): Float? {
+        val rates = ChargeHistoryRepository.read(context)
+            .asSequence()
+            .filter { it.plugType == plugType }
+            .mapNotNull { it.percentPerHour }
+            .filter { it in 0.2f..150f }
+            .take(8)
+            .toList()
+        return rates.takeIf { it.isNotEmpty() }?.average()?.toFloat()
     }
 }

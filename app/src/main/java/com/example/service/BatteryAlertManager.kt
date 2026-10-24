@@ -208,7 +208,8 @@ object BatteryAlertManager {
                 com.example.voice.VoiceTemplate.expand(
                     settings.voiceTargetTemplate,
                     info.level,
-                    etaMillis = null
+                    // 목표에 도달한 순간이므로 (t)는 "0분"으로 읽습니다.
+                    etaMillis = 0L
                 )
             )
         }

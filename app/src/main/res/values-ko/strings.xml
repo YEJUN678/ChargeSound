@@ -422,6 +422,7 @@
     <!-- ═══════════════ 충전 애니메이션 화면 HUD ═══════════════ -->
     <string name="anim_rate_measuring">측정 중…</string>
     <string name="anim_exit_hint">아무 곳이나 눌러 닫기</string>
+    <string name="a11y_open_app">앱 열기</string>
     <!-- 충전 애니메이션 화면 HUD -->
     <string name="anim_full_label">충전 완료</string>
 

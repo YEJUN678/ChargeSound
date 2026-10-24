@@ -1,6 +1,7 @@
 package com.example.ui
 
 import android.content.Context
+import android.content.Intent
 import android.app.KeyguardManager
 import android.os.Build
 import com.example.data.SettingsRepository
@@ -165,6 +166,12 @@ class ChargingAnimationActivity : ComponentActivity() {
                     isLoop = isLoop,
                     videoStartMs = videoStartMs,
                     videoEndMs = videoEndMs,
+                    onOpenApp = {
+                        startActivity(Intent(this, com.example.MainActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                        })
+                        finish()
+                    },
                     onExitComplete = {
                         finishAndReturnToPreviousApp()
                     }
@@ -260,7 +267,8 @@ fun ChargingScreenContent(
     isLoop: Boolean,
     videoStartMs: Long,
     videoEndMs: Long,
-    onExitComplete: () -> Unit
+    onExitComplete: () -> Unit,
+    onOpenApp: () -> Unit
 ) {
     val context = LocalContext.current
     var currentBatteryLevel by remember { mutableIntStateOf(initialLevel) }
@@ -439,10 +447,13 @@ fun ChargingScreenContent(
             ) {
                 ChargingPlugChip(plugName = plugName)
 
-                HudCloseButton(
-                    onClick = { requestClose() },
-                    modifier = Modifier.testTag("close_animation_button")
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    HudOpenAppButton(onClick = onOpenApp)
+                    HudCloseButton(
+                        onClick = { requestClose() },
+                        modifier = Modifier.testTag("close_animation_button")
+                    )
+                }
             }
 
             // Center HUD: Battery percentage & neon ring
