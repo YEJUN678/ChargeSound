@@ -190,8 +190,15 @@ object ChargingSessionTracker {
             } else {
                 null
             }
+            val instantRate = if (info.chargeCurrentMa > 0f && info.estimatedCapacityMah > 0f) {
+                info.chargeCurrentMa / info.estimatedCapacityMah * 100f
+            } else null
+            // 충전 시작 순간에는 기록이 없어도 기기가 제공하는 전류값으로 계산합니다.
+            // 전류 API가 막힌 기기만 최근 같은 충전 방식의 기록으로 보완합니다.
             val perHour = measuredRate?.takeIf { it > 0.01f }
+                ?: instantRate?.takeIf { it in 0.2f..150f }
                 ?: historicalRate(appContext, info.plugType.name.lowercase())
+                ?: historicalRate(appContext, null)
 
             val eta = if (perHour == null || perHour <= 0.01f) {
                 null
@@ -207,10 +214,10 @@ object ChargingSessionTracker {
     }
 
     /** 최근의 정상 충전 기록으로 초기 ETA를 보완합니다. */
-    private suspend fun historicalRate(context: android.content.Context, plugType: String): Float? {
+    private suspend fun historicalRate(context: android.content.Context, plugType: String?): Float? {
         val rates = ChargeHistoryRepository.read(context)
             .asSequence()
-            .filter { it.plugType == plugType }
+            .filter { plugType == null || it.plugType == plugType }
             .mapNotNull { it.percentPerHour }
             .filter { it in 0.2f..150f }
             .take(8)

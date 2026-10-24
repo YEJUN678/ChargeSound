@@ -24,6 +24,10 @@ data class BatteryInfo(
     @StringRes val statusRes: Int = R.string.battery_status_unknown,
     val temperatureC: Float = 0f,
     val voltageV: Float = 0f,
+    /** 시스템이 제공하는 순간 충전 전류(mA). 기기 미지원 시 0. */
+    val chargeCurrentMa: Float = 0f,
+    /** 현재 charge counter에서 계산한 추정 전체 용량(mAh). 기기 미지원 시 0. */
+    val estimatedCapacityMah: Float = 0f,
     @StringRes val healthRes: Int = R.string.battery_health_good,
     val technology: String = "Li-ion"
 )
@@ -40,14 +44,14 @@ object BatteryInfoHelper {
     fun getBatteryInfo(context: Context): BatteryInfo {
         val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
         val intent = context.registerReceiver(null, filter) ?: return BatteryInfo()
-        return parseBatteryIntent(intent)
+        return parseBatteryIntent(context, intent)
     }
 
     fun batteryFlow(context: Context): Flow<BatteryInfo> = callbackFlow {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context?, intent: Intent?) {
                 intent?.let {
-                    trySend(parseBatteryIntent(it))
+                    trySend(parseBatteryIntent(context, it))
                 }
             }
         }
@@ -66,7 +70,7 @@ object BatteryInfoHelper {
         }
     }
 
-    private fun parseBatteryIntent(intent: Intent): BatteryInfo {
+    private fun parseBatteryIntent(context: Context, intent: Intent): BatteryInfo {
         val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
         val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
         val batteryPct = if (level >= 0 && scale > 0) (level * 100 / scale) else 0
@@ -109,6 +113,13 @@ object BatteryInfoHelper {
         }
 
         val technology = intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY) ?: "Li-ion"
+        // CURRENT_NOW/CHARGE_COUNTER는 모든 제조사가 제공하진 않습니다. 값이 없으면
+        // 0으로 두고, ETA는 세션·충전 기록 방식으로 자연스럽게 넘어갑니다.
+        val manager = context.getSystemService(BatteryManager::class.java)
+        val currentRaw = manager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)?.toLong() ?: 0L
+        val currentMa = kotlin.math.abs(currentRaw).toFloat() / 1_000f
+        val chargeMah = (manager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) ?: 0) / 1_000f
+        val capacityMah = if (batteryPct > 0 && chargeMah > 0f) chargeMah * 100f / batteryPct else 0f
 
         return BatteryInfo(
             level = batteryPct,
@@ -117,6 +128,8 @@ object BatteryInfoHelper {
             statusRes = statusRes,
             temperatureC = temperatureC,
             voltageV = voltageV,
+            chargeCurrentMa = currentMa,
+            estimatedCapacityMah = capacityMah,
             healthRes = healthRes,
             technology = technology
         )
