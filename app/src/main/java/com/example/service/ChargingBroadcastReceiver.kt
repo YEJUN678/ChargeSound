@@ -68,8 +68,10 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
 
                 if (isPowerConnected) {
                     handlePowerConnected(context, settings)
+                    LockScreenControlReceiver.show(context, settings)
                 } else if (isPowerDisconnected) {
                     handlePowerDisconnected(context, settings)
+                    LockScreenControlReceiver.hide(context)
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error handling power action", e)

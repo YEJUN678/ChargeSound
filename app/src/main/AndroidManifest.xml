@@ -183,6 +183,9 @@
     <receiver
         android:name=".service.AlarmActionReceiver"
         android:exported="false" />
+    <receiver
+        android:name=".service.LockScreenControlReceiver"
+        android:exported="false" />
     </application>
 
 </manifest>

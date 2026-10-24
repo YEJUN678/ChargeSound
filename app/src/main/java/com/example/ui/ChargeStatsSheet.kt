@@ -111,6 +111,9 @@ fun ChargeStatsSheet(
             )
         }
 
+        Spacer(Modifier.height(20.dp))
+        ChargerComparison(records)
+
         Spacer(Modifier.height(10.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -299,6 +302,45 @@ fun ChargeStatsSheet(
             color = Slate700,
             lineHeight = 14.sp
         )
+    }
+}
+
+/** 충전 방식별로 실제 끝난 세션만 비교합니다. USB는 보조배터리를 포함합니다. */
+@Composable
+private fun ChargerComparison(records: List<ChargeRecord>) {
+    val groups = listOf("ac", "usb", "wireless").mapNotNull { type ->
+        val samples = records.filter { it.plugType == type && it.percentPerHour != null }
+        if (samples.isEmpty()) null else type to samples
+    }
+    if (groups.isEmpty()) return
+    Text(stringResource(R.string.stats_charger_title), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.White)
+    Spacer(Modifier.height(4.dp))
+    Text(stringResource(R.string.stats_charger_sub), style = MaterialTheme.typography.labelSmall, color = Slate600)
+    Spacer(Modifier.height(10.dp))
+    groups.forEach { (type, samples) ->
+        val rate = samples.mapNotNull { it.percentPerHour }.average().toFloat()
+        val temp = samples.map { it.peakTempC }.average().toFloat()
+        val eta = (100f / rate * 60f).toLong()
+        val name = when (type) {
+            "ac" -> stringResource(R.string.plug_ac)
+            "usb" -> stringResource(R.string.stats_charger_usb_powerbank)
+            else -> stringResource(R.string.plug_wireless)
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().clip(AppShapes.lg).background(Slate900).padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(name, style = MaterialTheme.typography.labelLarge, color = Color.White)
+                Text(stringResource(R.string.stats_charger_samples, samples.size), style = MaterialTheme.typography.labelSmall, color = Slate600)
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(stringResource(R.string.stats_avg_rate, formatRate(rate)), style = MaterialTheme.typography.labelLarge, color = ElectricCyan)
+                Text(stringResource(R.string.stats_charger_detail, temp, formatMinutesShort(eta)), style = MaterialTheme.typography.labelSmall, color = Slate400)
+            }
+        }
+        Spacer(Modifier.height(8.dp))
     }
 }
 

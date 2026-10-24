@@ -387,6 +387,20 @@
     <string name="stats_today">오늘 %1$s:%2$s</string>
     <string name="stats_clear">기록 모두 삭제</string>
     <string name="stats_local_note">충전 기록은 기기 안의 저장소에만 남습니다. 계정도, 서버도, 백업도 없습니다.</string>
+    <string name="stats_charger_title">충전기 성능 비교</string>
+    <string name="stats_charger_sub">완료된 충전 기록 기준입니다. USB에는 보조배터리가 포함됩니다.</string>
+    <string name="stats_charger_usb_powerbank">USB / 보조배터리</string>
+    <string name="stats_charger_samples">%1$d회 기록</string>
+    <string name="stats_charger_detail">%1$.1f℃ · 0~100%% 약 %2$s</string>
+    <string name="lock_control_channel">충전 제어</string>
+    <string name="lock_control_channel_sub">충전 중 빠른 제어</string>
+    <string name="lock_control_title">충전 빠른 제어</string>
+    <string name="lock_control_summary">목표 충전율: %1$d%%</string>
+    <string name="lock_control_animation_off">애니메이션 끄기</string>
+    <string name="lock_control_animation_on">애니메이션 켜기</string>
+    <string name="lock_control_sound_off">사운드 끄기</string>
+    <string name="lock_control_sound_on">사운드 켜기</string>
+    <string name="lock_control_target">다음 목표</string>
 
     <!-- ═══════════════ 글자 크기 ═══════════════ -->
     <string name="font_scale_title">글자 크기</string>

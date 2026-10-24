@@ -392,6 +392,20 @@
     <string name="stats_today">Today %1$s:%2$s</string>
     <string name="stats_clear">Delete all records</string>
     <string name="stats_local_note">Charging records live only in on-device storage. No account, no server, no backup.</string>
+    <string name="stats_charger_title">Charger performance</string>
+    <string name="stats_charger_sub">Based on completed sessions. USB includes power banks.</string>
+    <string name="stats_charger_usb_powerbank">USB / power bank</string>
+    <string name="stats_charger_samples">%1$d sessions</string>
+    <string name="stats_charger_detail">%1$.1f °C · 0–100%% ~ %2$s</string>
+    <string name="lock_control_channel">Charging controls</string>
+    <string name="lock_control_channel_sub">Quick controls while charging</string>
+    <string name="lock_control_title">Charging quick controls</string>
+    <string name="lock_control_summary">Target charge: %1$d%%</string>
+    <string name="lock_control_animation_off">Animation off</string>
+    <string name="lock_control_animation_on">Animation on</string>
+    <string name="lock_control_sound_off">Sound off</string>
+    <string name="lock_control_sound_on">Sound on</string>
+    <string name="lock_control_target">Next target</string>
 
     <!-- ═══════════════ 글자 크기 ═══════════════ -->
     <string name="font_scale_title">Text size</string>
