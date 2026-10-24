@@ -15,6 +15,8 @@
     <string name="wear_speed_slow">저속</string>
 
     <string name="wear_sync_fmt">%1$s 동기화</string>
+    <string name="wear_local_label">이 기기</string>
+    <string name="wear_local_hint">휴대폰 앱을 설치하면 휴대폰 배터리가 표시됩니다</string>
     <string name="wear_waiting_title">휴대폰 연결 대기 중</string>
     <string name="wear_waiting_desc">휴대폰에서 ChargeSound 를 한 번 실행해 주세요</string>
 

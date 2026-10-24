@@ -153,29 +153,45 @@ private fun BatteryContent(
     Spacer(modifier = Modifier.height(4.dp))
 
     Text(
-        text = stringResource(R.string.wear_sync_fmt, syncTime(snapshot.updatedAt)),
+        text = if (snapshot.isLocal) {
+            stringResource(R.string.wear_local_label)
+        } else {
+            stringResource(R.string.wear_sync_fmt, syncTime(snapshot.updatedAt))
+        },
         fontSize = 9.sp,
         color = Slate600
     )
 
     Spacer(modifier = Modifier.height(14.dp))
 
-    WatchButton(
-        text = stringResource(
-            if (snapshot.serviceEnabled) R.string.wear_action_toggle_off
-            else R.string.wear_action_toggle_on
-        ),
-        primary = true,
-        onClick = onToggleService
-    )
+    if (snapshot.isLocal) {
+        // 휴대폰 앱이 없으면 명령을 받아줄 상대가 없습니다. 버튼을 눌러도
+        // 아무 일이 없으므로 그리지 않고 안내만 남깁니다.
+        Text(
+            text = stringResource(R.string.wear_local_hint),
+            fontSize = 10.sp,
+            color = Slate400,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 6.dp)
+        )
+    } else {
+        WatchButton(
+            text = stringResource(
+                if (snapshot.serviceEnabled) R.string.wear_action_toggle_off
+                else R.string.wear_action_toggle_on
+            ),
+            primary = true,
+            onClick = onToggleService
+        )
 
-    Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-    WatchButton(
-        text = stringResource(R.string.wear_action_open_phone),
-        primary = false,
-        onClick = onOpenPhone
-    )
+        WatchButton(
+            text = stringResource(R.string.wear_action_open_phone),
+            primary = false,
+            onClick = onOpenPhone
+        )
+    }
 }
 
 @Composable

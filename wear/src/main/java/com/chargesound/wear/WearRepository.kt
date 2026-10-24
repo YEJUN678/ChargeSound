@@ -24,7 +24,14 @@ data class PhoneSnapshot(
     val tempC: Int,
     val serviceEnabled: Boolean,
     /** 휴대폰이 값을 만든 시각 (epoch millis) */
-    val updatedAt: Long
+    val updatedAt: Long,
+    /**
+     * true 면 휴대폰이 보낸 값이 아니라 **이 기기**의 배터리입니다.
+     *
+     * 휴대폰 앱과 연결되지 않았을 때 [LocalBattery] 가 채웁니다. 이 경우
+     * 명령(감지 on/off, 휴대폰 앱 열기)은 보낼 상대가 없으므로 UI 에서 숨깁니다.
+     */
+    val isLocal: Boolean = false
 )
 
 /**
