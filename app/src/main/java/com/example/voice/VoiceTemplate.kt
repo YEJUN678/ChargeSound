@@ -11,7 +11,7 @@ object VoiceTemplate {
             val totalMinutes = (millis / 60_000L).coerceAtLeast(1L)
             val hours = totalMinutes / 60
             val minutes = totalMinutes % 60
-            if (hours > 0) "$hours시간 $minutes분" else "$minutes분"
+            if (hours > 0) "${hours}시간 ${minutes}분" else "${minutes}분"
         } ?: "예측할 수 없습니다"
         val date = DateFormat.getDateInstance(DateFormat.LONG, Locale.getDefault()).format(Date())
         return template
