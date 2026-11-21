@@ -547,4 +547,74 @@
 
 <string name="menu_crash_report">Enviar informe de errores (%1$d)</string>
 
+<string name="ambient_sound_title">Ambiente de carga</string>
+<string name="ambient_sound_sub">Un suave pad espacial fluye mientras cargas</string>
+<string name="ambient_sound_note">Se reproduce solo mientras cargas · se silencia en horas tranquilas</string>
+<string name="ambient_sound_volume_label">Volumen</string>
+<string name="ambient_sound_volume_value">%1$d%%</string>
+<string name="ambient_sound_volume_sub">Ajusta mientras suena para oír el cambio al instante.</string>
+
+<string name="btn_record_voice">Grabar mi propio sonido</string>
+<string name="record_dialog_title">Grabar un sonido de carga</string>
+<string name="record_dialog_sub">Toca Iniciar y haz tu sonido (hasta 10 segundos). Se guarda y se establece como tu sonido de carga al instante.</string>
+<string name="btn_record_start">Iniciar grabación</string>
+<string name="btn_record_stop">Detener y usar</string>
+<string name="record_seconds">%1$d / %2$d s</string>
+<string name="record_failed">La grabación falló. Revisa el permiso del micrófono e inténtalo de nuevo.</string>
+<string name="msg_recorded_audio_applied">Tu grabación es ahora el sonido de carga.</string>
+<string name="msg_record_fail">No se pudo guardar la grabación: %1$s</string>
+
+<string name="edge_glow_title">Iluminación de borde</string>
+<string name="edge_glow_channel_name">Iluminación de borde</string>
+<string name="edge_glow_channel_desc">Muestra un breve resplandor alrededor del borde de la pantalla al conectar un cargador</string>
+<string name="edge_glow_card_sub">Una luz de neón recorre el borde de la pantalla al cargar</string>
+<string name="edge_glow_sub">Un resplandor de neón recorre el borde de la pantalla sin taparla, y el color sigue el nivel de batería</string>
+<string name="edge_glow_persistent_title">Mantenerla encendida al cargar</string>
+<string name="edge_glow_persistent_sub">Deja un resplandor suave en el borde hasta que desenchufes</string>
+<string name="edge_glow_preview">Previsualizar el efecto</string>
+<string name="edge_glow_permission_needed">Para mostrar el resplandor, permite \"Mostrar sobre otras apps\".</string>
+<string name="edge_glow_customize">Color · efectos · velocidad</string>
+<string name="edge_glow_settings_title">Ajustes de iluminación de borde</string>
+<string name="edge_glow_opacity_label">Brillo (opacidad)</string>
+<string name="edge_glow_opacity_value">%1$d%%</string>
+<string name="edge_glow_opacity_sub">Baja para un resplandor más suave, alta para uno más marcado.</string>
+<string name="edge_glow_sweep_label">Tiempo de rotación</string>
+<string name="edge_glow_sweep_value">%1$.1f s</string>
+<string name="edge_glow_sweep_sub">Cuánto tarda la luz en dar una vuelta completa alrededor de la pantalla.</string>
+<string name="edge_glow_auto_color_title">Color automático según la batería</string>
+<string name="edge_glow_auto_color_sub">Rojo por debajo del 20 por ciento · turquesa por encima del 80</string>
+<string name="edge_glow_auto_color_note">El color automático está activado, así que los colores personalizados de abajo no se usan.</string>
+<string name="edge_glow_color_start">Color inicial</string>
+<string name="edge_glow_color_mid">Color medio</string>
+<string name="edge_glow_color_end">Color final</string>
+<string name="edge_glow_channel_red">R</string>
+<string name="edge_glow_channel_green">G</string>
+<string name="edge_glow_channel_blue">B</string>
+<string name="edge_glow_palette_title">Paletas de colores</string>
+<string name="edge_glow_preset_auto">Automático</string>
+<string name="edge_glow_preset_aurora">Aurora</string>
+<string name="edge_glow_preset_sunset">Atardecer</string>
+<string name="edge_glow_preset_mint">Menta</string>
+<string name="edge_glow_preset_cyber">Ciber</string>
+<string name="edge_glow_preset_blossom">Floración</string>
+<string name="edge_glow_effects_title">Efectos</string>
+<string name="edge_glow_gauge_title">Rellenar el borde según la batería</string>
+<string name="edge_glow_gauge_sub">Al 40 por ciento solo se enciende el 40 por ciento del marco</string>
+<string name="edge_glow_breathing_title">Resplandor de respiración</string>
+<string name="edge_glow_breathing_sub">El brillo sube y baja lentamente</string>
+<string name="edge_glow_comet_title">Cola de cometa</string>
+<string name="edge_glow_comet_sub">Una cabeza brillante con una estela que se desvanece sigue la rotación</string>
+<string name="edge_glow_sparks_title">Chispas en las esquinas</string>
+<string name="edge_glow_sparks_sub">Chispas en las esquinas, más grandes al 25, 50, 75 y 100 por ciento</string>
+<string name="edge_glow_pill_title">Píldora de carga en la parte superior</string>
+<string name="edge_glow_pill_sub">Muestra el nivel de batería y el tiempo restante durante unos segundos</string>
+<string name="edge_glow_pill_charging">Cargando</string>
+<string name="edge_glow_pill_wireless">Carga inalámbrica</string>
+<string name="edge_glow_pill_full">Carga completa</string>
+<string name="edge_glow_pill_preview">Vista previa</string>
+<string name="edge_glow_pill_minutes">Quedan %1$d min</string>
+<string name="edge_glow_pill_hours">Quedan %1$d h %2$d min</string>
+<string name="edge_glow_liquid_title">Medidor de olas abajo</string>
+<string name="edge_glow_liquid_sub">Una suave ola sube desde abajo según se llena la batería</string>
+
 </resources>
