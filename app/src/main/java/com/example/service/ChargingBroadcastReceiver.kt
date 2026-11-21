@@ -44,6 +44,14 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
 
         if (!isPowerConnected && !isPowerDisconnected) return
 
+        // 충전 해제 시 엣지 라이팅 상시 표시를 설정과 무관하게 즉시 내립니다.
+        // (모니터링을 끈 뒤 뽑아도 오버레이가 남지 않도록)
+        if (isPowerDisconnected) {
+            EdgeGlowService.stop(context)
+            // 충전 앰비언트는 모니터링 설정과 무관하게 즉시 멈춥니다.
+            com.example.sound.ChargingAmbience.stop()
+        }
+
         // 위젯은 서비스 활성 여부와 무관하게 항상 즉시 갱신합니다.
         // (충전기를 꽂는 순간이 사용자가 위젯을 가장 먼저 보는 시점입니다)
         try {
@@ -67,6 +75,7 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
                 }
 
                 if (isPowerConnected) {
+                    com.example.service.ChargingMonitorService.start(context)
                     handlePowerConnected(context, settings)
                     LockScreenControlReceiver.show(context, settings)
                 } else if (isPowerDisconnected) {
@@ -94,6 +103,36 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
             triggerVibration(context)
         }
 
+        // 1-1. 화면 가장자리 네온 효과 — 다른 앱을 쓰는 중에도 방해 없이 보여 줍니다.
+        //      (오버레이 권한이 없으면 서비스가 조용히 종료됩니다.)
+        if (settings.edgeGlowEnabled) {
+            val glowInfo = batteryInfoOf(context)
+            EdgeGlowService.start(
+                context = context,
+                level = glowInfo.level,
+                plug = glowInfo.plugType,
+                persistent = settings.edgeGlowPersistent,
+                style = EdgeGlowStyle(
+                    opacity = settings.edgeGlowOpacity,
+                    sweepMs = settings.edgeGlowSweepMs,
+                    colorStart = settings.edgeGlowColorStart.toInt(),
+                    colorMid = settings.edgeGlowColorMid.toInt(),
+                    colorEnd = settings.edgeGlowColorEnd.toInt(),
+                    autoColor = settings.edgeGlowAutoColor,
+                    gauge = settings.edgeGlowGauge,
+                    breathing = settings.edgeGlowBreathing,
+                    comet = settings.edgeGlowComet,
+                    sparks = settings.edgeGlowSparks,
+                    pill = settings.edgeGlowPill,
+                    liquid = settings.edgeGlowLiquid
+                )
+            )
+        }
+
+        // 1-2. 충전 앰비언트 — 조용한 시간에는 재생하지 않습니다.
+        if (settings.ambientSoundEnabled && !quietNow) {
+            com.example.sound.ChargingAmbience.start(context, settings.ambientSoundVolume)
+        }
         // 2. Play Audio with duration-synchronized fade out
         if (settings.soundEnabled && !quietNow) {
             // 충전 방식(AC/USB/무선)에 따라 다른 프리셋을 쓸 수 있습니다.

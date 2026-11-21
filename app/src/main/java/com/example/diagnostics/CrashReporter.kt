@@ -83,11 +83,16 @@ object CrashReporter {
         } catch (e: Exception) {
             0L
         }
+        // 원스토어가 요구한 versionCodeMajor 가 붙으면 전체 코드가 (major<<32)|minor 로
+        // 42억대 숫자가 됩니다. 스택 트레이스를 나중에 읽을 때 "vc4294967308?" 로
+        // 헷갈리지 않도록 major/minor 를 따로 적어 둡니다.
+        val major = (versionCode shr 32).toInt()
+        val minor = (versionCode and 0xFFFFFFFFL).toInt()
 
         return buildString {
             appendLine("ChargeSound crash report")
             appendLine("time     : " + SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date()))
-            appendLine("version  : $versionName ($versionCode)")
+            appendLine("version  : $versionName (code $major.$minor)")
             appendLine("device   : ${Build.MANUFACTURER} ${Build.MODEL}")
             appendLine("android  : ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})")
             appendLine("thread   : ${thread.name}")

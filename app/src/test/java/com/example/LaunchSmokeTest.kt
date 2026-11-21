@@ -1,7 +1,9 @@
 package com.example
 
+import androidx.appcompat.app.AppCompatActivity
 import com.example.ui.LaunchActivity
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -30,14 +32,40 @@ class LaunchSmokeTest {
 
     @Test
     fun launchActivity_startsWithoutCrashing() {
-        val controller = Robolectric.buildActivity(LaunchActivity::class.java).setup()
+        // onCreate 안에서 테마/초기화 예외가 나면 여기서 바로 실패합니다.
+        // (v1.6.0(vc6)의 "Theme.AppCompat theme을 써야 합니다" 크래시가
+        //  이 지점에서 잡히는 형태입니다)
+        val controller = Robolectric.buildActivity(LaunchActivity::class.java).create()
         val activity = controller.get()
 
+        assertNotNull("onCreate 이후 액티비티 인스턴스가 없습니다", activity)
+        assertNotNull("LaunchActivity 에 창(Window)이 붙지 않았습니다", activity.window)
+
+        // LaunchActivity 는 온보딩/메인으로 넘기고 자기 자신을 finish() 합니다.
+        // 그래서 isFinishing 은 정상일 수 있고, 소멸(isDestroyed)만 봅니다.
         assertFalse(
-            "LaunchActivity 가 onCreate 직후 스스로 종료되었습니다",
-            activity.isFinishing
+            "LaunchActivity 가 onCreate 도중 소멸했습니다",
+            activity.isDestroyed
         )
 
-        controller.pause().stop().destroy()
+        controller.destroy()
+    }
+
+    /**
+     * v1.6.0(vc6) 크래시 재발 방지.
+     *
+     * `LaunchActivity` 는 프레임워크 테마 `Theme.Splash` 를 씁니다. 거기에
+     * `AppCompatActivity` 를 붙이면 onCreate 직후 아래 예외로 앱이 죽습니다
+     * (그 상태로 스토어에 올라갔었습니다):
+     *
+     *   IllegalStateException: You need to use a Theme.AppCompat theme
+     *   (or descendant) with this activity.
+     */
+    @Test
+    fun launchActivity_isNotAppCompatActivity() {
+        assertFalse(
+            "LaunchActivity 가 AppCompatActivity 입니다. Theme.Splash 와 충돌해 다시 크래시합니다",
+            AppCompatActivity::class.java.isAssignableFrom(LaunchActivity::class.java)
+        )
     }
 }

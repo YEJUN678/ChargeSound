@@ -44,3 +44,6 @@ app/src/*/google-services.json
 # Android 개발자 인증 (ADI) 스니펫 — 민감 정보이므로 커밋하지 않음
 app/src/main/assets/adi-registration.properties
 release-out.txt
+# 로컬 빌드 로그 (실수로 커밋되지 않게)
+build-log.txt
+release-log.txt

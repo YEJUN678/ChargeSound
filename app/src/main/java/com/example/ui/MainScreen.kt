@@ -58,6 +58,7 @@ import androidx.compose.material.icons.filled.ElectricBolt
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Power
@@ -70,6 +71,7 @@ import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -98,9 +100,11 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -129,6 +133,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import com.example.R
 import com.example.ad.AdManager
+import com.example.audio.VoiceRecorder
 import com.example.battery.BatteryInfo
 import com.example.battery.PowerTracker
 import com.example.data.AnimationMode
@@ -176,6 +181,8 @@ fun MainScreen(viewModel: MainViewModel) {
     var showAlarmSheet by remember { mutableStateOf(false) }
     var showAlertsSheet by remember { mutableStateOf(false) }
     var showSoundContextSheet by remember { mutableStateOf(false) }
+    var showVoiceRecorder by remember { mutableStateOf(false) }
+    var showEdgeGlowSheet by remember { mutableStateOf(false) }
     var showThemeSheet by remember { mutableStateOf(false) }
     var showStatsSheet by remember { mutableStateOf(false) }
     var showTrimSheet by remember { mutableStateOf(false) }
@@ -237,6 +244,13 @@ fun MainScreen(viewModel: MainViewModel) {
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { viewModel.handleSelectedVideo(it) }
+    }
+
+    // 마이크 권한 — 허용하면 곧바로 녹음 다이얼로그를 엽니다.
+    val recordPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) showVoiceRecorder = true
     }
 
     // "다른 앱 위에 표시" 권한 요청
@@ -516,10 +530,23 @@ fun MainScreen(viewModel: MainViewModel) {
                         isPlayingPreview = isPlayingPreview,
                         activePlayingId = activePlayingId,
                         onPickAudio = { audioPickerLauncher.launch("audio/*") },
+                        onRecordAudio = {
+                            val granted = ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.RECORD_AUDIO
+                            ) == PackageManager.PERMISSION_GRANTED
+                            if (granted) {
+                                showVoiceRecorder = true
+                            } else {
+                                recordPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            }
+                        },
                         onClearAudio = { viewModel.clearCustomAudio() },
                         onTrimAudio = { showTrimSheet = true },
                         hasSoundRange = settings.customSoundEndMs > settings.customSoundStartMs,
                         onToggleSound = { viewModel.toggleSoundEnabled(it) },
+                        onToggleAmbientSound = { viewModel.setAmbientSoundEnabled(it) },
+                        onAmbientVolumeChange = { viewModel.setAmbientSoundVolume(it) },
                         onVolumeChange = { viewModel.setVolume(it) },
                         onSelectPreset = { viewModel.selectPresetSound(it) },
                         onToggleVibration = { viewModel.toggleVibration(it) },
@@ -545,6 +572,10 @@ fun MainScreen(viewModel: MainViewModel) {
                             viewModel.watchAdForAdFree(activity, PremiumCatalog.DEFAULT_AD_FREE_PLAN)
                         },
                         onChooseAdFreeDuration = { showAdFreeDialog = true },
+                        onToggleEdgeGlow = { viewModel.setEdgeGlowEnabled(it) },
+                        onToggleEdgeGlowPersistent = { viewModel.setEdgeGlowPersistent(it) },
+                        onPreviewEdgeGlow = { viewModel.previewEdgeGlow() },
+                        onCustomizeEdgeGlow = { showEdgeGlowSheet = true },
                         overlayGranted = overlayGranted,
                         onRequestOverlayPermission = {
                             overlayPermissionLauncher.launch(viewModel.overlaySettingsIntent())
@@ -683,7 +714,42 @@ fun MainScreen(viewModel: MainViewModel) {
                 viewModel.setPlugPreset(plugType, presetId)
             },
             onToggleQuiet = { viewModel.setQuietHoursEnabled(it) },
-            onSetQuietHours = { start, end -> viewModel.setQuietHours(start, end) }
+            onSetQuietHours = { start, end -> viewModel.setQuietHours(start, end) },
+            onToggleEdgeGlow = { viewModel.setEdgeGlowEnabled(it) },
+            onToggleEdgeGlowPersistent = { viewModel.setEdgeGlowPersistent(it) }
+        )
+    }
+
+    if (showVoiceRecorder) {
+        VoiceRecorderDialog(
+            onDismiss = { showVoiceRecorder = false },
+            onRecorded = { file ->
+                showVoiceRecorder = false
+                viewModel.applyRecordedAudio(file)
+            }
+        )
+    }
+
+    if (showEdgeGlowSheet) {
+        EdgeGlowSettingsSheet(
+            settings = settings,
+            onDismiss = { showEdgeGlowSheet = false },
+            onOpacityChange = { viewModel.setEdgeGlowOpacity(it) },
+            onSweepChange = { viewModel.setEdgeGlowSweepMs(it) },
+            onToggleAutoColor = { viewModel.setEdgeGlowAutoColor(it) },
+            onColorStartChange = { viewModel.setEdgeGlowColorStart(it) },
+            onColorMidChange = { viewModel.setEdgeGlowColorMid(it) },
+            onColorEndChange = { viewModel.setEdgeGlowColorEnd(it) },
+            onToggleGauge = { viewModel.setEdgeGlowGauge(it) },
+            onToggleBreathing = { viewModel.setEdgeGlowBreathing(it) },
+            onToggleComet = { viewModel.setEdgeGlowComet(it) },
+            onToggleSparks = { viewModel.setEdgeGlowSparks(it) },
+            onTogglePill = { viewModel.setEdgeGlowPill(it) },
+            onToggleLiquid = { viewModel.setEdgeGlowLiquid(it) },
+            onApplyPreset = { start, mid, end ->
+                viewModel.applyEdgeGlowPalette(start, mid, end)
+            },
+            onPreview = { viewModel.previewEdgeGlow() }
         )
     }
 
@@ -942,10 +1008,13 @@ fun SoundSettingsTab(
     isPlayingPreview: Boolean,
     activePlayingId: String?,
     onPickAudio: () -> Unit,
+    onRecordAudio: () -> Unit,
     onClearAudio: () -> Unit,
     onTrimAudio: () -> Unit,
     hasSoundRange: Boolean,
     onToggleSound: (Boolean) -> Unit,
+    onToggleAmbientSound: (Boolean) -> Unit,
+    onAmbientVolumeChange: (Float) -> Unit,
     onVolumeChange: (Float) -> Unit,
     onSelectPreset: (String) -> Unit,
     onToggleVibration: (Boolean) -> Unit,
@@ -960,6 +1029,10 @@ fun SoundSettingsTab(
     adFreeRemainingMinutes: Int,
     onWatchAdForAdFree: () -> Unit,
     onChooseAdFreeDuration: () -> Unit,
+    onToggleEdgeGlow: (Boolean) -> Unit,
+    onToggleEdgeGlowPersistent: (Boolean) -> Unit,
+    onPreviewEdgeGlow: () -> Unit,
+    onCustomizeEdgeGlow: () -> Unit,
     overlayGranted: Boolean,
     onRequestOverlayPermission: () -> Unit
 ) {
@@ -1026,6 +1099,121 @@ fun SoundSettingsTab(
                         ),
                         modifier = Modifier.testTag("sound_enable_switch")
                     )
+                }
+            }
+        }
+
+        // 엣지 라이팅 — 사운드 탭에서 바로 보이도록 별도 카드로 노출합니다.
+        item {
+            EdgeGlowSettingsCard(
+                settings = settings,
+                overlayGranted = overlayGranted,
+                onToggle = onToggleEdgeGlow,
+                onTogglePersistent = onToggleEdgeGlowPersistent,
+                onPreview = onPreviewEdgeGlow,
+                onCustomize = onCustomizeEdgeGlow,
+                onRequestOverlayPermission = onRequestOverlayPermission
+            )
+        }
+
+        // 충전 앰비언트 — 충전 중에만 은은한 패드가 흐릅니다.
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = AppShapes.md,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            color = ElectricPurple.copy(alpha = 0.15f),
+                            shape = CircleShape,
+                            modifier = Modifier.size(44.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.Audiotrack,
+                                    contentDescription = null,
+                                    tint = ElectricPurple,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.ambient_sound_title),
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.White
+                            )
+                            Text(
+                                text = stringResource(R.string.ambient_sound_sub),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Slate400
+                            )
+                        }
+                        Switch(
+                            checked = settings.ambientSoundEnabled,
+                            onCheckedChange = onToggleAmbientSound,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Slate950,
+                                checkedTrackColor = ElectricPurple,
+                                uncheckedThumbColor = Slate400,
+                                uncheckedTrackColor = Slate800
+                            ),
+                            modifier = Modifier.testTag("ambient_sound_switch")
+                        )
+                    }
+                    AnimatedVisibility(visible = settings.ambientSoundEnabled) {
+                        Column {
+                            Text(
+                                text = stringResource(R.string.ambient_sound_note),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Slate400,
+                                modifier = Modifier.padding(top = 10.dp)
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.ambient_sound_volume_label),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = Slate400
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.ambient_sound_volume_value,
+                                        (settings.ambientSoundVolume * 100).toInt()
+                                    ),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = ElectricPurple
+                                )
+                            }
+                            Slider(
+                                value = settings.ambientSoundVolume,
+                                onValueChange = onAmbientVolumeChange,
+                                valueRange = 0.05f..1f,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = ElectricPurple,
+                                    activeTrackColor = ElectricPurple,
+                                    inactiveTrackColor = Slate700
+                                ),
+                                modifier = Modifier.testTag("ambient_volume_slider")
+                            )
+                            Text(
+                                text = stringResource(R.string.ambient_sound_volume_sub),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Slate600
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -1323,6 +1511,33 @@ fun SoundSettingsTab(
                             } else {
                                 stringResource(R.string.btn_pick_mp3)
                             },
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // 앱에서 바로 3~10초 녹음해 충전음으로 사용
+                    Button(
+                        onClick = onRecordAudio,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ElectricPurple.copy(alpha = 0.18f),
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("record_voice_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = null,
+                            tint = ElectricPurple,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.btn_record_voice),
                             fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -2623,4 +2838,301 @@ internal fun formatWatts(watts: Float): String {
     } else {
         String.format(java.util.Locale.getDefault(), "%.0f", v)
     }
+}
+
+/**
+ * 사운드 탭에 노출되는 엣지 라이팅 설정 카드.
+ *
+ * 이전에는 오버플로 메뉴 → "소리 · 조용한 시간" 안에 숨어 있어 찾기 어려웠습니다.
+ * 여기서 바로 켜고, 상시 표시 여부를 정하고, 미리보기까지 할 수 있습니다.
+ */
+@Composable
+private fun EdgeGlowSettingsCard(
+    settings: ChargeSettings,
+    overlayGranted: Boolean,
+    onToggle: (Boolean) -> Unit,
+    onTogglePersistent: (Boolean) -> Unit,
+    onPreview: () -> Unit,
+    onCustomize: () -> Unit,
+    onRequestOverlayPermission: () -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = AppShapes.md,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    color = ElectricCyan.copy(alpha = 0.15f),
+                    shape = CircleShape,
+                    modifier = Modifier.size(44.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.FlashOn,
+                            contentDescription = null,
+                            tint = ElectricCyan,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.edge_glow_title),
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White
+                    )
+                    Text(
+                        text = stringResource(R.string.edge_glow_card_sub),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Slate400
+                    )
+                }
+                Switch(
+                    checked = settings.edgeGlowEnabled,
+                    onCheckedChange = onToggle,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Slate950,
+                        checkedTrackColor = ElectricCyan,
+                        uncheckedThumbColor = Slate400,
+                        uncheckedTrackColor = Slate800
+                    ),
+                    modifier = Modifier.testTag("edge_glow_switch")
+                )
+            }
+
+            AnimatedVisibility(visible = settings.edgeGlowEnabled) {
+                Column {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.edge_glow_persistent_title),
+                                fontWeight = FontWeight.SemiBold,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White
+                            )
+                            Text(
+                                text = stringResource(R.string.edge_glow_persistent_sub),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Slate400
+                            )
+                        }
+                        Switch(
+                            checked = settings.edgeGlowPersistent,
+                            onCheckedChange = onTogglePersistent,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Slate950,
+                                checkedTrackColor = ElectricCyan,
+                                uncheckedThumbColor = Slate400,
+                                uncheckedTrackColor = Slate800
+                            ),
+                            modifier = Modifier.testTag("edge_glow_persistent_switch")
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (overlayGranted) {
+                        OutlinedButton(
+                            onClick = onPreview,
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = ElectricCyan),
+                            border = BorderStroke(1.dp, ElectricCyan.copy(alpha = 0.5f)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("edge_glow_preview_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FlashOn,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.edge_glow_preview),
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = stringResource(R.string.edge_glow_permission_needed),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = ElectricAmber
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = onRequestOverlayPermission,
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = ElectricAmber),
+                            border = BorderStroke(1.dp, ElectricAmber.copy(alpha = 0.5f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.overlay_btn_grant))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 투명도 · 색상(시작/중간/끝) · 회전 시간 설정
+                    OutlinedButton(
+                        onClick = onCustomize,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("edge_glow_customize_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Tune,
+                            contentDescription = null,
+                            tint = ElectricCyan,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.edge_glow_customize),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 앱 안에서 짧은 충전음을 직접 녹음하는 다이얼로그.
+ *
+ * MP3 를 받아 오거나 자를 필요 없이 마이크로 10초까지 녹음하고,
+ * [onRecorded] 로 파일을 넘겨 커스텀 충전음으로 바로 적용합니다.
+ * 다이얼로그를 닫으면 마이크를 반드시 놓아 줍니다.
+ */
+@Composable
+private fun VoiceRecorderDialog(
+    onDismiss: () -> Unit,
+    onRecorded: (java.io.File) -> Unit
+) {
+    val context = LocalContext.current
+    val recorder = remember { VoiceRecorder(context.applicationContext) }
+    var isRecording by remember { mutableStateOf(false) }
+    var elapsedSeconds by remember { mutableIntStateOf(0) }
+    var errorText by remember { mutableStateOf<String?>(null) }
+
+    // 화면이 사라질 때 녹음 중이면 조용히 정리합니다. (마이크 점유 방지)
+    DisposableEffect(Unit) {
+        onDispose { recorder.cancel() }
+    }
+
+    // 녹음 중 1초마다 경과 시간을 올리고, 최대 길이에 닿으면 자동으로 멈춥니다.
+    LaunchedEffect(isRecording) {
+        if (!isRecording) return@LaunchedEffect
+        elapsedSeconds = 0
+        repeat(VoiceRecorder.MAX_RECORDING_SECONDS) {
+            delay(1_000)
+            if (!isRecording) return@LaunchedEffect
+            elapsedSeconds += 1
+        }
+        if (isRecording) {
+            val file = recorder.stop()
+            isRecording = false
+            if (file != null) {
+                onRecorded(file)
+            } else {
+                errorText = context.getString(R.string.record_failed)
+            }
+        }
+    }
+
+    fun startRecording() {
+        if (recorder.start()) {
+            errorText = null
+            elapsedSeconds = 0
+            isRecording = true
+        } else {
+            errorText = context.getString(R.string.record_failed)
+        }
+    }
+
+    fun stopAndApply() {
+        val file = recorder.stop()
+        isRecording = false
+        if (file != null) {
+            onRecorded(file)
+        } else {
+            errorText = context.getString(R.string.record_failed)
+        }
+    }
+
+    fun cancelAndDismiss() {
+        recorder.cancel()
+        isRecording = false
+        onDismiss()
+    }
+
+    AlertDialog(
+        onDismissRequest = ::cancelAndDismiss,
+        title = { Text(stringResource(R.string.record_dialog_title)) },
+        text = {
+            Column {
+                Text(
+                    text = stringResource(R.string.record_dialog_sub),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Slate400
+                )
+                if (isRecording) {
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = stringResource(
+                            R.string.record_seconds,
+                            elapsedSeconds,
+                            VoiceRecorder.MAX_RECORDING_SECONDS
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = ElectricPurple
+                    )
+                }
+                errorText?.let { message ->
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = ElectricAmber
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { if (isRecording) stopAndApply() else startRecording() }) {
+                Text(
+                    text = if (isRecording) {
+                        stringResource(R.string.btn_record_stop)
+                    } else {
+                        stringResource(R.string.btn_record_start)
+                    },
+                    color = if (isRecording) ElectricAmber else ElectricCyan
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = ::cancelAndDismiss) {
+                Text(stringResource(R.string.btn_cancel))
+            }
+        },
+        containerColor = Slate900,
+        titleContentColor = Color.White,
+        textContentColor = Color.White
+    )
 }

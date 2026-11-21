@@ -42,6 +42,7 @@ class SettingsRepository(private val context: Context) {
         val KEY_SERVICE_ENABLED = booleanPreferencesKey("service_enabled")
         val KEY_SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
         val KEY_VOICE_ANNOUNCE = booleanPreferencesKey("voice_announce_enabled")
+        val KEY_VOICE_RATE = floatPreferencesKey("voice_rate")
         val KEY_VOICE_START_TEMPLATE = stringPreferencesKey("voice_start_template")
         val KEY_VOICE_TARGET_TEMPLATE = stringPreferencesKey("voice_target_template")
         val KEY_LEVEL_TONES = booleanPreferencesKey("level_tones_enabled")
@@ -89,6 +90,22 @@ class SettingsRepository(private val context: Context) {
 
     // ── 잠금 화면 ──
     val KEY_SHOW_ON_LOCK_SCREEN = booleanPreferencesKey("show_on_lock_screen")
+    val KEY_EDGE_GLOW = booleanPreferencesKey("edge_glow_enabled")
+    val KEY_EDGE_GLOW_PERSISTENT = booleanPreferencesKey("edge_glow_persistent")
+    val KEY_EDGE_GLOW_OPACITY = floatPreferencesKey("edge_glow_opacity")
+    val KEY_EDGE_GLOW_SWEEP_MS = intPreferencesKey("edge_glow_sweep_ms")
+    val KEY_EDGE_GLOW_AUTO_COLOR = booleanPreferencesKey("edge_glow_auto_color")
+    val KEY_EDGE_GLOW_COLOR_START = longPreferencesKey("edge_glow_color_start")
+    val KEY_EDGE_GLOW_COLOR_MID = longPreferencesKey("edge_glow_color_mid")
+    val KEY_EDGE_GLOW_COLOR_END = longPreferencesKey("edge_glow_color_end")
+    val KEY_EDGE_GLOW_GAUGE = booleanPreferencesKey("edge_glow_gauge")
+    val KEY_EDGE_GLOW_BREATHING = booleanPreferencesKey("edge_glow_breathing")
+    val KEY_EDGE_GLOW_COMET = booleanPreferencesKey("edge_glow_comet")
+    val KEY_EDGE_GLOW_SPARKS = booleanPreferencesKey("edge_glow_sparks")
+    val KEY_EDGE_GLOW_PILL = booleanPreferencesKey("edge_glow_pill")
+    val KEY_EDGE_GLOW_LIQUID = booleanPreferencesKey("edge_glow_liquid")
+    val KEY_AMBIENT_SOUND = booleanPreferencesKey("ambient_sound_enabled")
+    val KEY_AMBIENT_VOLUME = floatPreferencesKey("ambient_sound_volume")
 
     // ── 충전 방식별 사운드 ──
     val KEY_PLUG_SPECIFIC = booleanPreferencesKey("plug_specific_sounds")
@@ -220,6 +237,7 @@ class SettingsRepository(private val context: Context) {
             isServiceEnabled = prefs[KEY_SERVICE_ENABLED] ?: true,
             soundEnabled = prefs[KEY_SOUND_ENABLED] ?: true,
             voiceAnnounceEnabled = prefs[KEY_VOICE_ANNOUNCE] ?: false,
+            voiceRate = (prefs[KEY_VOICE_RATE] ?: 0.95f).coerceIn(0.5f, 1.5f),
             voiceStartTemplate = prefs[KEY_VOICE_START_TEMPLATE] ?: "충전을 시작합니다. 현재 배터리는 (%)퍼센트입니다.",
             voiceTargetTemplate = prefs[KEY_VOICE_TARGET_TEMPLATE] ?: "배터리가 (%)퍼센트입니다. 오늘은 (d)입니다.",
             levelTonesEnabled = prefs[KEY_LEVEL_TONES] ?: false,
@@ -267,6 +285,22 @@ class SettingsRepository(private val context: Context) {
             tempAlertThresholdC = prefs[KEY_TEMP_ALERT_THRESHOLD] ?: 45f,
             healthAlertEnabled = prefs[KEY_HEALTH_ALERT_ENABLED] ?: true,
             showOnLockScreen = prefs[KEY_SHOW_ON_LOCK_SCREEN] ?: true,
+            edgeGlowEnabled = prefs[KEY_EDGE_GLOW] ?: true,
+            edgeGlowPersistent = prefs[KEY_EDGE_GLOW_PERSISTENT] ?: true,
+            edgeGlowOpacity = (prefs[KEY_EDGE_GLOW_OPACITY] ?: 0.9f).coerceIn(0.15f, 1f),
+            edgeGlowSweepMs = (prefs[KEY_EDGE_GLOW_SWEEP_MS] ?: 5_500).coerceIn(1_500, 15_000),
+            edgeGlowAutoColor = prefs[KEY_EDGE_GLOW_AUTO_COLOR] ?: true,
+            edgeGlowColorStart = prefs[KEY_EDGE_GLOW_COLOR_START] ?: 0xFF22D3EEL,
+            edgeGlowColorMid = prefs[KEY_EDGE_GLOW_COLOR_MID] ?: 0xFF4ADE80L,
+            edgeGlowColorEnd = prefs[KEY_EDGE_GLOW_COLOR_END] ?: 0xFFFBBF24L,
+            edgeGlowGauge = prefs[KEY_EDGE_GLOW_GAUGE] ?: false,
+            edgeGlowBreathing = prefs[KEY_EDGE_GLOW_BREATHING] ?: true,
+            edgeGlowComet = prefs[KEY_EDGE_GLOW_COMET] ?: true,
+            edgeGlowSparks = prefs[KEY_EDGE_GLOW_SPARKS] ?: true,
+            edgeGlowPill = prefs[KEY_EDGE_GLOW_PILL] ?: true,
+            edgeGlowLiquid = prefs[KEY_EDGE_GLOW_LIQUID] ?: true,
+            ambientSoundEnabled = prefs[KEY_AMBIENT_SOUND] ?: false,
+            ambientSoundVolume = (prefs[KEY_AMBIENT_VOLUME] ?: 0.32f).coerceIn(0.05f, 1f),
             plugSpecificSounds = prefs[KEY_PLUG_SPECIFIC] ?: false,
             acPresetId = prefs[KEY_AC_PRESET] ?: "cyber_chime",
             usbPresetId = prefs[KEY_USB_PRESET] ?: "lightning_spark",
@@ -404,6 +438,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVoiceAnnounceEnabled(enabled: Boolean) {
         context.dataStore.edit { it[KEY_VOICE_ANNOUNCE] = enabled }
+    }
+
+    suspend fun setVoiceRate(rate: Float) {
+        context.dataStore.edit { it[KEY_VOICE_RATE] = rate.coerceIn(0.5f, 1.5f) }
     }
 
     suspend fun setCompletionRoutine(sound: Boolean, tts: Boolean, vibration: Boolean, animation: Boolean, notification: Boolean) {
@@ -643,6 +681,80 @@ class SettingsRepository(private val context: Context) {
         context.dataStore.edit { it[KEY_SHOW_ON_LOCK_SCREEN] = enabled }
     }
 
+    suspend fun setEdgeGlowEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_EDGE_GLOW] = enabled }
+    }
+
+    suspend fun setEdgeGlowPersistent(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_EDGE_GLOW_PERSISTENT] = enabled }
+    }
+
+    suspend fun setEdgeGlowOpacity(value: Float) {
+        context.dataStore.edit { it[KEY_EDGE_GLOW_OPACITY] = value.coerceIn(0.15f, 1f) }
+    }
+
+    suspend fun setEdgeGlowSweepMs(value: Int) {
+        context.dataStore.edit { it[KEY_EDGE_GLOW_SWEEP_MS] = value.coerceIn(1_500, 15_000) }
+    }
+
+    suspend fun setEdgeGlowAutoColor(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_EDGE_GLOW_AUTO_COLOR] = enabled }
+    }
+
+    suspend fun setEdgeGlowColorStart(argb: Long) {
+        context.dataStore.edit { it[KEY_EDGE_GLOW_COLOR_START] = argb }
+    }
+
+    suspend fun setEdgeGlowColorMid(argb: Long) {
+        context.dataStore.edit { it[KEY_EDGE_GLOW_COLOR_MID] = argb }
+    }
+
+    suspend fun setEdgeGlowColorEnd(argb: Long) {
+        context.dataStore.edit { it[KEY_EDGE_GLOW_COLOR_END] = argb }
+    }
+
+    suspend fun setEdgeGlowGauge(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_EDGE_GLOW_GAUGE] = enabled }
+    }
+
+    suspend fun setEdgeGlowBreathing(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_EDGE_GLOW_BREATHING] = enabled }
+    }
+
+    suspend fun setEdgeGlowComet(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_EDGE_GLOW_COMET] = enabled }
+    }
+
+    suspend fun setEdgeGlowSparks(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_EDGE_GLOW_SPARKS] = enabled }
+    }
+
+    suspend fun setEdgeGlowPill(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_EDGE_GLOW_PILL] = enabled }
+    }
+
+    suspend fun setEdgeGlowLiquid(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_EDGE_GLOW_LIQUID] = enabled }
+    }
+
+    suspend fun setAmbientSoundEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_AMBIENT_SOUND] = enabled }
+    }
+
+    suspend fun setAmbientSoundVolume(volume: Float) {
+        context.dataStore.edit { it[KEY_AMBIENT_VOLUME] = volume.coerceIn(0.05f, 1f) }
+    }
+
+    /** 색상 프리셋을 한 번에 적용하고 자동 색상을 끕니다. */
+    suspend fun applyEdgeGlowPalette(start: Long, mid: Long, end: Long) {
+        context.dataStore.edit {
+            it[KEY_EDGE_GLOW_COLOR_START] = start
+            it[KEY_EDGE_GLOW_COLOR_MID] = mid
+            it[KEY_EDGE_GLOW_COLOR_END] = end
+            it[KEY_EDGE_GLOW_AUTO_COLOR] = false
+        }
+    }
+
     /**
      * 보상형 광고 1회 시청분(1 credit)을 적립합니다.
      *
@@ -802,6 +914,26 @@ class SettingsRepository(private val context: Context) {
             it.remove(KEY_CUSTOM_SOUND_NAME)
             it.remove(KEY_CUSTOM_SOUND_PATH)
             it[KEY_SOUND_MODE] = SoundMode.PRESET.name
+        }
+    }
+
+    /** 앱에서 직접 녹음한 파일을 커스텀 충전음으로 저장한다. */
+    suspend fun saveRecordedAudio(file: File): Result<String> {
+        return try {
+            val targetFile = File(context.filesDir, "custom_charge_sound.m4a")
+            file.copyTo(targetFile, overwrite = true)
+            context.dataStore.edit {
+                it[KEY_CUSTOM_SOUND_NAME] = targetFile.name
+                it[KEY_CUSTOM_SOUND_PATH] = targetFile.absolutePath
+                it[KEY_SOUND_MODE] = SoundMode.CUSTOM.name
+                // 이전 파일에 맞춰 둔 구간이 새 녹음(최대 10초)보다 길면 무음이 되므로 초기화합니다.
+                it[KEY_SOUND_START_MS] = 0L
+                it[KEY_SOUND_END_MS] = 0L
+            }
+            Result.success(targetFile.name)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save recorded audio", e)
+            Result.failure(e)
         }
     }
 

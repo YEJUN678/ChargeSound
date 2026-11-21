@@ -28,6 +28,8 @@ data class BatteryInfo(
     val chargeCurrentMa: Float = 0f,
     /** 현재 charge counter에서 계산한 추정 전체 용량(mAh). 기기 미지원 시 0. */
     val estimatedCapacityMah: Float = 0f,
+    /** 측정된 충전 전력 (W). 측정 불가 시 null. */
+    val currentWatts: Float? = null,
     @StringRes val healthRes: Int = R.string.battery_health_good,
     val technology: String = "Li-ion"
 )
@@ -121,6 +123,12 @@ object BatteryInfoHelper {
         val chargeMah = (manager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) ?: 0) / 1_000f
         val capacityMah = if (batteryPct > 0 && chargeMah > 0f) chargeMah * 100f / batteryPct else 0f
 
+        val currentWatts: Float? = try {
+            PowerTracker.get(context).sample()
+        } catch (e: Exception) {
+            null
+        }
+
         return BatteryInfo(
             level = batteryPct,
             isCharging = isCharging,
@@ -130,6 +138,7 @@ object BatteryInfoHelper {
             voltageV = voltageV,
             chargeCurrentMa = currentMa,
             estimatedCapacityMah = capacityMah,
+            currentWatts = currentWatts,
             healthRes = healthRes,
             technology = technology
         )

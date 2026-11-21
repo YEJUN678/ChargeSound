@@ -25,15 +25,27 @@ object VoiceAnnouncer {
 
     private const val TAG = "VoiceAnnouncer"
     private const val UTTERANCE_ID = "chargesound_voice"
+    private const val DEFAULT_RATE = 0.95f
+    private const val MIN_RATE = 0.5f
+    private const val MAX_RATE = 1.5f
 
     private var tts: TextToSpeech? = null
     private var ready = false
     private var pendingText: String? = null
+    private var rate: Float = DEFAULT_RATE
+
+    /** 발화 속도를 설정한다 (0.5 ~ 1.5). */
+    @Synchronized
+    fun setRate(newRate: Float) {
+        rate = newRate.coerceIn(MIN_RATE, MAX_RATE)
+        tts?.setSpeechRate(rate)
+    }
 
     @Synchronized
     fun announce(context: Context, text: String) {
         if (text.isBlank()) return
         val app = context.applicationContext
+        val utteranceRate = rate
 
         if (tts == null) {
             ready = false
@@ -46,7 +58,7 @@ object VoiceAnnouncer {
                     ) {
                         engine?.setLanguage(Locale.KOREAN)
                     }
-                    engine?.setSpeechRate(0.95f)
+                    engine?.setSpeechRate(rate)
                     ready = true
                     pendingText?.let { queued ->
                         pendingText = null
@@ -68,7 +80,9 @@ object VoiceAnnouncer {
 
     private fun speakNow(text: String) {
         try {
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID)
+            val engine = tts
+            engine?.setSpeechRate(rate)
+            engine?.speak(text, TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID)
         } catch (e: Exception) {
             Log.w(TAG, "speak failed", e)
         }

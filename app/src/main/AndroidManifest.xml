@@ -1,11 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  android:versionCodeMajor — 원스토어(ONE Store) 바이너리 등록용.
+
+  원스토어는 APK 에 "메이저 버전 코드"가 없으면 등록을 거부합니다.
+  (문구: 메이저 버전 코드 없음). 안드로이드의 전체 버전 코드는
+      (versionCodeMajor << 32) | versionCode
+  이므로, 값을 올린 뒤에는 절대 내리면 안 됩니다 — 내리면 기기/스토어가
+  "이전 버전"으로 보고 업데이트를 거부합니다.
+
+  AGP 의 defaultConfig 에는 versionCodeMajor 가 없어서(빌드 시 "Could not find
+  method versionCodeMajor()" 오류) 매니페스트에 직접 적습니다.
+
+  ※ 원스토어 정책: AAB 상품은 versionCodeMajor 를 쓸 수 없습니다.
+    versionCodeMajor 를 쓰려면 바이너리 유형을 APK 로 제출해야 합니다(우리는 APK).
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:versionCodeMajor="1">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- 앱 안에서 짧은 충전음을 직접 녹음할 때 사용 -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -106,6 +124,17 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Charging detector service that plays custom sound and animation on power connect" />
+        </service>
+
+        <!-- 충전 시작 시 화면 가장자리에 잠깐 번지는 네온 효과 -->
+        <service
+            android:name=".service.EdgeGlowService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Brief edge lighting effect shown when a charger is connected" />
         </service>
 
         <!-- 빠른 설정 타일 (Android 7.0+) -->

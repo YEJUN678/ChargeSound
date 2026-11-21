@@ -71,8 +71,14 @@ data class SoundPreset(
 data class ChargeSettings(
     val isServiceEnabled: Boolean = true,
     val soundEnabled: Boolean = true,
+    /** 충전 중 은은한 앰비언트 패드를 계속 재생 */
+    val ambientSoundEnabled: Boolean = false,
+    /** 충전 앰비언트 볼륨. 0.05 ~ 1.0 */
+    val ambientSoundVolume: Float = 0.32f,
     /** 충전 시작/목표 도달을 음성(TTS)으로 안내 */
     val voiceAnnounceEnabled: Boolean = false,
+    /** TTS 발화 속도 (0.5 ~ 1.5). */
+    val voiceRate: Float = 0.95f,
     /** TTS 문구 템플릿. (%), (t), (d)는 발화 직전에 실제 값으로 바뀝니다. */
     val voiceStartTemplate: String = "충전을 시작합니다. 현재 배터리는 (%)퍼센트입니다.",
     val voiceTargetTemplate: String = "배터리가 (%)퍼센트입니다. 오늘은 (d)입니다.",
@@ -182,6 +188,34 @@ data class ChargeSettings(
     // ── 잠금 화면 ──
     /** 잠금 화면에서도 충전 애니메이션을 재생합니다 */
     val showOnLockScreen: Boolean = true,
+    /** 충전기 연결 시 화면 가장자리에 네온 빛이 잠깐 번지는 효과 */
+    val edgeGlowEnabled: Boolean = true,
+    /** 충전 중에는 엣지 라이팅을 은은하게 계속 표시합니다 */
+    val edgeGlowPersistent: Boolean = true,
+    /** 엣지 라이팅 전체 밝기(불투명도). 0.15 ~ 1.0 */
+    val edgeGlowOpacity: Float = 0.9f,
+    /** 그라데이션이 한 바퀴 도는 시간(ms). 1500 ~ 15000 */
+    val edgeGlowSweepMs: Int = 5_500,
+    /** 잔량에 따라 색을 자동으로 바꿀지 여부 (false 면 사용자 지정 색 사용) */
+    val edgeGlowAutoColor: Boolean = true,
+    /** 사용자 지정 그라데이션 시작 색 (ARGB) */
+    val edgeGlowColorStart: Long = 0xFF22D3EEL,
+    /** 사용자 지정 그라데이션 중간 색 (ARGB) */
+    val edgeGlowColorMid: Long = 0xFF4ADE80L,
+    /** 사용자 지정 그라데이션 끝 색 (ARGB) */
+    val edgeGlowColorEnd: Long = 0xFFFBBF24L,
+    /** 잔량만큼 테두리를 채우는 게이지 모드 */
+    val edgeGlowGauge: Boolean = false,
+    /** 밝기가 천천히 오르내리는 숨쉬기 효과 */
+    val edgeGlowBreathing: Boolean = true,
+    /** 회전하는 빛에 혜성 꼬리를 붙임 */
+    val edgeGlowComet: Boolean = true,
+    /** 모서리에서 짧게 터지는 불꽃 */
+    val edgeGlowSparks: Boolean = true,
+    /** 충전 시작 시 상단에 뜨는 다이나믹 아일랜드 알약 */
+    val edgeGlowPill: Boolean = true,
+    /** 화면 아래에서 잔량만큼 차오르는 물결 게이지 */
+    val edgeGlowLiquid: Boolean = true,
 
     // ── 충전 방식별 사운드 ──
     /** AC / USB / 무선에 각각 다른 프리셋 사운드를 지정합니다 */

@@ -62,7 +62,9 @@ fun SoundContextSettingsSheet(
     onTogglePlugSpecific: (Boolean) -> Unit,
     onSelectPreset: (PlugType, String) -> Unit,
     onToggleQuiet: (Boolean) -> Unit,
-    onSetQuietHours: (Int, Int) -> Unit
+    onSetQuietHours: (Int, Int) -> Unit,
+    onToggleEdgeGlow: (Boolean) -> Unit = {},
+    onToggleEdgeGlowPersistent: (Boolean) -> Unit = {}
 ) {
     val presets = remember { SoundManager.FREE_PRESETS }
 
@@ -164,6 +166,27 @@ fun SoundContextSettingsSheet(
                 ),
                 style = MaterialTheme.typography.labelSmall,
                 color = Slate400
+            )
+        }
+
+        HorizontalDivider(color = Slate800)
+        Spacer(Modifier.height(16.dp))
+
+        // 엣지 라이팅: 충전기가 꽂힐 때 화면 가장자리에만 네온 빛이 돈다.
+        ToggleRow(
+            title = stringResource(R.string.edge_glow_title),
+            subtitle = stringResource(R.string.edge_glow_sub),
+            checked = settings.edgeGlowEnabled,
+            onCheckedChange = onToggleEdgeGlow
+        )
+
+        if (settings.edgeGlowEnabled) {
+            Spacer(Modifier.height(10.dp))
+            ToggleRow(
+                title = stringResource(R.string.edge_glow_persistent_title),
+                subtitle = stringResource(R.string.edge_glow_persistent_sub),
+                checked = settings.edgeGlowPersistent,
+                onCheckedChange = onToggleEdgeGlowPersistent
             )
         }
     }

@@ -291,6 +291,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 앱에서 직접 녹음한 파일을 커스텀 충전음으로 적용합니다.
+     *
+     * 녹음 파일은 [VoiceRecorder] 가 만든 임시 파일이며, 성공하면 앱 저장소로
+     * 복사된 뒤 임시 파일은 지웁니다. 실패하면 사용자에게 이유를 알려 줍니다.
+     */
+    fun applyRecordedAudio(file: java.io.File) {
+        viewModelScope.launch {
+            val result = repository.saveRecordedAudio(file)
+            if (result.isSuccess) {
+                runCatching { file.delete() }
+                _userMessage.value = msg(R.string.msg_recorded_audio_applied)
+                previewPlayCurrentSound()
+            } else {
+                _userMessage.value = msg(
+                    R.string.msg_record_fail,
+                    result.exceptionOrNull()?.message ?: ""
+                )
+            }
+        }
+    }
+
     /** 크스텀 영상 적용 후 보상형 광고 제안 트리거 */
     private val _offerFreeUnlockCredit = MutableStateFlow<String?>(null)
     val offerFreeUnlockCredit: StateFlow<String?> = _offerFreeUnlockCredit.asStateFlow()
@@ -337,6 +359,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _userMessage.value = msg(R.string.msg_monitoring_started)
             } else {
                 ChargingMonitorService.stop(context)
+                // 감지를 끄면 충전 앰비언트도 함께 멈춥니다.
+                com.example.sound.ChargingAmbience.stop()
+                // 감지를 끄면 상시 표시 중이던 엣지 라이팅도 함께 내립니다.
+                com.example.service.EdgeGlowService.stop(context)
                 _userMessage.value = msg(R.string.msg_monitoring_stopped)
             }
         }
@@ -581,6 +607,115 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setQuietHours(startMinute: Int, endMinute: Int) {
         viewModelScope.launch { repository.setQuietHours(startMinute, endMinute) }
+    }
+
+    /** 충전기 연결 시 화면 가장자리 네온 효과를 켜고 끕니다. */
+    fun setEdgeGlowEnabled(enabled: Boolean) {
+        viewModelScope.launch { repository.setEdgeGlowEnabled(enabled) }
+        if (!enabled) {
+            // 충전 중에 껐다면 떠 있는 오버레이를 즉시 내립니다.
+            com.example.service.EdgeGlowService.stop(getApplication())
+        }
+    }
+
+    /** 충전 중 엣지 라이팅을 은은하게 계속 표시할지 정합니다. */
+    fun setEdgeGlowPersistent(enabled: Boolean) {
+        viewModelScope.launch { repository.setEdgeGlowPersistent(enabled) }
+    }
+
+    /** 엣지 라이팅 전체 밝기(불투명도). */
+    fun setEdgeGlowOpacity(value: Float) {
+        viewModelScope.launch { repository.setEdgeGlowOpacity(value) }
+    }
+
+    /** 그라데이션 회전 시간(ms). */
+    fun setEdgeGlowSweepMs(value: Int) {
+        viewModelScope.launch { repository.setEdgeGlowSweepMs(value) }
+    }
+
+    /** 잔량에 따른 자동 색상 사용 여부. */
+    fun setEdgeGlowAutoColor(enabled: Boolean) {
+        viewModelScope.launch { repository.setEdgeGlowAutoColor(enabled) }
+    }
+
+    fun setEdgeGlowColorStart(argb: Long) {
+        viewModelScope.launch { repository.setEdgeGlowColorStart(argb) }
+    }
+
+    fun setEdgeGlowColorMid(argb: Long) {
+        viewModelScope.launch { repository.setEdgeGlowColorMid(argb) }
+    }
+
+    fun setEdgeGlowColorEnd(argb: Long) {
+        viewModelScope.launch { repository.setEdgeGlowColorEnd(argb) }
+    }
+
+    /** 잔량 게이지 · 숨쉬기 · 혜성 꼬리 · 코너 스파크 · 충전 알약 */
+    fun setEdgeGlowGauge(enabled: Boolean) {
+        viewModelScope.launch { repository.setEdgeGlowGauge(enabled) }
+    }
+
+    fun setEdgeGlowBreathing(enabled: Boolean) {
+        viewModelScope.launch { repository.setEdgeGlowBreathing(enabled) }
+    }
+
+    fun setEdgeGlowComet(enabled: Boolean) {
+        viewModelScope.launch { repository.setEdgeGlowComet(enabled) }
+    }
+
+    fun setEdgeGlowSparks(enabled: Boolean) {
+        viewModelScope.launch { repository.setEdgeGlowSparks(enabled) }
+    }
+
+    fun setEdgeGlowPill(enabled: Boolean) {
+        viewModelScope.launch { repository.setEdgeGlowPill(enabled) }
+    }
+
+    fun setEdgeGlowLiquid(enabled: Boolean) {
+        viewModelScope.launch { repository.setEdgeGlowLiquid(enabled) }
+    }
+
+    /** 충전 앰비언트 사운드. 끄면 즉시 재생을 멈춥니다. */
+    fun setAmbientSoundEnabled(enabled: Boolean) {
+        viewModelScope.launch { repository.setAmbientSoundEnabled(enabled) }
+        if (!enabled) {
+            com.example.sound.ChargingAmbience.stop()
+        } else {
+            com.example.sound.ChargingAmbience.setVolume(settings.value.ambientSoundVolume)
+        }
+    }
+
+    /** 충전 앰비언트 볼륨. 재생 중이면 즉시 반영됩니다. */
+    fun setAmbientSoundVolume(volume: Float) {
+        viewModelScope.launch { repository.setAmbientSoundVolume(volume) }
+        com.example.sound.ChargingAmbience.setVolume(volume)
+    }
+
+    /** 색상 프리셋(시작·중간·끝)을 한 번에 적용합니다. */
+    fun applyEdgeGlowPalette(start: Long, mid: Long, end: Long) {
+        viewModelScope.launch { repository.applyEdgeGlowPalette(start, mid, end) }
+    }
+
+    /** 설정 화면에서 엣지 라이팅 효과를 즉시 미리 봅니다. */
+    fun previewEdgeGlow() {
+        val app = getApplication<Application>()
+        val info = BatteryInfoHelper.getBatteryInfo(app)
+        val current = settings.value
+        val style = com.example.service.EdgeGlowStyle(
+            opacity = current.edgeGlowOpacity,
+            sweepMs = current.edgeGlowSweepMs,
+            colorStart = current.edgeGlowColorStart.toInt(),
+            colorMid = current.edgeGlowColorMid.toInt(),
+            colorEnd = current.edgeGlowColorEnd.toInt(),
+            autoColor = current.edgeGlowAutoColor,
+            gauge = current.edgeGlowGauge,
+            breathing = current.edgeGlowBreathing,
+            comet = current.edgeGlowComet,
+            sparks = current.edgeGlowSparks,
+            pill = current.edgeGlowPill,
+            liquid = current.edgeGlowLiquid
+        )
+        com.example.service.EdgeGlowService.preview(app, info.level, info.plugType, style)
     }
 
     fun previewPlaySound(presetId: String? = null) {

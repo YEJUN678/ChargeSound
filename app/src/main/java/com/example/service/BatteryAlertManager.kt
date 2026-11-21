@@ -62,6 +62,9 @@ object BatteryAlertManager {
     private var lastTempNotifiedAt = 0L
     private const val HEALTH_NOTIFY_COOLDOWN_MS = 6L * 60L * 60L * 1000L
 
+    /** 고전력 충전 감지 임계값 (W). 이 전력 이상 충전 시 자동으로 경보/사운드/진동 강화. */
+    private const val RAPID_CHARGE_WATTS_THRESHOLD = 15f
+
     /** 잔량 톤을 울릴 마일스톤 */
     private val LEVEL_TONE_MILESTONES = intArrayOf(50, 80, 100)
 
@@ -193,16 +196,32 @@ object BatteryAlertManager {
     ) {
         Log.d(TAG, "Firing charge alarm at ${info.level}% (target $target)")
 
+        // 전력 기반 자동 강화: 고전력 충전 감지 시 경보/사운드/진동/음성 강도 상향.
+        val rapidCharge = info.currentWatts?.let { it >= RAPID_CHARGE_WATTS_THRESHOLD } ?: false
+        
+        // 야간 시간대라면 소리/음성 알림 억제
+        val nowMinuteOfDay = java.util.Calendar.getInstance().let {
+            it.get(java.util.Calendar.HOUR_OF_DAY) * 60 + it.get(java.util.Calendar.MINUTE)
+        }
+        val isQuiet = settings.isQuietHourNow(nowMinuteOfDay)
+
+
         // 루틴에서 켠 동작만 실행합니다. 앱 전체 진동 설정도 함께 존중합니다.
         if (settings.completionRoutineVibration && settings.vibrationEnabled) {
-            vibrate(context, longArrayOf(0, 400, 200, 400, 200, 800))
+            vibrate(
+                context,
+                if (rapidCharge) longArrayOf(0, 500, 250, 500, 250, 1000) else longArrayOf(0, 400, 200, 400, 200, 800)
+            )
         }
 
-        if (settings.completionRoutineSound) {
-            playAlarmTone(context)
+        if (settings.completionRoutineSound && !isQuiet) {
+            playAlarmTone(context, if (rapidCharge) 1.25f else 1f)
         }
 
-        if (settings.completionRoutineTts && settings.voiceAnnounceEnabled) {
+        if (settings.completionRoutineTts && settings.voiceAnnounceEnabled && !isQuiet) {
+            com.example.voice.VoiceAnnouncer.setRate(
+                if (rapidCharge) settings.voiceRate * 1.15f else settings.voiceRate
+            )
             com.example.voice.VoiceAnnouncer.announce(
                 context,
                 com.example.voice.VoiceTemplate.expand(
@@ -365,12 +384,13 @@ object BatteryAlertManager {
     }
 
     /** 기본 알람 소리를 사용합니다 (사용자가 시스템에서 고른 알람음). */
-    private fun playAlarmTone(context: Context) {
+    private fun playAlarmTone(context: Context, volume: Float = 1f) {
         try {
             val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
                 ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
                 ?: return
             val player = android.media.MediaPlayer()
+            player.setVolume(volume, volume)
             player.setDataSource(context, uri)
             player.setAudioAttributes(
                 AudioAttributes.Builder()
