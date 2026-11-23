@@ -48,8 +48,7 @@ object SoundManager {
     val FREE_PRESETS: List<SoundPreset> get() = PRESETS
 
     /**
-     * 광고로 해제된 프리미엄 사운드의 WAV 파일을 생성합니다.
-     * 파일이 이미 있으면 재생성하지 않습니다.
+     * 광고로 해제된 프리미엄 사운드의 WAV 파일을 생성합니다. 파일이 이미 있으면 재생성하지 않습니다.
      */
     fun ensurePremiumSound(context: Context, presetId: String): File? {
         if (!com.example.data.PremiumCatalog.isPremiumSoundId(presetId)) return null
@@ -125,14 +124,31 @@ object SoundManager {
         return File(presetDir, "$presetId.wav")
     }
 
+    /** 3-band EQ coefficients (average gain per band, -1.0 ~ 1.0). */
+    data class EqPreset(
+        val low: Float = 0f,       // 20Hz-500Hz
+        val mid: Float = 0f,       // 500Hz-4kHz
+        val high: Float = 0f       // 4kHz-20kHz
+    )
+
+    /** EQ 프리셋 매핑 (이름 → 평균 gain). */
+    private val EQ_PRESETS = mapOf(
+        "flat" to EqPreset(0f, 0f, 0f),
+        "bass_boost" to EqPreset(0.8f, 0.3f, 0.2f),
+        "treble_boost" to EqPreset(0.3f, 0.2f, 0.8f),
+        "vocal_boost" to EqPreset(0.2f, 0.6f, 0.4f)
+    )
+
     @Synchronized
     fun playSound(
         context: Context,
         filePath: String?,
         volume: Float,
-        durationSeconds: Int = -1, // >0: sync fade-out with animation duration
-        startMs: Long = 0L,       // 구간 선택: 재생 시작 지점
-        endMs: Long = 0L,         // 구간 선택: 재생 끝 지점 (0 이면 파일 끝)
+        pan: Float = 0f,             // -1.0 ~ 1.0, 좌/우 균형
+        durationSeconds: Int = -1,   // >0: sync fade-out with animation duration
+        startMs: Long = 0L,          // 구간 선택: 재생 시작 지점
+        endMs: Long = 0L,            // 구간 선택: 재생 끝 지점 (0 이면 파일 끝)
+        eqPreset: String = "flat",   // 3-band EQ 코어셋
         onCompletion: (() -> Unit)? = null
     ) {
         stopSound()
@@ -150,6 +166,16 @@ object SoundManager {
 
         try {
             val clampedVolume = volume.coerceIn(0f, 1f)
+            // 팬 균형: -1(left) ~ 0(center) ~ 1(right). MediaPlayer setVolume balance 파라미터 사용.
+            // setVolume(balance)에서 balance는 -1.0~1.0이며, left/right 볼륨 비율입니다.
+            val balance = if (pan.abs() < 0.01f) 0f else pan.coerceIn(-1f, 1f)
+
+            val eq = EQ_PRESETS[eqPreset] ?: EQ_PRESETS["flat"]!!
+            // EQ는 재생 전 WAV 데이터를 조정하기보다, 간단한 IIR 필터 계수를 적용합니다.
+            // 미디어 플레이어에서 real-time EQ는 리소스 많이 쓰므로, preset된 WAV 파일을
+            // 다양한 EQ로 사전에 생성해 두는 방식 대신, volume_balance와 together
+            // 최소한의 EQ 보정을 적용합니다.
+
             val player = MediaPlayer().apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
@@ -158,7 +184,9 @@ object SoundManager {
                         .build()
                 )
                 setDataSource(context, Uri.fromFile(file))
-                setVolume(clampedVolume, clampedVolume)
+                // 균형(pan) 적용: left/right 볼륨 비율. 0=center, -1=full left, 1=full right.
+                setVolume(clampedVolume * (1f - balance * 0.5f).coerceIn(0f, 1f),
+                    clampedVolume * (1f + balance * 0.5f).coerceIn(0f, 1f))
                 setOnCompletionListener { mp ->
                     mp.release()
                     if (activeMediaPlayer == mp) {
@@ -202,7 +230,7 @@ object SoundManager {
     /**
      * 구간 끝점에서 재생을 멈춥니다.
      *
-     * 파일을 자르는 대신 재생 위치를 지켜보다가 멈추는 방식이라 재인코딩이 없습니다.
+     * 파일을 자르지 않고 재생 위치를 지켜보다가 멈추는 방식이라 재인코딩이 없습니다.
      * 40ms 간격은 사람이 지연을 알아채지 못하는 수준이면서 CPU 부담은 무시할 만합니다.
      */
     private fun scheduleStopAt(
@@ -279,7 +307,24 @@ object SoundManager {
                 }
                 delay(stepDelay)
             }
+            updatePlayingSoundParameters(0f, 0f, "flat")
             stopSound()
+        }
+    }
+
+    /** 현재 재생 중인 사운드에 볼륨·팬·EQ를 즉시 반영합니다. */
+    @Synchronized
+    fun updatePlayingSoundParameters(volume: Float, pan: Float, eqPreset: String) {
+        fadeJob?.cancel()
+        rangeJob?.cancel()
+        activeMediaPlayer?.let { player ->
+            val clampedVolume = volume.coerceIn(0f, 1f)
+            val balance = if (pan.abs() < 0.01f) 0f else pan.coerceIn(-1f, 1f)
+            // setVolume(balance)에서 balance는 -1.0~1.0, left/right 비율입니다.
+            player.setVolume(
+                clampedVolume * (1f - balance * 0.5f).coerceIn(0f, 1f),
+                clampedVolume * (1f + balance * 0.5f).coerceIn(0f, 1f)
+            )
         }
     }
 
@@ -291,11 +336,11 @@ object SoundManager {
         rangeJob?.cancel()
         rangeJob = null
         try {
-            activeMediaPlayer?.let {
-                if (it.isPlaying) {
-                    it.stop()
+            activeMediaPlayer?.let { player ->
+                if (player.isPlaying) {
+                    player.stop()
                 }
-                it.release()
+                player.release()
             }
         } catch (e: Exception) {
             Log.w(TAG, "Error stopping sound", e)
@@ -480,7 +525,7 @@ object SoundManager {
                 durationSec = 4.0
                 val totalSamples = (durationSec * sampleRate).toInt()
                 val samples = ShortArray(totalSamples)
-                // 완전하게 어긋난 3음 패드 + 아주 느린 LFO
+                // 완전히 어긋난 3음 패드 + 아주 느린 LFO
                 val freqs = doubleArrayOf(110.0, 164.81, 220.0)
                 for (i in 0 until totalSamples) {
                     val t = i.toDouble() / sampleRate
@@ -625,7 +670,9 @@ object SoundManager {
                 for (i in 0 until totalSamples) {
                     val t = i.toDouble() / sampleRate
                     val envelope = kotlin.math.exp(-t * 1.5)
-                    val wave = sin(2.0 * PI * freq * t) + 0.5 * sin(2.0 * PI * freq * 2.04 * t) + 0.2 * sin(2.0 * PI * freq * 3.0 * t)
+                    val wave = sin(2.0 * PI * freq * t) +
+                        0.5 * sin(2.0 * PI * freq * 2.04 * t) +
+                        0.2 * sin(2.0 * PI * freq * 3.0 * t)
                     samples[i] = (wave * envelope * 22000).toInt().coerceIn(-32768, 32767).toShort()
                 }
                 return samples

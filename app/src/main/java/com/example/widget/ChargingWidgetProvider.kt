@@ -16,6 +16,7 @@ import com.example.battery.BatteryInfoHelper
 import com.example.battery.PowerTracker
 import java.util.Date
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
 
 /**
@@ -117,7 +118,16 @@ class ChargingWidgetProvider : AppWidgetProvider() {
         }
 
         val sizeMode = getWidgetSizeMode(context, appWidgetId)
-        val palette = WidgetPalette.of(isSystemInDarkTheme(context))
+        // 위젯은 RemoteViews라 Compose 설정을 바로 관찰할 수 없습니다.
+        // 갱신 시 저장된 스킨을 읽어 링·글자·배경에 반영합니다.
+        val widgetSettings = runBlocking { com.example.data.SettingsRepository(context.applicationContext).settingsFlow.first() }
+        var palette = WidgetPalette.of(isSystemInDarkTheme(context))
+        widgetSettings.widgetTextColor?.let { color ->
+            palette = palette.copy(
+                accent = color.toInt(), textPrimary = color.toInt(),
+                textSecondary = color.toInt(), textDim = color.toInt()
+            )
+        }
 
         val isCharging = info.isCharging
         val plugName = context.getString(info.plugType.displayNameRes)
@@ -131,6 +141,9 @@ class ChargingWidgetProvider : AppWidgetProvider() {
 
         // ── 배경 ──────────────────────────────────────────────
         views.setInt(R.id.widget_root, "setBackgroundResource", palette.background)
+        widgetSettings.widgetBackgroundColor?.let { color ->
+            views.setInt(R.id.widget_root, "setBackgroundColor", color.toInt())
+        }
 
         // ── 링 게이지 ─────────────────────────────────────────
         val ringDp = when (sizeMode) {
@@ -146,7 +159,10 @@ class ChargingWidgetProvider : AppWidgetProvider() {
                 level = info.level,
                 accent = palette.accent,
                 track = palette.track,
-                charging = isCharging
+                charging = isCharging,
+                thickness = widgetSettings.ringThickness,
+                squareCap = widgetSettings.ringCapStyle == "square",
+                glowEnabled = widgetSettings.ringGlowEnabled
             )
         )
 
@@ -359,7 +375,7 @@ class ChargingWidgetProvider : AppWidgetProvider() {
  * 강조색은 라이트에서 시안(#00E5FF)을 그대로 쓰면 흰 배경에서 읽히지 않아
  * 한 단계 진한 청록(#0891B2)으로 낮춥니다.
  */
-private class WidgetPalette(
+private data class WidgetPalette(
     val background: Int,
     val pill: Int,
     val accent: Int,

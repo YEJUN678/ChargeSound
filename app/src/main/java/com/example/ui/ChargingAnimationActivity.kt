@@ -102,6 +102,9 @@ class ChargingAnimationActivity : ComponentActivity() {
     /** 테마 진입점에서 읽을 강조색 키 (onCreate에서 설정 저장소를 읽어 채웁니다) */
     private var accentKey: String = "cyan"
     private var customAccentArgb: Long = 0xFF00E5FF
+    private var ringThickness: Float = 1f
+    private var ringSquareCap: Boolean = false
+    private var ringGlowEnabled: Boolean = true
 
     companion object {
         private const val TAG = "ChargingAnimationActivity"
@@ -128,6 +131,9 @@ class ChargingAnimationActivity : ComponentActivity() {
             SettingsRepository(applicationContext).settingsFlow.first().also { settings ->
                 accentKey = settings.accentKey
                 customAccentArgb = settings.customAccentArgb
+                ringThickness = settings.ringThickness
+                ringSquareCap = settings.ringCapStyle == "square"
+                ringGlowEnabled = settings.ringGlowEnabled
             }
         }
         configureScreenWakeAndLock()
@@ -136,6 +142,14 @@ class ChargingAnimationActivity : ComponentActivity() {
         AdManager.setCoreFeatureBusy(true)
 
         val initialLevel = intent.getIntExtra(EXTRA_BATTERY_LEVEL, 75)
+        // 충전 장면 자동 연출: 완충 직전에는 안정 그린, 야간에는 오로라 계열로
+        // 전환합니다. 사용자가 고른 씬의 사운드/애니메이션은 그대로 유지합니다.
+        val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+        accentKey = when {
+            initialLevel >= 95 -> "lime"
+            hour >= 20 || hour < 6 -> "violet"
+            else -> accentKey
+        }
         val plugName = intent.getStringExtra(EXTRA_PLUG_NAME) ?: getString(R.string.anim_plug_connected)
         val animModeStr = intent.getStringExtra(EXTRA_ANIM_MODE) ?: AnimationMode.BUILTIN_LIGHTNING.name
         val videoPath = intent.getStringExtra(EXTRA_VIDEO_PATH)
@@ -166,6 +180,9 @@ class ChargingAnimationActivity : ComponentActivity() {
                     isLoop = isLoop,
                     videoStartMs = videoStartMs,
                     videoEndMs = videoEndMs,
+                    ringThickness = ringThickness,
+                    ringSquareCap = ringSquareCap,
+                    ringGlowEnabled = ringGlowEnabled,
                     onOpenApp = {
                         startActivity(Intent(this, com.example.MainActivity::class.java).apply {
                             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -267,12 +284,22 @@ fun ChargingScreenContent(
     isLoop: Boolean,
     videoStartMs: Long,
     videoEndMs: Long,
+    ringThickness: Float,
+    ringSquareCap: Boolean,
+    ringGlowEnabled: Boolean,
     onExitComplete: () -> Unit,
     onOpenApp: () -> Unit
 ) {
     val context = LocalContext.current
     var currentBatteryLevel by remember { mutableIntStateOf(initialLevel) }
     var remainingSeconds by remember { mutableIntStateOf(if (durationSec > 0) durationSec else 0) }
+    var scanLabel by remember { mutableStateOf("POWER LINKED") }
+    LaunchedEffect(Unit) {
+        delay(450L)
+        scanLabel = "BATTERY ANALYZED"
+        delay(650L)
+        scanLabel = "CHARGING READY"
+    }
 
     // 충전 상태 폴링.
     //
@@ -474,7 +501,10 @@ fun ChargingScreenContent(
                 BatteryCenterGlow(
                     batteryLevel = currentBatteryLevel,
                     percentPerHour = chargeRate,
-                    measuring = measuringRate
+                    measuring = measuringRate,
+                    ringThickness = ringThickness,
+                    ringSquareCap = ringSquareCap,
+                    ringGlowEnabled = ringGlowEnabled
                 )
             }
 
@@ -487,6 +517,12 @@ fun ChargingScreenContent(
                     .hudEntrance(delayMillis = HudStagger.BOTTOM),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Text(
+                    text = scanLabel,
+                    style = AppText.Axis,
+                    color = ElectricCyan.copy(alpha = 0.75f)
+                )
+                Spacer(Modifier.height(Spacing.sm))
                 if (durationSec > 0) {
                     ChargingCountdownChip(
                         text = stringResource(R.string.anim_auto_close, remainingSeconds),
@@ -569,7 +605,10 @@ fun VideoPlaybackView(
 fun BatteryCenterGlow(
     batteryLevel: Int,
     percentPerHour: Float? = null,
-    measuring: Boolean = false
+    measuring: Boolean = false,
+    ringThickness: Float = 1f,
+    ringSquareCap: Boolean = false,
+    ringGlowEnabled: Boolean = true
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseScale by infiniteTransition.animateFloat(
@@ -611,7 +650,7 @@ fun BatteryCenterGlow(
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        accent.copy(alpha = if (isFull) 0.3f else 0.25f),
+                        accent.copy(alpha = if (ringGlowEnabled) if (isFull) 0.3f else 0.25f else 0f),
                         accent.copy(alpha = 0.05f),
                         Color.Transparent
                     ),
@@ -631,7 +670,7 @@ fun BatteryCenterGlow(
                 startAngle = 0f,
                 sweepAngle = 360f,
                 useCenter = false,
-                style = Stroke(width = 8.dp.toPx())
+                style = Stroke(width = 8.dp.toPx() * ringThickness)
             )
 
             // Dynamic progress arc
@@ -655,7 +694,7 @@ fun BatteryCenterGlow(
                     startAngle = -90f,
                     sweepAngle = sweepAngle,
                     useCenter = false,
-                    style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
+                    style = Stroke(width = 8.dp.toPx() * ringThickness, cap = if (ringSquareCap) StrokeCap.Butt else StrokeCap.Round)
                 )
             }
         }

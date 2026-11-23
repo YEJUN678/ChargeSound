@@ -617,4 +617,43 @@
 <string name="edge_glow_liquid_title">Medidor de olas abajo</string>
 <string name="edge_glow_liquid_sub">Una suave ola sube desde abajo según se llena la batería</string>
 
+<!-- Sound Mixer -->
+<string name="sound_mixer_title">Mezclador de sonido</string>
+<string name="sound_mixer_sub">Ajusta volumen, balance y ecualizador</string>
+<string name="mixer_volume_label">Volumen</string>
+<string name="mixer_pan_label">Balance</string>
+<string name="mixer_pan_left">Izquierdo %1$d%%</string>
+<string name="mixer_pan_right">Derecho %1$d%%</string>
+<string name="mixer_pan_center">Centro</string>
+<string name="mixer_eq_label">Preajuste de EQ</string>
+<string name="mixer_eq_sub">Preajuste del ecualizador para el sonido de carga</string>
+<string name="eq_flat">Plano</string>
+<string name="eq_bass_boost">Graves+</string>
+<string name="eq_treble_boost">Agudos+</string>
+<string name="eq_vocal_boost">Voz+</string>
+
+<!-- Custom Notification Sounds -->
+<string name="custom_sounds_title">Sonidos de notificación personalizados</string>
+<string name="custom_sounds_sub">Define sonidos para cada alerta</string>
+<string name="charge_complete_sound">Carga completa</string>
+<string name="low_battery_sound">Batería baja</string>
+<string name="temperature_sound">Advertencia de temperatura</string>
+<string name="pick_sound">Elegir sonido</string>
+<string name="clear_sound">Borrar</string>
+<string name="default_sound">Predeterminado</string>
+<string name="default_sound_set">Sonido personalizado</string>
+<string name="custom_sounds_hint">Usa tu propio archivo de audio para cada alerta. Si no se define, se usa el sonido predeterminado.</string>
+
+<!-- Widget Skin -->
+<string name="widget_skin_title">Skin del widget</string>
+<string name="widget_skin_sub">Personaliza el aspecto del widget</string>
+<string name="widget_skin_default">Predeterminado</string>
+<string name="widget_skin_minimal">Minimalista</string>
+<string name="widget_skin_glass">Cristal</string>
+<string name="widget_skin_neon">Neón</string>
+<string name="widget_bg_color">Color de fondo</string>
+<string name="widget_text_color">Color del texto</string>
+<string name="widget_skin_style_label">Estilo</string>
+<string name="widget_skin_hint">Los colores se aplican a todos los tamaños del widget en la pantalla de inicio.</string>
+
 </resources>

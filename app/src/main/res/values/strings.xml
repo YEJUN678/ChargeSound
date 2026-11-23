@@ -655,4 +655,43 @@
 
 <string name="menu_crash_report">Send error report (%1$d)</string>
 
+<!-- Sound Mixer -->
+<string name="sound_mixer_title">Sound Mixer</string>
+<string name="sound_mixer_sub">Fine-tune volume, balance and EQ</string>
+<string name="mixer_volume_label">Volume</string>
+<string name="mixer_pan_label">Balance</string>
+<string name="mixer_pan_left">Left %1$d%%</string>
+<string name="mixer_pan_right">Right %1$d%%</string>
+<string name="mixer_pan_center">Center</string>
+<string name="mixer_eq_label">EQ Preset</string>
+<string name="mixer_eq_sub">Equalizer preset for the charging sound</string>
+<string name="eq_flat">Flat</string>
+<string name="eq_bass_boost">Bass+</string>
+<string name="eq_treble_boost">Treble+</string>
+<string name="eq_vocal_boost">Vocal+</string>
+
+<!-- Custom Notification Sounds -->
+<string name="custom_sounds_title">Custom Notification Sounds</string>
+<string name="custom_sounds_sub">Set custom sounds for alerts</string>
+<string name="charge_complete_sound">Charge Complete</string>
+<string name="low_battery_sound">Low Battery</string>
+<string name="temperature_sound">Temperature Warning</string>
+<string name="pick_sound">Pick Sound</string>
+<string name="clear_sound">Clear</string>
+<string name="default_sound">Default</string>
+<string name="default_sound_set">Custom sound set</string>
+<string name="custom_sounds_hint">Uses your own audio file for each alert. Falls back to the default sound if unset.</string>
+
+<!-- Widget Skin -->
+<string name="widget_skin_title">Widget Skin</string>
+<string name="widget_skin_sub">Customize widget appearance</string>
+<string name="widget_skin_default">Default</string>
+<string name="widget_skin_minimal">Minimal</string>
+<string name="widget_skin_glass">Glass</string>
+<string name="widget_skin_neon">Neon</string>
+<string name="widget_bg_color">Background Color</string>
+<string name="widget_text_color">Text Color</string>
+<string name="widget_skin_style_label">Style</string>
+<string name="widget_skin_hint">Colors apply to all widget sizes on the home screen.</string>
+
 </resources>

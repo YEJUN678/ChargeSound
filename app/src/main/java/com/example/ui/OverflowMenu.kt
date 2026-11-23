@@ -63,6 +63,8 @@ import androidx.compose.ui.unit.sp
 import com.example.R
 import com.example.data.AnimationMode
 import com.example.data.ChargeSettings
+import com.example.data.ChargeScene
+import com.example.data.ChargeScenes
 import com.example.data.PremiumCatalog
 import com.example.ui.theme.AppShapes
 import com.example.ui.theme.ElectricCyan
@@ -93,6 +95,7 @@ fun OverflowMenu(
     onOpenPremiumAnimations: () -> Unit,
     onOpenAdFree: () -> Unit,
     onOpenTheme: () -> Unit,
+    onOpenScenes: () -> Unit,
     onOpenStats: () -> Unit,
     onOpenAbout: () -> Unit,
     adFreeMinutesRemaining: Int
@@ -180,6 +183,11 @@ fun OverflowMenu(
             }
         )
         DropdownMenuItem(
+            text = { Text("충전 씬") },
+            leadingIcon = { Icon(Icons.Default.Palette, contentDescription = null) },
+            onClick = { expanded = false; onOpenScenes() }
+        )
+        DropdownMenuItem(
             text = { Text(stringResource(R.string.menu_stats)) },
             leadingIcon = { Icon(Icons.Default.BarChart, contentDescription = null) },
             onClick = {
@@ -208,6 +216,29 @@ fun OverflowMenu(
                 onOpenAbout()
             }
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ChargeScenesSheet(onDismiss: () -> Unit, onApply: (ChargeScene) -> Unit) {
+    SheetScaffold(titleRes = R.string.menu_theme, onDismiss = onDismiss) {
+        Text("충전 씬", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.White)
+        Text("사운드 · Edge Glow · 애니메이션 · TTS를 한 번에 적용합니다.", style = MaterialTheme.typography.bodySmall, color = Slate400)
+        Spacer(Modifier.height(12.dp))
+        ChargeScenes.defaults.forEach { scene ->
+            Surface(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp).clickable { onApply(scene) },
+                shape = AppShapes.md,
+                color = Slate800,
+                border = BorderStroke(1.dp, ElectricCyan.copy(alpha = 0.35f))
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(scene.name, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(scene.description, color = Slate400, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
     }
 }
 

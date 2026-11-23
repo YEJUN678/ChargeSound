@@ -89,6 +89,12 @@ data class ChargeSettings(
     val volume: Float = 0.85f,
     val soundMode: SoundMode = SoundMode.PRESET,
     val presetSoundId: String = "cyber_chime",
+    /** 채널별 볼륨 (0.0 ~ 1.0). 프리셋, 앰비언트, 알림 각각 독립적 조절 */
+    val channelVolume: Float = 0.85f,
+    /** 스테레오 팬(-1.0 ~ 1.0, -1:left, 0:center, 1:right). MediaPlayer setVolume 균형 조정 */
+    val pan: Float = 0f,
+    /** EQ 프리셋. "flat", "bass_boost", "treble_boost", "vocal_boost" 중 하나 */
+    val eqPreset: String = "flat",
     val customSoundName: String? = null,
     val customSoundPath: String? = null,
     val vibrationEnabled: Boolean = true,
@@ -270,6 +276,28 @@ data class ChargeSettings(
     val customVideoStartMs: Long = 0L,
     /** 커스텀 영상 재생 끝 지점 (밀리초). 0 이면 파일 끝까지 재생 */
     val customVideoEndMs: Long = 0L,
+
+    // ── 커스텀 알림음 ──
+    /** 충전 완료 시 재생할 커스텀 사운드 경로 (null이면 기본 사운드) */
+    val chargeCompleteSoundPath: String? = null,
+    /** 저전력 경고 시 재생할 커스텀 사운드 경로 */
+    val lowBatterySoundPath: String? = null,
+    /** 온도 경고 시 재생할 커스텀 사운드 경로 */
+    val temperatureSoundPath: String? = null,
+
+    // ── 커스텀 위젯 스킨 ──
+    /** 위젯 배경색 (ARGB). null이면 기본 테마 사용 */
+    val widgetBackgroundColor: Long? = null,
+    /** 위젯 텍스트색 (ARGB). null이면 기본 테마 사용 */
+    val widgetTextColor: Long? = null,
+    /** 위젯 스킨 스타일: "default", "minimal", "glass", "neon" */
+    val widgetSkinStyle: String = "default",
+    /** 위젯·충전 HUD의 링 굵기 배율 */
+    val ringThickness: Float = 1f,
+    /** 링 끝 모양: round / square */
+    val ringCapStyle: String = "round",
+    /** 충전 중 링 안쪽 발광 */
+    val ringGlowEnabled: Boolean = true,
 
     // ── Material 3 ──
     /**

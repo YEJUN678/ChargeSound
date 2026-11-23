@@ -31,8 +31,8 @@ internal object WidgetRingRenderer {
      * @param track    바탕 링 색 (ARGB)
      * @param charging 충전 중이면 안쪽에 옅은 발광을 넣습니다
      */
-    fun render(sizePx: Int, level: Int, accent: Int, track: Int, charging: Boolean): Bitmap {
-        val key = "$sizePx|$level|$accent|$track|$charging"
+    fun render(sizePx: Int, level: Int, accent: Int, track: Int, charging: Boolean, thickness: Float = 1f, squareCap: Boolean = false, glowEnabled: Boolean = true): Bitmap {
+        val key = "$sizePx|$level|$accent|$track|$charging|$thickness|$squareCap|$glowEnabled"
         cache[key]?.let { return it }
 
         val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
@@ -40,7 +40,7 @@ internal object WidgetRingRenderer {
         val center = sizePx / 2f
 
         // 링 두께는 크기에 비례 — 24dp 짜리 미니 위젯에서도 뭉개지지 않게.
-        val stroke = (sizePx * 0.115f).coerceAtLeast(3f)
+        val stroke = (sizePx * 0.115f * thickness.coerceIn(0.55f, 1.8f)).coerceAtLeast(3f)
         val inset = stroke / 2f + sizePx * 0.015f
         val arcRect = RectF(inset, inset, sizePx - inset, sizePx - inset)
 
@@ -53,7 +53,7 @@ internal object WidgetRingRenderer {
         canvas.drawArc(arcRect, 0f, 360f, false, trackPaint)
 
         // 2) 충전 중일 때 안쪽 발광 — 화면이 꺼져 있어도 "살아 있다"는 느낌을 줍니다.
-        if (charging) {
+        if (charging && glowEnabled) {
             val glowRadius = center - inset
             val glow = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 shader = RadialGradient(
@@ -72,7 +72,7 @@ internal object WidgetRingRenderer {
             val arcPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 style = Paint.Style.STROKE
                 strokeWidth = stroke
-                strokeCap = Paint.Cap.ROUND
+                strokeCap = if (squareCap) Paint.Cap.BUTT else Paint.Cap.ROUND
                 shader = SweepGradient(
                     center, center,
                     intArrayOf(accent, lighten(accent), accent),

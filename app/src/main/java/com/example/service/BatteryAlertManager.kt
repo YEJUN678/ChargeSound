@@ -215,7 +215,12 @@ object BatteryAlertManager {
         }
 
         if (settings.completionRoutineSound && !isQuiet) {
-            playAlarmTone(context, if (rapidCharge) 1.25f else 1f)
+            val customPath = settings.chargeCompleteSoundPath
+            if (customPath != null) {
+                playCustomAlertSound(context, customPath, if (rapidCharge) 1.25f else 1f)
+            } else {
+                playAlarmTone(context, if (rapidCharge) 1.25f else 1f)
+            }
         }
 
         if (settings.completionRoutineTts && settings.voiceAnnounceEnabled && !isQuiet) {
@@ -409,6 +414,27 @@ object BatteryAlertManager {
         }
     }
 
+    /** 사용자가 지정한 커스텀 알림음을 재생합니다 (한 번 재생 후 해제). */
+    private fun playCustomAlertSound(context: Context, path: String, volume: Float = 1f) {
+        try {
+            val player = android.media.MediaPlayer()
+            player.setVolume(volume, volume)
+            player.setDataSource(path)
+            player.setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build()
+            )
+            player.setOnPreparedListener { it.start() }
+            player.setOnCompletionListener { it.release() }
+            player.setOnErrorListener { _, _, _ -> player.release(); true }
+            player.prepareAsync()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to play custom alert sound", e)
+        }
+    }
+
     // ─────────────────────── 온도 / 건강도 경고 ───────────────────────
 
     private fun evaluateTemperature(context: Context, settings: ChargeSettings, info: BatteryInfo) {
@@ -429,6 +455,7 @@ object BatteryAlertManager {
                 info.temperatureC
             )
         )
+        settings.temperatureSoundPath?.let { playCustomAlertSound(context, it, 1f) }
     }
 
     private fun evaluateHealth(context: Context, settings: ChargeSettings, info: BatteryInfo) {
@@ -473,6 +500,7 @@ private fun evaluateLowBattery(context: Context, settings: ChargeSettings, info:
             title = context.getString(R.string.low_battery_title),
             body = context.getString(R.string.low_battery_body, settings.lowBatteryThreshold, info.level)
         )
+        settings.lowBatterySoundPath?.let { playCustomAlertSound(context, it, 1f) }
     }
 
     /**

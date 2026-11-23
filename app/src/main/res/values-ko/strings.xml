@@ -649,4 +649,43 @@
 
 <string name="menu_crash_report">오류 보고서 보내기 (%1$d)</string>
 
+<!-- Sound Mixer -->
+<string name="sound_mixer_title">사운드 믹서</string>
+<string name="sound_mixer_sub">볼륨 · 밸런스 · EQ를 세밀하게 조정</string>
+<string name="mixer_volume_label">볼륨</string>
+<string name="mixer_pan_label">밸런스</string>
+<string name="mixer_pan_left">왼쪽 %1$d%%</string>
+<string name="mixer_pan_right">오른쪽 %1$d%%</string>
+<string name="mixer_pan_center">중앙</string>
+<string name="mixer_eq_label">EQ 프리셋</string>
+<string name="mixer_eq_sub">충전 사운드용 이퀄라이저 프리셋</string>
+<string name="eq_flat">평탄</string>
+<string name="eq_bass_boost">베이스+</string>
+<string name="eq_treble_boost">트레블+</string>
+<string name="eq_vocal_boost">보컬+</string>
+
+<!-- Custom Notification Sounds -->
+<string name="custom_sounds_title">커스텀 알림음</string>
+<string name="custom_sounds_sub">경고별로 사운드를 지정</string>
+<string name="charge_complete_sound">충전 완료</string>
+<string name="low_battery_sound">저전력 경고</string>
+<string name="temperature_sound">온도 경고</string>
+<string name="pick_sound">사운드 선택</string>
+<string name="clear_sound">지우기</string>
+<string name="default_sound">기본</string>
+<string name="default_sound_set">커스텀 사운드 설정됨</string>
+<string name="custom_sounds_hint">알림마다 직접 선택한 오디오 파일을 사용합니다. 설정하지 않으면 기본 사운드로 재생됩니다.</string>
+
+<!-- Widget Skin -->
+<string name="widget_skin_title">위젯 스킨</string>
+<string name="widget_skin_sub">위젯 모습을 꾸미세요</string>
+<string name="widget_skin_default">기본</string>
+<string name="widget_skin_minimal">미니멀</string>
+<string name="widget_skin_glass">글래스</string>
+<string name="widget_skin_neon">네온</string>
+<string name="widget_bg_color">배경색</string>
+<string name="widget_text_color">글자색</string>
+<string name="widget_skin_style_label">스타일</string>
+<string name="widget_skin_hint">색상은 홈 화면의 모든 위젯 크기에 적용됩니다.</string>
+
 </resources>

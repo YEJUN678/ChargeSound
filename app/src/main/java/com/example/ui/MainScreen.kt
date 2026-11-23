@@ -60,6 +60,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.NotificationAdd
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Power
 import androidx.compose.material.icons.filled.Speed
@@ -70,6 +71,7 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -184,6 +186,7 @@ fun MainScreen(viewModel: MainViewModel) {
     var showVoiceRecorder by remember { mutableStateOf(false) }
     var showEdgeGlowSheet by remember { mutableStateOf(false) }
     var showThemeSheet by remember { mutableStateOf(false) }
+    var showScenesSheet by remember { mutableStateOf(false) }
     var showStatsSheet by remember { mutableStateOf(false) }
     var showTrimSheet by remember { mutableStateOf(false) }
     var latestVersionName by remember { mutableStateOf<String?>(null) }
@@ -244,6 +247,21 @@ fun MainScreen(viewModel: MainViewModel) {
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { viewModel.handleSelectedVideo(it) }
+    }
+
+    // 커스텀 알림음 파일 피커 (충전 완료 / 저전력 / 온도 경고)
+    var pendingAlertSoundTarget by remember { mutableStateOf<String?>(null) }
+    val alertSoundPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            when (pendingAlertSoundTarget) {
+                "charge" -> viewModel.setChargeCompleteSound(it.toString())
+                "low" -> viewModel.setLowBatterySound(it.toString())
+                "temp" -> viewModel.setTemperatureSound(it.toString())
+            }
+        }
+        pendingAlertSoundTarget = null
     }
 
     // 마이크 권한 — 허용하면 곧바로 녹음 다이얼로그를 엽니다.
@@ -364,6 +382,7 @@ fun MainScreen(viewModel: MainViewModel) {
                         onOpenPremiumAnimations = { showPremiumAnimations = true },
                         onOpenAdFree = { showAdFreeDialog = true },
                         onOpenTheme = { showThemeSheet = true },
+                        onOpenScenes = { showScenesSheet = true },
                         onOpenStats = { showStatsSheet = true },
                         onOpenAbout = { showAbout = true },
                         adFreeMinutesRemaining = adFreeMinutes
@@ -548,6 +567,24 @@ fun MainScreen(viewModel: MainViewModel) {
                         onToggleAmbientSound = { viewModel.setAmbientSoundEnabled(it) },
                         onAmbientVolumeChange = { viewModel.setAmbientSoundVolume(it) },
                         onVolumeChange = { viewModel.setVolume(it) },
+                        onChannelVolumeChange = { viewModel.setChannelVolume(it) },
+                        onPanChange = { viewModel.setPan(it) },
+                        onEqPresetChange = { viewModel.setEqPreset(it) },
+                        onPickAlertSound = { target ->
+                            pendingAlertSoundTarget = target
+                            alertSoundPickerLauncher.launch("audio/*")
+                        },
+                        onClearAlertSound = { target ->
+                            when (target) {
+                                "charge" -> viewModel.setChargeCompleteSound(null)
+                                "low" -> viewModel.setLowBatterySound(null)
+                                "temp" -> viewModel.setTemperatureSound(null)
+                            }
+                        },
+                        onWidgetSkinStyleChange = { viewModel.setWidgetSkinStyle(it) },
+                        onWidgetBgColorChange = { viewModel.setWidgetBackgroundColor(it) },
+                        onWidgetTextColorChange = { viewModel.setWidgetTextColor(it) },
+                        onRingStyleChange = { thickness, cap, glow -> viewModel.setRingStyle(thickness, cap, glow) },
                         onSelectPreset = { viewModel.selectPresetSound(it) },
                         onToggleVibration = { viewModel.toggleVibration(it) },
                         onToggleVoiceAnnounce = { viewModel.setVoiceAnnounce(it) },
@@ -765,6 +802,12 @@ fun MainScreen(viewModel: MainViewModel) {
             onToggleDynamicColor = { viewModel.setDynamicColor(it) },
             highContrast = settings.highContrast,
             onToggleHighContrast = { viewModel.setHighContrast(it) }
+        )
+    }
+    if (showScenesSheet) {
+        ChargeScenesSheet(
+            onDismiss = { showScenesSheet = false },
+            onApply = { scene -> viewModel.applyScene(scene); showScenesSheet = false }
         )
     }
 
@@ -1016,6 +1059,15 @@ fun SoundSettingsTab(
     onToggleAmbientSound: (Boolean) -> Unit,
     onAmbientVolumeChange: (Float) -> Unit,
     onVolumeChange: (Float) -> Unit,
+    onChannelVolumeChange: (Float) -> Unit,
+    onPanChange: (Float) -> Unit,
+    onEqPresetChange: (String) -> Unit,
+    onPickAlertSound: (String) -> Unit,
+    onClearAlertSound: (String) -> Unit,
+    onWidgetSkinStyleChange: (String) -> Unit,
+    onWidgetBgColorChange: (Long?) -> Unit,
+    onWidgetTextColorChange: (Long?) -> Unit,
+    onRingStyleChange: (Float?, String?, Boolean?) -> Unit,
     onSelectPreset: (String) -> Unit,
     onToggleVibration: (Boolean) -> Unit,
     onToggleVoiceAnnounce: (Boolean) -> Unit,
@@ -1789,6 +1841,36 @@ fun SoundSettingsTab(
                     )
                 }
             }
+        }
+
+        // 사운드 믹서 — 채널 볼륨 · 스테레오 팬 · EQ
+        item {
+            SoundLayerMixerCard(
+                settings = settings,
+                onChannelVolumeChange = onChannelVolumeChange,
+                onPanChange = onPanChange,
+                onEqPresetChange = onEqPresetChange
+            )
+        }
+
+        // 커스텀 알림음 — 충전 완료 / 저전력 / 온도 경고
+        item {
+            CustomAlertSoundsCard(
+                settings = settings,
+                onPick = onPickAlertSound,
+                onClear = onClearAlertSound
+            )
+        }
+
+        // 커스텀 위젯 스킨 — 스타일 + 배경/글자색
+        item {
+            WidgetSkinCard(
+                settings = settings,
+                onStyleChange = onWidgetSkinStyleChange,
+                onBgColorChange = onWidgetBgColorChange,
+                onTextColorChange = onWidgetTextColorChange,
+                onRingStyleChange = onRingStyleChange
+            )
         }
 
         // "다른 앱 위에 표시" 권한 카드
@@ -3135,4 +3217,483 @@ private fun VoiceRecorderDialog(
         titleContentColor = Color.White,
         textContentColor = Color.White
     )
+}
+
+/** 사운드 믹서 — 채널 볼륨 · 스테레오 팬 · EQ 프리셋 카드 */
+@Composable
+private fun SoundLayerMixerCard(
+    settings: ChargeSettings,
+    onChannelVolumeChange: (Float) -> Unit,
+    onPanChange: (Float) -> Unit,
+    onEqPresetChange: (String) -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = AppShapes.md,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    color = ElectricCyan.copy(alpha = 0.15f),
+                    shape = CircleShape,
+                    modifier = Modifier.size(44.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                            contentDescription = null,
+                            tint = ElectricCyan,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = stringResource(R.string.sound_mixer_title),
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White
+                    )
+                    Text(
+                        text = stringResource(R.string.sound_mixer_sub),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Slate400
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 채널 볼륨
+            Text(
+                text = stringResource(R.string.mixer_volume_label),
+                style = MaterialTheme.typography.labelMedium,
+                color = Slate400
+            )
+            Slider(
+                value = settings.channelVolume,
+                onValueChange = onChannelVolumeChange,
+                valueRange = 0f..1f,
+                colors = SliderDefaults.colors(
+                    thumbColor = ElectricCyan,
+                    activeTrackColor = ElectricCyan,
+                    inactiveTrackColor = Slate800
+                )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 스테레오 팬
+            Text(
+                text = stringResource(R.string.mixer_pan_label),
+                style = MaterialTheme.typography.labelMedium,
+                color = Slate400
+            )
+            Slider(
+                value = settings.pan,
+                onValueChange = onPanChange,
+                valueRange = -1f..1f,
+                colors = SliderDefaults.colors(
+                    thumbColor = ElectricAmber,
+                    activeTrackColor = ElectricAmber,
+                    inactiveTrackColor = Slate800
+                )
+            )
+            Text(
+                text = when {
+                    settings.pan < -0.05f ->
+                        stringResource(R.string.mixer_pan_left, (settings.pan * -100).toInt())
+                    settings.pan > 0.05f ->
+                        stringResource(R.string.mixer_pan_right, (settings.pan * 100).toInt())
+                    else -> stringResource(R.string.mixer_pan_center)
+                },
+                style = MaterialTheme.typography.labelSmall,
+                color = Slate600
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // EQ 프리셋
+            Text(
+                text = stringResource(R.string.mixer_eq_label),
+                style = MaterialTheme.typography.labelMedium,
+                color = Slate400,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                listOf("flat", "bass_boost", "treble_boost", "vocal_boost").forEach { eq ->
+                    val label = when (eq) {
+                        "flat" -> stringResource(R.string.eq_flat)
+                        "bass_boost" -> stringResource(R.string.eq_bass_boost)
+                        "treble_boost" -> stringResource(R.string.eq_treble_boost)
+                        "vocal_boost" -> stringResource(R.string.eq_vocal_boost)
+                        else -> eq
+                    }
+                    val isSelected = settings.eqPreset == eq
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { onEqPresetChange(eq) },
+                        label = {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (isSelected) Slate950 else Slate400
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = if (isSelected) ElectricCyan else Slate800,
+                            labelColor = if (isSelected) Slate950 else Slate400
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            borderColor = if (isSelected) ElectricCyan else Slate700,
+                            selectedBorderColor = ElectricCyan
+                        )
+                    )
+                }
+            }
+
+            Text(
+                text = stringResource(R.string.mixer_eq_sub),
+                style = MaterialTheme.typography.labelSmall,
+                color = Slate600,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+    }
+}
+
+/** 커스텀 알림음 — 충전 완료 / 저전력 / 온도 경고별 사운드 지정 */
+@Composable
+private fun CustomAlertSoundsCard(
+    settings: ChargeSettings,
+    onPick: (String) -> Unit,
+    onClear: (String) -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = AppShapes.md,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    color = ElectricCyan.copy(alpha = 0.15f),
+                    shape = CircleShape,
+                    modifier = Modifier.size(44.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.NotificationAdd,
+                            contentDescription = null,
+                            tint = ElectricCyan,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = stringResource(R.string.custom_sounds_title),
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White
+                    )
+                    Text(
+                        text = stringResource(R.string.custom_sounds_sub),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Slate400
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            AlertSoundRow(
+                label = stringResource(R.string.charge_complete_sound),
+                path = settings.chargeCompleteSoundPath,
+                onPick = { onPick("charge") },
+                onClear = { onClear("charge") }
+            )
+            HorizontalDivider(color = Slate800, modifier = Modifier.padding(vertical = 4.dp))
+            AlertSoundRow(
+                label = stringResource(R.string.low_battery_sound),
+                path = settings.lowBatterySoundPath,
+                onPick = { onPick("low") },
+                onClear = { onClear("low") }
+            )
+            HorizontalDivider(color = Slate800, modifier = Modifier.padding(vertical = 4.dp))
+            AlertSoundRow(
+                label = stringResource(R.string.temperature_sound),
+                path = settings.temperatureSoundPath,
+                onPick = { onPick("temp") },
+                onClear = { onClear("temp") }
+            )
+
+            Text(
+                text = stringResource(R.string.custom_sounds_hint),
+                style = MaterialTheme.typography.labelSmall,
+                color = Slate600,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+    }
+}
+
+/** 알림음 한 줄 — 라벨 + 선택/지우기 버튼 */
+@Composable
+private fun AlertSoundRow(
+    label: String,
+    path: String?,
+    onPick: () -> Unit,
+    onClear: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White
+            )
+            Text(
+                text = if (path != null) stringResource(R.string.default_sound_set)
+                else stringResource(R.string.default_sound),
+                style = MaterialTheme.typography.labelSmall,
+                color = if (path != null) ElectricCyan else Slate600
+            )
+        }
+        TextButton(onClick = onPick) {
+            Text(
+                text = stringResource(R.string.pick_sound),
+                style = MaterialTheme.typography.labelMedium,
+                color = ElectricCyan
+            )
+        }
+        if (path != null) {
+            TextButton(onClick = onClear) {
+                Text(
+                    text = stringResource(R.string.clear_sound),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Slate400
+                )
+            }
+        }
+    }
+}
+
+/** 커스텀 위젯 스킨 — 스타일 칩 + 배경/글자색 빠른 선택 */
+@Composable
+private fun WidgetSkinCard(
+    settings: ChargeSettings,
+    onStyleChange: (String) -> Unit,
+    onBgColorChange: (Long?) -> Unit,
+    onTextColorChange: (Long?) -> Unit,
+    onRingStyleChange: (Float?, String?, Boolean?) -> Unit
+) {
+    val bgSwatches = listOf<Long?>(
+        null,
+        0xFF101828L,
+        0xFF0B3B36L,
+        0xFF2B2140L,
+        0xFFFDF6ECL
+    )
+    val textSwatches = listOf<Long?>(
+        null,
+        0xFFFFFFFFL,
+        0xFF00E5FFL,
+        0xFFFFC94DL,
+        0xFF101828L
+    )
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = AppShapes.md,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    color = ElectricAmber.copy(alpha = 0.15f),
+                    shape = CircleShape,
+                    modifier = Modifier.size(44.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Widgets,
+                            contentDescription = null,
+                            tint = ElectricAmber,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = stringResource(R.string.widget_skin_title),
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White
+                    )
+                    Text(
+                        text = stringResource(R.string.widget_skin_sub),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Slate400
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 스타일 칩
+            Text(
+                text = stringResource(R.string.widget_skin_style_label),
+                style = MaterialTheme.typography.labelMedium,
+                color = Slate400,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                listOf("default", "minimal", "glass", "neon").forEach { style ->
+                    val label = when (style) {
+                        "default" -> stringResource(R.string.widget_skin_default)
+                        "minimal" -> stringResource(R.string.widget_skin_minimal)
+                        "glass" -> stringResource(R.string.widget_skin_glass)
+                        "neon" -> stringResource(R.string.widget_skin_neon)
+                        else -> style
+                    }
+                    val isSelected = settings.widgetSkinStyle == style
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { onStyleChange(style) },
+                        label = {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (isSelected) Slate950 else Slate400
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = if (isSelected) ElectricAmber else Slate800,
+                            labelColor = if (isSelected) Slate950 else Slate400
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            borderColor = if (isSelected) ElectricAmber else Slate700,
+                            selectedBorderColor = ElectricAmber
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 배경색
+            Text(
+                text = stringResource(R.string.widget_bg_color),
+                style = MaterialTheme.typography.labelMedium,
+                color = Slate400,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
+            ColorSwatchRow(
+                swatches = bgSwatches,
+                selected = settings.widgetBackgroundColor,
+                onSelect = onBgColorChange
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // 글자색
+            Text(
+                text = stringResource(R.string.widget_text_color),
+                style = MaterialTheme.typography.labelMedium,
+                color = Slate400,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
+            ColorSwatchRow(
+                swatches = textSwatches,
+                selected = settings.widgetTextColor,
+                onSelect = onTextColorChange
+            )
+
+            Text(
+                text = stringResource(R.string.widget_skin_hint),
+                style = MaterialTheme.typography.labelSmall,
+                color = Slate600,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+            Text("배터리 링", style = MaterialTheme.typography.labelMedium, color = Slate400)
+            Slider(
+                value = settings.ringThickness,
+                onValueChange = { onRingStyleChange(it, null, null) },
+                valueRange = 0.55f..1.8f,
+                colors = SliderDefaults.colors(thumbColor = ElectricAmber, activeTrackColor = ElectricAmber)
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("round" to "둥근 끝", "square" to "각진 끝").forEach { (style, label) ->
+                    FilterChip(
+                        selected = settings.ringCapStyle == style,
+                        onClick = { onRingStyleChange(null, style, null) },
+                        label = { Text(label) }
+                    )
+                }
+                FilterChip(
+                    selected = settings.ringGlowEnabled,
+                    onClick = { onRingStyleChange(null, null, !settings.ringGlowEnabled) },
+                    label = { Text("글로우") }
+                )
+            }
+        }
+    }
+}
+
+/** 색상 스와치 가로 줄 — null은 "기본" 선택 */
+@Composable
+private fun ColorSwatchRow(
+    swatches: List<Long?>,
+    selected: Long?,
+    onSelect: (Long?) -> Unit
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        swatches.forEach { color ->
+            val isSelected = color == selected
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(
+                        color = if (color != null) Color(color)
+                        else MaterialTheme.colorScheme.surfaceContainerHighest
+                    )
+                    .border(
+                        width = if (isSelected) 3.dp else 1.dp,
+                        color = if (isSelected) ElectricCyan else Slate700,
+                        shape = CircleShape
+                    )
+                    .clickable { onSelect(color) },
+                contentAlignment = Alignment.Center
+            ) {
+                if (color == null) {
+                    Text(
+                        text = stringResource(R.string.widget_skin_default),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Slate400,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+    }
 }

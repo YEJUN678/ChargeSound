@@ -54,6 +54,24 @@ class SettingsRepository(private val context: Context) {
         val KEY_CUSTOM_SOUND_PATH = stringPreferencesKey("custom_sound_path")
         val KEY_VIBRATION_ENABLED = booleanPreferencesKey("vibration_enabled")
 
+        // ── 사운드 믹서 (채널 볼륨 · 팬 · EQ) ──
+        val KEY_CHANNEL_VOLUME = floatPreferencesKey("channel_volume")
+        val KEY_PAN = floatPreferencesKey("sound_pan")
+        val KEY_EQ_PRESET = stringPreferencesKey("eq_preset")
+
+        // ── 커스텀 알림음 ──
+        val KEY_CHARGE_COMPLETE_SOUND = stringPreferencesKey("charge_complete_sound_path")
+        val KEY_LOW_BATTERY_SOUND = stringPreferencesKey("low_battery_sound_path")
+        val KEY_TEMPERATURE_SOUND = stringPreferencesKey("temperature_sound_path")
+
+        // ── 커스텀 위젯 스킨 ──
+        val KEY_WIDGET_BG_COLOR = longPreferencesKey("widget_bg_color")
+        val KEY_WIDGET_TEXT_COLOR = longPreferencesKey("widget_text_color")
+        val KEY_WIDGET_SKIN_STYLE = stringPreferencesKey("widget_skin_style")
+        val KEY_RING_THICKNESS = floatPreferencesKey("ring_thickness")
+        val KEY_RING_CAP_STYLE = stringPreferencesKey("ring_cap_style")
+        val KEY_RING_GLOW = booleanPreferencesKey("ring_glow_enabled")
+
         val KEY_ANIMATION_ENABLED = booleanPreferencesKey("animation_enabled")
         val KEY_ANIMATION_MODE = stringPreferencesKey("animation_mode")
         val KEY_CUSTOM_VIDEO_NAME = stringPreferencesKey("custom_video_name")
@@ -321,7 +339,19 @@ class SettingsRepository(private val context: Context) {
             customSoundStartMs = prefs[KEY_SOUND_START_MS] ?: 0L,
             customSoundEndMs = prefs[KEY_SOUND_END_MS] ?: 0L,
             customVideoStartMs = prefs[KEY_VIDEO_START_MS] ?: 0L,
-            customVideoEndMs = prefs[KEY_VIDEO_END_MS] ?: 0L
+            customVideoEndMs = prefs[KEY_VIDEO_END_MS] ?: 0L,
+            channelVolume = (prefs[KEY_CHANNEL_VOLUME] ?: 0.85f).coerceIn(0f, 1f),
+            pan = (prefs[KEY_PAN] ?: 0f).coerceIn(-1f, 1f),
+            eqPreset = prefs[KEY_EQ_PRESET] ?: "flat",
+            chargeCompleteSoundPath = prefs[KEY_CHARGE_COMPLETE_SOUND],
+            lowBatterySoundPath = prefs[KEY_LOW_BATTERY_SOUND],
+            temperatureSoundPath = prefs[KEY_TEMPERATURE_SOUND],
+            widgetBackgroundColor = prefs[KEY_WIDGET_BG_COLOR],
+            widgetTextColor = prefs[KEY_WIDGET_TEXT_COLOR],
+            widgetSkinStyle = prefs[KEY_WIDGET_SKIN_STYLE] ?: "default",
+            ringThickness = (prefs[KEY_RING_THICKNESS] ?: 1f).coerceIn(0.55f, 1.8f),
+            ringCapStyle = prefs[KEY_RING_CAP_STYLE] ?: "round",
+            ringGlowEnabled = prefs[KEY_RING_GLOW] ?: true
         )
     }
 
@@ -429,6 +459,84 @@ class SettingsRepository(private val context: Context) {
         context.dataStore.edit {
             it[KEY_PRESET_SOUND_ID] = id
             it[KEY_SOUND_MODE] = SoundMode.PRESET.name
+        }
+    }
+
+    // ── 사운드 믹서 ──
+
+    suspend fun setChannelVolume(volume: Float) {
+        context.dataStore.edit { it[KEY_CHANNEL_VOLUME] = volume.coerceIn(0f, 1f) }
+    }
+
+    suspend fun setPan(pan: Float) {
+        context.dataStore.edit { it[KEY_PAN] = pan.coerceIn(-1f, 1f) }
+    }
+
+    suspend fun setEqPreset(eqPreset: String) {
+        context.dataStore.edit { it[KEY_EQ_PRESET] = eqPreset }
+    }
+
+    // ── 커스텀 알림음 ──
+
+    suspend fun setChargeCompleteSound(path: String?) {
+        context.dataStore.edit {
+            if (path == null) it.remove(KEY_CHARGE_COMPLETE_SOUND)
+            else it[KEY_CHARGE_COMPLETE_SOUND] = path
+        }
+    }
+
+    suspend fun setLowBatterySound(path: String?) {
+        context.dataStore.edit {
+            if (path == null) it.remove(KEY_LOW_BATTERY_SOUND)
+            else it[KEY_LOW_BATTERY_SOUND] = path
+        }
+    }
+
+    suspend fun setTemperatureSound(path: String?) {
+        context.dataStore.edit {
+            if (path == null) it.remove(KEY_TEMPERATURE_SOUND)
+            else it[KEY_TEMPERATURE_SOUND] = path
+        }
+    }
+
+    // ── 커스텀 위젯 스킨 ──
+
+    suspend fun setWidgetBackgroundColor(color: Long?) {
+        context.dataStore.edit {
+            if (color == null) it.remove(KEY_WIDGET_BG_COLOR)
+            else it[KEY_WIDGET_BG_COLOR] = color
+        }
+    }
+
+    suspend fun setWidgetTextColor(color: Long?) {
+        context.dataStore.edit {
+            if (color == null) it.remove(KEY_WIDGET_TEXT_COLOR)
+            else it[KEY_WIDGET_TEXT_COLOR] = color
+        }
+    }
+
+    suspend fun setWidgetSkinStyle(style: String) {
+        context.dataStore.edit { it[KEY_WIDGET_SKIN_STYLE] = style }
+    }
+
+    suspend fun setRingStyle(thickness: Float? = null, capStyle: String? = null, glow: Boolean? = null) {
+        context.dataStore.edit {
+            thickness?.let { value -> it[KEY_RING_THICKNESS] = value.coerceIn(0.55f, 1.8f) }
+            capStyle?.let { value -> it[KEY_RING_CAP_STYLE] = if (value == "square") "square" else "round" }
+            glow?.let { value -> it[KEY_RING_GLOW] = value }
+        }
+    }
+
+    suspend fun applyScene(scene: ChargeScene) {
+        context.dataStore.edit {
+            it[KEY_ACCENT] = scene.accentKey
+            it[KEY_PRESET_SOUND_ID] = scene.soundId
+            it[KEY_SOUND_MODE] = SoundMode.PRESET.name
+            it[KEY_ANIMATION_MODE] = scene.animation.name
+            it[KEY_VOICE_START_TEMPLATE] = scene.voiceTemplate
+            it[KEY_EDGE_GLOW_COLOR_START] = scene.glowStart
+            it[KEY_EDGE_GLOW_COLOR_MID] = scene.glowMid
+            it[KEY_EDGE_GLOW_COLOR_END] = scene.glowEnd
         }
     }
 

@@ -412,6 +412,38 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun setChannelVolume(volume: Float) {
+        viewModelScope.launch {
+            repository.setChannelVolume(volume)
+            // 채널 볼륨은 실시간으로 사운드에 반영
+            com.example.sound.ChargingAmbience.setVolume(volume)
+        }
+    }
+
+    fun setPan(pan: Float) {
+        viewModelScope.launch {
+            repository.setPan(pan)
+            // 팬 균형은 현재 재생 중인 사운드에 즉시 적용
+            com.example.sound.SoundManager.updatePlayingSoundParameters(
+                settings.value.volume,
+                pan,
+                settings.value.eqPreset
+            )
+        }
+    }
+
+    fun setEqPreset(eqPreset: String) {
+        viewModelScope.launch {
+            repository.setEqPreset(eqPreset)
+            // EQ 프리셋은 현재 재생 중인 사운드에 즉시 적용
+            com.example.sound.SoundManager.updatePlayingSoundParameters(
+                settings.value.volume,
+                settings.value.pan,
+                eqPreset
+            )
+        }
+    }
+
     fun clearCustomAudio() {
         viewModelScope.launch {
             repository.clearCustomAudio()
@@ -673,6 +705,40 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setEdgeGlowLiquid(enabled: Boolean) {
         viewModelScope.launch { repository.setEdgeGlowLiquid(enabled) }
+    }
+
+    // ── 커스텀 알림음 ──
+    fun setChargeCompleteSound(path: String?) {
+        viewModelScope.launch { repository.setChargeCompleteSound(path) }
+    }
+
+    fun setLowBatterySound(path: String?) {
+        viewModelScope.launch { repository.setLowBatterySound(path) }
+    }
+
+    fun setTemperatureSound(path: String?) {
+        viewModelScope.launch { repository.setTemperatureSound(path) }
+    }
+
+    // ── 커스텀 위젯 스킨 ──
+    fun setWidgetBackgroundColor(argb: Long?) {
+        viewModelScope.launch { repository.setWidgetBackgroundColor(argb) }
+    }
+
+    fun setWidgetTextColor(argb: Long?) {
+        viewModelScope.launch { repository.setWidgetTextColor(argb) }
+    }
+
+    fun setWidgetSkinStyle(style: String) {
+        viewModelScope.launch { repository.setWidgetSkinStyle(style) }
+    }
+
+    fun applyScene(scene: com.example.data.ChargeScene) {
+        viewModelScope.launch { repository.applyScene(scene) }
+    }
+
+    fun setRingStyle(thickness: Float? = null, capStyle: String? = null, glow: Boolean? = null) {
+        viewModelScope.launch { repository.setRingStyle(thickness, capStyle, glow) }
     }
 
     /** 충전 앰비언트 사운드. 끄면 즉시 재생을 멈춥니다. */
