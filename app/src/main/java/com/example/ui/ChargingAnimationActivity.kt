@@ -625,6 +625,11 @@ fun BatteryCenterGlow(
     // 번쩍이는 효과는 넣지 않았습니다 — 만충인 화면에서 빛 effects 는 시끄럽습니다.
     val isFull = batteryLevel >= 100
     val accent = if (isFull) ElectricGreen else ElectricAmber
+    val glowAlpha = when {
+        !ringGlowEnabled -> 0f
+        isFull -> 0.3f
+        else -> 0.25f
+    }
 
     // 링이 1% 마다 순간이동하던 것을 부드럽게 잇습니다.
     // 스프링을 쓴 이유: 1% 는 3.6도라 tween 로는 눈에 띄지 않고, spring 은
@@ -650,7 +655,7 @@ fun BatteryCenterGlow(
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        accent.copy(alpha = if (ringGlowEnabled) if (isFull) 0.3f else 0.25f else 0f),
+                        accent.copy(alpha = glowAlpha),
                         accent.copy(alpha = 0.05f),
                         Color.Transparent
                     ),
