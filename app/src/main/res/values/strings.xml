@@ -55,9 +55,14 @@
     <string name="record_seconds">%1$d / %2$d s</string>
     <string name="record_failed">Recording failed. Check the microphone permission and try again.</string>
     <string name="sound_presets_title">Built-in sounds</string>
-    <string name="sound_presets_sub">Tap a sound to preview it</string>
+    <string name="sound_presets_sub">Tap to select · hold to preview</string>
+    <string name="sound_selected_badge">Selected</string>
     <string name="a11y_play">Preview</string>
     <string name="a11y_play_short">Play</string>
+    <string name="a11y_sound_off">Sound is muted</string>
+    <string name="fab_preview">Preview</string>
+    <string name="fab_stop_preview">Stop</string>
+    <string name="fab_unmute">Unmute</string>
     <string name="a11y_delete">Remove</string>
     <string name="a11y_close">Close</string>
 
@@ -693,5 +698,10 @@
 <string name="widget_text_color">Text Color</string>
 <string name="widget_skin_style_label">Style</string>
 <string name="widget_skin_hint">Colors apply to all widget sizes on the home screen.</string>
+    <string name="widget_skin_preview_label">Live preview</string>
+    <string name="widget_preview_status">Charging</string>
+    <string name="widget_preview_charging">Fast charging</string>
+    <string name="widget_preview_power">Power</string>
+    <string name="widget_preview_temp">Temp</string>
 
 </resources>

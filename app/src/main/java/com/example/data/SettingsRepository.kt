@@ -506,6 +506,7 @@ class SettingsRepository(private val context: Context) {
             if (color == null) it.remove(KEY_WIDGET_BG_COLOR)
             else it[KEY_WIDGET_BG_COLOR] = color
         }
+        com.example.widget.ChargingWidgetProvider.requestUpdate(context)
     }
 
     suspend fun setWidgetTextColor(color: Long?) {
@@ -513,10 +514,12 @@ class SettingsRepository(private val context: Context) {
             if (color == null) it.remove(KEY_WIDGET_TEXT_COLOR)
             else it[KEY_WIDGET_TEXT_COLOR] = color
         }
+        com.example.widget.ChargingWidgetProvider.requestUpdate(context)
     }
 
     suspend fun setWidgetSkinStyle(style: String) {
         context.dataStore.edit { it[KEY_WIDGET_SKIN_STYLE] = style }
+        com.example.widget.ChargingWidgetProvider.requestUpdate(context)
     }
 
     suspend fun setRingStyle(thickness: Float? = null, capStyle: String? = null, glow: Boolean? = null) {

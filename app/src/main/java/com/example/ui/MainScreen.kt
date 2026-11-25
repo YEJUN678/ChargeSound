@@ -20,14 +20,19 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +51,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeDown
 import androidx.compose.material.icons.automirrored.filled.VolumeMute
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Audiotrack
 import androidx.compose.material.icons.filled.BatteryChargingFull
@@ -61,6 +67,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.NotificationAdd
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Power
 import androidx.compose.material.icons.filled.Speed
@@ -68,6 +75,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Upgrade
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Videocam
@@ -80,6 +88,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -118,10 +128,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -129,6 +145,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
@@ -143,6 +160,7 @@ import com.example.data.AdFreePlan
 import com.example.data.ChargeSettings
 import com.example.data.PremiumCatalog
 import com.example.data.SoundMode
+import com.example.data.SoundPreset
 import com.example.service.ChargingSessionTracker
 import com.example.service.UpdateChecker
 import com.example.sound.SoundManager
@@ -160,6 +178,9 @@ import com.example.ui.theme.Slate700
 import com.example.ui.theme.Slate800
 import com.example.ui.theme.Slate900
 import com.example.ui.theme.Slate950
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -411,6 +432,61 @@ fun MainScreen(viewModel: MainViewModel) {
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        // 원터치 퀵 액션 — 미리듣기 ▶ / ■ (음소거 시 🔇). 설정 탭을 3번 오가는 대신 1번 탭.
+        floatingActionButton = {
+            val fabColor = when {
+                !settings.soundEnabled -> ElectricAmber
+                isPlayingPreview -> ElectricCyan
+                else -> ElectricCyan
+            }
+            ExtendedFloatingActionButton(
+                onClick = {
+                    when {
+                        !settings.soundEnabled -> viewModel.toggleSoundEnabled(true)
+                        isPlayingPreview -> {
+                            viewModel.stopPreviewSound()
+                            AdManager.setCoreFeatureBusy(false)
+                        }
+                        else -> {
+                            // 미리듣기는 앱 핵심 기능이므로 전면류 광고를 차단합니다
+                            AdManager.setCoreFeatureBusy(true)
+                            viewModel.previewPlayCurrentSound()
+                        }
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = when {
+                            !settings.soundEnabled -> Icons.AutoMirrored.Filled.VolumeOff
+                            isPlayingPreview -> Icons.Default.Stop
+                            else -> Icons.Default.PlayArrow
+                        },
+                        contentDescription = stringResource(
+                            when {
+                                !settings.soundEnabled -> R.string.a11y_sound_off
+                                isPlayingPreview -> R.string.btn_stop_sound
+                                else -> R.string.a11y_play
+                            }
+                        )
+                    )
+                },
+                text = {
+                    Text(
+                        text = stringResource(
+                            when {
+                                !settings.soundEnabled -> R.string.fab_unmute
+                                isPlayingPreview -> R.string.fab_stop_preview
+                                else -> R.string.fab_preview
+                            }
+                        ),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                },
+                containerColor = fabColor.copy(alpha = 0.16f),
+                contentColor = fabColor,
+                modifier = Modifier.testTag("quick_preview_fab")
+            )
+        },
         containerColor = MaterialTheme.colorScheme.surface
     ) { innerPadding ->
         Column(
@@ -455,7 +531,9 @@ fun MainScreen(viewModel: MainViewModel) {
                         TabRowDefaults.PrimaryIndicator(
                             modifier = Modifier
                                 .tabIndicatorOffset(tabPositions[selectedTabIndex])
-                                .padding(horizontal = Spacing.lg),
+                                .padding(horizontal = Spacing.lg)
+                                // 선택된 탭 아래로 시안 글로우가 번집니다
+                                .shadow(10.dp, RoundedCornerShape(4.dp), spotColor = ElectricCyan),
                             width = 32.dp,
                             color = ElectricCyan,
                         )
@@ -586,6 +664,7 @@ fun MainScreen(viewModel: MainViewModel) {
                         onWidgetTextColorChange = { viewModel.setWidgetTextColor(it) },
                         onRingStyleChange = { thickness, cap, glow -> viewModel.setRingStyle(thickness, cap, glow) },
                         onSelectPreset = { viewModel.selectPresetSound(it) },
+                        onPreviewPreset = { viewModel.previewPlaySound(it) },
                         onToggleVibration = { viewModel.toggleVibration(it) },
                         onToggleVoiceAnnounce = { viewModel.setVoiceAnnounce(it) },
                         onSaveVoiceTemplates = { start, target -> viewModel.setVoiceTemplates(start, target) },
@@ -1069,6 +1148,7 @@ fun SoundSettingsTab(
     onWidgetTextColorChange: (Long?) -> Unit,
     onRingStyleChange: (Float?, String?, Boolean?) -> Unit,
     onSelectPreset: (String) -> Unit,
+    onPreviewPreset: (String) -> Unit,
     onToggleVibration: (Boolean) -> Unit,
     onToggleVoiceAnnounce: (Boolean) -> Unit,
     onSaveVoiceTemplates: (String, String) -> Unit,
@@ -1664,103 +1744,36 @@ fun SoundSettingsTab(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // 기본(무료) 프리셋 — 광고와 무관하게 항상 사용 가능합니다
-                        SoundManager.FREE_PRESETS.forEach { preset ->
-                        val isSelected = settings.soundMode == SoundMode.PRESET && settings.presetSoundId == preset.id
-                        val isThisPlaying = isPlayingPreview && activePlayingId == preset.id
-
-                        Surface(
-                            color = if (isSelected) ElectricCyan.copy(alpha = 0.12f) else Slate800,
-                            shape = RoundedCornerShape(12.dp),
-                            border = if (isSelected) BorderStroke(1.dp, ElectricCyan) else null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                                .clickable { onSelectPreset(preset.id) }
+                    // 기본(무료) 프리셋 — 앨범형 2열 그리드.
+                    // 탭 = 선택(자동 미리듣기), 길게 누르기 = 설정을 바꾸지 않고 미리듣기만.
+                    SoundManager.FREE_PRESETS.chunked(2).forEach { row ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Icon(
-                                        imageVector = if (isSelected) Icons.Default.Check else Icons.Default.ElectricBolt,
-                                        contentDescription = null,
-                                        tint = if (isSelected) ElectricCyan else Slate400,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Column {
-                                        Text(
-                                            text = stringResource(preset.nameRes),
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                            style = MaterialTheme.typography.titleSmall,
-                                            color = if (isSelected) ElectricCyan else Color.White
-                                        )
-                                        Text(
-                                            text = stringResource(preset.descriptionRes),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = Slate400
-                                        )
-                                        Spacer(modifier = Modifier.height(5.dp))
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(7.dp)
-                                        ) {
-                                            PresetWaveform(
-                                                samples = preset.waveform,
-                                                accent = if (isSelected) ElectricCyan else Slate400
-                                            )
-                                            preset.moodRes?.let { moodRes ->
-                                                Surface(
-                                                    color = if (isSelected) {
-                                                        ElectricCyan.copy(alpha = 0.16f)
-                                                    } else {
-                                                        MaterialTheme.colorScheme.surfaceContainerHighest
-                                                    },
-                                                    shape = AppShapes.pill
-                                                ) {
-                                                    Text(
-                                                        text = stringResource(moodRes),
-                                                        style = AppText.Badge,
-                                                        color = if (isSelected) ElectricCyan else Slate400,
-                                                        modifier = Modifier.padding(
-                                                            horizontal = Spacing.sm,
-                                                            vertical = Spacing.xxs
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                            Text(
-                                                text = stringResource(
-                                                    R.string.sound_duration_seconds,
-                                                    preset.previewDurationMs / 1_000f
-                                                ),
-                                                style = AppText.Badge,
-                                                color = Slate400
-                                            )
+                            row.forEach { preset ->
+                                PresetAlbumCard(
+                                    preset = preset,
+                                    coverIndex = SoundManager.FREE_PRESETS.indexOf(preset),
+                                    isSelected = settings.soundMode == SoundMode.PRESET &&
+                                        settings.presetSoundId == preset.id,
+                                    isPlaying = isPlayingPreview && activePlayingId == preset.id,
+                                    onSelect = { onSelectPreset(preset.id) },
+                                    onPreviewToggle = {
+                                        if (isPlayingPreview && activePlayingId == preset.id) {
+                                            onStopSound()
+                                        } else {
+                                            onPreviewPreset(preset.id)
                                         }
-                                    }
-                                }
-
-                                IconButton(
-                                    onClick = {
-                                        if (isThisPlaying) onStopSound() else onSelectPreset(preset.id)
                                     },
-                                    modifier = Modifier.size(36.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = if (isThisPlaying) Icons.Default.Stop else Icons.Default.PlayArrow,
-                                        contentDescription = stringResource(R.string.a11y_play),
-                                        tint = if (isSelected) ElectricCyan else Slate400
-                                    )
-                                }
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            if (row.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
                             }
                         }
+                        Spacer(modifier = Modifier.height(10.dp))
                     }
                 }
             }
@@ -1847,6 +1860,7 @@ fun SoundSettingsTab(
         item {
             SoundLayerMixerCard(
                 settings = settings,
+                isPlayingPreview = isPlayingPreview,
                 onChannelVolumeChange = onChannelVolumeChange,
                 onPanChange = onPanChange,
                 onEqPresetChange = onEqPresetChange
@@ -1949,6 +1963,190 @@ private fun PresetWaveform(samples: List<Float>, accent: Color) {
                     .height((5f + 13f * sample.coerceIn(0f, 1f)).dp)
                     .background(accent.copy(alpha = 0.85f), AppShapes.pill)
             )
+        }
+    }
+}
+
+/** 프리셋 아이콘 이름 → Material 아이콘. 목록에 없으면 음표 아이콘으로 대체합니다. */
+private fun presetIconFor(iconName: String): ImageVector = when (iconName) {
+    "bolt" -> Icons.Default.Bolt
+    "flash_on" -> Icons.Default.FlashOn
+    "upgrade" -> Icons.Default.Upgrade
+    "notifications" -> Icons.Default.Notifications
+    "speed" -> Icons.Default.Speed
+    else -> Icons.Default.Audiotrack
+}
+
+/** 앨범 커버 그라데이션 — 프리셋 인덱스로 순환하며 선택되지 않은 카드도 구분됩니다. */
+private val presetCoverGradients: List<List<Color>> = listOf(
+    listOf(Color(0xFF00E5FF), Color(0xFF0077A8)),
+    listOf(Color(0xFFFFB300), Color(0xFFB26A00)),
+    listOf(Color(0xFF3DDC84), Color(0xFF0B7A4B)),
+    listOf(Color(0xFF9C6ADE), Color(0xFF4C2A9E)),
+    listOf(Color(0xFFFF6B6B), Color(0xFFB02E2E)),
+    listOf(Color(0xFF4FC3F7), Color(0xFF0277BD))
+)
+
+/**
+ * 사운드 프리셋 "앨범" 카드 — 상단은 그라데이션 커버(아이콘+파형), 하단은 이름·분위기·길이.
+ *
+ * - 탭 = 선택(자동 미리듣기) [onSelect]
+ * - 길게 누르기 = 설정을 바꾸지 않고 미리듣기만 [onPreviewToggle]
+ * - 재생 중에는 테두리 글로우 + ▶ 아이콘이 ■ 로 바뀝니다
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun PresetAlbumCard(
+    preset: SoundPreset,
+    coverIndex: Int,
+    isSelected: Boolean,
+    isPlaying: Boolean,
+    onSelect: () -> Unit,
+    onPreviewToggle: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val cover = presetCoverGradients[coverIndex % presetCoverGradients.size]
+    val accent = if (isSelected) ElectricCyan else cover.first()
+    val glow by animateFloatAsState(
+        targetValue = if (isPlaying) 1f else 0f,
+        animationSpec = tween(Motion.MEDIUM_MILLIS),
+        label = "presetGlow"
+    )
+
+    Surface(
+        color = if (isSelected) ElectricCyan.copy(alpha = 0.10f) else Slate800,
+        shape = AppShapes.md,
+        border = BorderStroke(
+            width = if (isSelected) 2.dp else 1.dp,
+            color = if (isSelected) {
+                ElectricCyan
+            } else {
+                // 재생 중 테두리가 시안으로 서서히 살아납니다 (선택 상태와 구분되는 글로우)
+                ElectricCyan.copy(alpha = 0.15f + 0.65f * glow)
+            }
+        ),
+        modifier = modifier.combinedClickable(
+            onClick = onSelect,
+            onLongClick = onPreviewToggle
+        )
+    ) {
+        Column {
+            // ── 앨범 커버 ──
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(84.dp)
+                    .background(Brush.linearGradient(cover))
+            ) {
+                Icon(
+                    imageVector = presetIconFor(preset.iconName),
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.92f),
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 14.dp)
+                        .size(34.dp)
+                )
+
+                // 재생 중인 파형: 커버 우측에 겹쳐 리듬감을 표시
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 12.dp)
+                ) {
+                    PresetWaveform(
+                        samples = preset.waveform,
+                        accent = if (isPlaying) Color.White else Color.White.copy(alpha = 0.55f)
+                    )
+                }
+
+                // 선택 표시(체크) — 좌상단 핀 배지
+                if (isSelected) {
+                    Surface(
+                        color = Color.Black.copy(alpha = 0.45f),
+                        shape = AppShapes.pill,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = ElectricCyan,
+                                modifier = Modifier.size(11.dp)
+                            )
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text(
+                                text = stringResource(R.string.sound_selected_badge),
+                                style = AppText.Badge,
+                                color = ElectricCyan
+                            )
+                        }
+                    }
+                }
+
+                // ▶ / ■ 토글 — 커버 우하단
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(8.dp)
+                        .size(30.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = if (isPlaying) 0.62f else 0.38f))
+                        .clickable { onPreviewToggle() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (isPlaying) Icons.Default.Stop else Icons.Default.PlayArrow,
+                        contentDescription = stringResource(
+                            if (isPlaying) R.string.btn_stop_sound else R.string.a11y_play
+                        ),
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+
+            // ── 정보 ──
+            Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+                Text(
+                    text = stringResource(preset.nameRes),
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = if (isSelected) ElectricCyan else Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    preset.moodRes?.let { moodRes ->
+                        Text(
+                            text = stringResource(moodRes),
+                            style = AppText.Badge,
+                            color = Slate400,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                    }
+                    Text(
+                        text = stringResource(
+                            R.string.sound_duration_seconds,
+                            preset.previewDurationMs / 1_000f
+                        ),
+                        style = AppText.Badge,
+                        color = if (isPlaying) ElectricCyan else Slate400
+                    )
+                }
+            }
         }
     }
 }
@@ -3219,10 +3417,151 @@ private fun VoiceRecorderDialog(
     )
 }
 
+/**
+ * 원형 로터리 노브 — 세로 드래그로 값을 조절합니다.
+ *
+ * 135°(왼쪽 아래)부터 270° 스윕으로 그려 턴테이블 다이얼 느낌을 냅니다.
+ * 터치 영역은 84dp 로 넉넉하게 잡아 한 손으로 잡기 쉽게 했습니다.
+ */
+@Composable
+private fun RotaryKnob(
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    accent: Color,
+    label: String,
+    valueText: String,
+    onValueChange: (Float) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val total = valueRange.endInclusive - valueRange.start
+    val normalized = if (total <= 0f) 0f else ((value - valueRange.start) / total).coerceIn(0f, 1f)
+    val angleDeg = 135f + 270f * normalized
+
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(84.dp)
+                .pointerInput(valueRange) {
+                    detectDragGestures { change, dragAmount ->
+                        change.consume()
+                        // 세로 드래그: 위로 밀수록 큼 (170px = 전체 범위)
+                        val delta = -dragAmount.y / 170f * total
+                        val next = (value + delta).coerceIn(valueRange.start, valueRange.endInclusive)
+                        if (next != value) onValueChange(next)
+                    }
+                }
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val stroke = Stroke(width = 7.dp.toPx(), cap = StrokeCap.Round)
+                val inset = stroke.width / 2
+                val arcSize = Size(size.width - stroke.width, size.height - stroke.width)
+                val topLeft = Offset(inset, inset)
+
+                // 트랙
+                drawArc(
+                    color = Slate800,
+                    startAngle = 135f,
+                    sweepAngle = 270f,
+                    useCenter = false,
+                    topLeft = topLeft,
+                    size = arcSize,
+                    style = stroke
+                )
+                // 값
+                drawArc(
+                    color = accent,
+                    startAngle = 135f,
+                    sweepAngle = 270f * normalized,
+                    useCenter = false,
+                    topLeft = topLeft,
+                    size = arcSize,
+                    style = stroke
+                )
+
+                // 다이얼 본체
+                val radius = arcSize.minDimension / 2f
+                drawCircle(color = Slate900, radius = radius, center = center)
+                drawCircle(
+                    color = Slate700,
+                    radius = radius,
+                    center = center,
+                    style = Stroke(width = 1.5.dp.toPx())
+                )
+
+                // 포인터
+                val rad = Math.toRadians(angleDeg.toDouble()).toFloat()
+                val inner = radius * 0.42f
+                val outer = radius * 0.86f
+                drawLine(
+                    color = accent,
+                    start = center + Offset(cos(rad) * inner, sin(rad) * inner),
+                    end = center + Offset(cos(rad) * outer, sin(rad) * outer),
+                    strokeWidth = 4.dp.toPx(),
+                    cap = StrokeCap.Round
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = Slate400,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = valueText,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = accent,
+            maxLines = 1
+        )
+    }
+}
+
+/** 미리듣기 중에 춤추는 스펙트럼 바. 재생 중이 아니면 낮게 정지해 있습니다. */
+@Composable
+private fun MixerSpectrum(
+    isActive: Boolean,
+    accent: Color,
+    modifier: Modifier = Modifier
+) {
+    val transition = rememberInfiniteTransition(label = "mixer_spectrum")
+    val phase by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = (Math.PI * 2).toFloat(),
+        animationSpec = infiniteRepeatable(tween(900, easing = LinearEasing)),
+        label = "mixer_spectrum_phase"
+    )
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(30.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        verticalAlignment = Alignment.Bottom
+    ) {
+        repeat(22) { i ->
+            val wobble = (sin(phase + i * 0.55f) + 1f) / 2f
+            val h = if (isActive) 5f + 22f * wobble else 4f
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(h.dp)
+                    .background(
+                        accent.copy(alpha = if (isActive) 0.35f + 0.55f * wobble else 0.25f),
+                        AppShapes.pill
+                    )
+            )
+        }
+    }
+}
+
 /** 사운드 믹서 — 채널 볼륨 · 스테레오 팬 · EQ 프리셋 카드 */
 @Composable
 private fun SoundLayerMixerCard(
     settings: ChargeSettings,
+    isPlayingPreview: Boolean,
     onChannelVolumeChange: (Float) -> Unit,
     onPanChange: (Float) -> Unit,
     onEqPresetChange: (String) -> Unit
@@ -3266,52 +3605,40 @@ private fun SoundLayerMixerCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 채널 볼륨
-            Text(
-                text = stringResource(R.string.mixer_volume_label),
-                style = MaterialTheme.typography.labelMedium,
-                color = Slate400
-            )
-            Slider(
-                value = settings.channelVolume,
-                onValueChange = onChannelVolumeChange,
-                valueRange = 0f..1f,
-                colors = SliderDefaults.colors(
-                    thumbColor = ElectricCyan,
-                    activeTrackColor = ElectricCyan,
-                    inactiveTrackColor = Slate800
+            // 원형 노브 — 채널 볼륨 · 스테레오 팬 (세로 드래그로 조절)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                RotaryKnob(
+                    value = settings.channelVolume,
+                    valueRange = 0f..1f,
+                    accent = ElectricCyan,
+                    label = stringResource(R.string.mixer_volume_label),
+                    valueText = "${(settings.channelVolume * 100).toInt()}%",
+                    onValueChange = onChannelVolumeChange,
+                    modifier = Modifier.weight(1f)
                 )
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 스테레오 팬
-            Text(
-                text = stringResource(R.string.mixer_pan_label),
-                style = MaterialTheme.typography.labelMedium,
-                color = Slate400
-            )
-            Slider(
-                value = settings.pan,
-                onValueChange = onPanChange,
-                valueRange = -1f..1f,
-                colors = SliderDefaults.colors(
-                    thumbColor = ElectricAmber,
-                    activeTrackColor = ElectricAmber,
-                    inactiveTrackColor = Slate800
+                RotaryKnob(
+                    value = settings.pan,
+                    valueRange = -1f..1f,
+                    accent = ElectricAmber,
+                    label = stringResource(R.string.mixer_pan_label),
+                    valueText = when {
+                        settings.pan < -0.05f ->
+                            stringResource(R.string.mixer_pan_left, (settings.pan * -100).toInt())
+                        settings.pan > 0.05f ->
+                            stringResource(R.string.mixer_pan_right, (settings.pan * 100).toInt())
+                        else -> stringResource(R.string.mixer_pan_center)
+                    },
+                    onValueChange = onPanChange,
+                    modifier = Modifier.weight(1f)
                 )
-            )
-            Text(
-                text = when {
-                    settings.pan < -0.05f ->
-                        stringResource(R.string.mixer_pan_left, (settings.pan * -100).toInt())
-                    settings.pan > 0.05f ->
-                        stringResource(R.string.mixer_pan_right, (settings.pan * 100).toInt())
-                    else -> stringResource(R.string.mixer_pan_center)
-                },
-                style = MaterialTheme.typography.labelSmall,
-                color = Slate600
-            )
+            }
+
+            // 미리듣기 중에는 스펙트럼 바가 춤을 춥니다
+            Spacer(modifier = Modifier.height(14.dp))
+            MixerSpectrum(isActive = isPlayingPreview, accent = ElectricCyan)
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -3351,7 +3678,9 @@ private fun SoundLayerMixerCard(
                         ),
                         border = FilterChipDefaults.filterChipBorder(
                             borderColor = if (isSelected) ElectricCyan else Slate700,
-                            selectedBorderColor = ElectricCyan
+                            selectedBorderColor = ElectricCyan,
+                            enabled = true,
+                            selected = isSelected
                         )
                     )
                 }
@@ -3590,7 +3919,9 @@ private fun WidgetSkinCard(
                         ),
                         border = FilterChipDefaults.filterChipBorder(
                             borderColor = if (isSelected) ElectricAmber else Slate700,
-                            selectedBorderColor = ElectricAmber
+                            selectedBorderColor = ElectricAmber,
+                            enabled = true,
+                            selected = isSelected
                         )
                     )
                 }
@@ -3626,6 +3957,17 @@ private fun WidgetSkinCard(
                 onSelect = onTextColorChange
             )
 
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // 실시간 미리보기 — 홈 화면에 나가지 않고도 스킨을 확인할 수 있습니다
+            Text(
+                text = stringResource(R.string.widget_skin_preview_label),
+                style = MaterialTheme.typography.labelMedium,
+                color = Slate400,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
+            WidgetSkinPreview(settings = settings)
+
             Text(
                 text = stringResource(R.string.widget_skin_hint),
                 style = MaterialTheme.typography.labelSmall,
@@ -3659,8 +4001,142 @@ private fun WidgetSkinCard(
     }
 }
 
-/** 색상 스와치 가로 줄 — null은 "기본" 선택 */
+/**
+ * 위젯 스킨 실시간 미리보기 — 선택한 스타일/배경색/글자색을 축소판 위젯에 즉시 반영합니다.
+ *
+ * 실제 홈 화면 위젯(3종 레이아웃)을 흉내 낸 미니 버전이며,
+ * 배경색은 RemoteViews 와 동일한 "둥근 사각형"으로 표현합니다.
+ */
 @Composable
+private fun WidgetSkinPreview(settings: ChargeSettings) {
+    val style = settings.widgetSkinStyle
+    val bg = settings.widgetBackgroundColor?.let { Color(it) }
+        ?: when (style) {
+            "glass" -> Color(0xB31E293B)
+            "neon" -> Color(0xFF030710)
+            else -> Slate950
+        }
+    val fg = settings.widgetTextColor?.let { Color(it) } ?: Color.White
+    val accent = when (style) {
+        "neon" -> Color(0xFF39FF14)
+        "glass" -> Color(0xFF7DD3FC)
+        else -> if (settings.widgetTextColor != null) fg else ElectricCyan
+    }
+    val border = when (style) {
+        "glass" -> Color(0x59FFFFFF)
+        "neon" -> Color(0xFF39FF14)
+        "minimal" -> Slate700
+        else -> Color.Transparent
+    }
+    val pillBg = when (style) {
+        "glass" -> Color(0x26FFFFFF)
+        "neon" -> Color(0x1A39FF14)
+        else -> Color(0x33000000)
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(112.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(bg)
+            .then(
+                if (border != Color.Transparent) {
+                    Modifier.border(1.5.dp, border, RoundedCornerShape(20.dp))
+                } else {
+                    Modifier
+                }
+            )
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // 링 게이지 + 중앙 배터리 %
+        Box(modifier = Modifier.size(68.dp)) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val stroke = Stroke(
+                    width = (if (settings.ringThickness >= 1f) 7f else 5f).dp.toPx(),
+                    cap = if (settings.ringCapStyle == "square") StrokeCap.Butt else StrokeCap.Round
+                )
+                val inset = stroke.width / 2
+                val arcSize = Size(size.width - stroke.width, size.height - stroke.width)
+                val topLeft = Offset(inset, inset)
+                drawArc(
+                    color = if (style == "neon") Color(0xFF14532D) else Slate700,
+                    startAngle = -90f,
+                    sweepAngle = 360f,
+                    useCenter = false,
+                    topLeft = topLeft,
+                    size = arcSize,
+                    style = stroke
+                )
+                drawArc(
+                    color = accent,
+                    startAngle = -90f,
+                    sweepAngle = 360f * 0.72f,
+                    useCenter = false,
+                    topLeft = topLeft,
+                    size = arcSize,
+                    style = stroke
+                )
+                if (settings.ringGlowEnabled) {
+                    drawArc(
+                        color = accent.copy(alpha = 0.28f),
+                        startAngle = -90f,
+                        sweepAngle = 360f * 0.72f,
+                        useCenter = false,
+                        topLeft = topLeft,
+                        size = arcSize,
+                        style = Stroke(width = stroke.width * 2.2f, cap = stroke.cap)
+                    )
+                }
+            }
+            Text(
+                text = "72%",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = fg,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(14.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.widget_preview_status),
+                style = MaterialTheme.typography.labelSmall,
+                color = fg.copy(alpha = 0.75f)
+            )
+            Text(
+                text = stringResource(R.string.widget_preview_charging),
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleSmall,
+                color = fg
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                listOf(
+                    stringResource(R.string.widget_preview_power) to "18.4 W",
+                    stringResource(R.string.widget_preview_temp) to "31°"
+                ).forEach { (label, value) ->
+                    Surface(
+                        color = pillBg,
+                        shape = AppShapes.pill
+                    ) {
+                        Text(
+                            text = "$label $value",
+                            style = AppText.Badge,
+                            color = fg.copy(alpha = 0.9f),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** 색상 스와치 가로 줄 — null은 "기본" 선택 */@Composable
 private fun ColorSwatchRow(
     swatches: List<Long?>,
     selected: Long?,

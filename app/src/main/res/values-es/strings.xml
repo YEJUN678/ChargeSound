@@ -60,9 +60,14 @@
     <string name="btn_pick_mp3">Elegir archivo de audio</string>
     <string name="btn_change_mp3">Cambiar de archivo</string>
     <string name="sound_presets_title">Sonidos integrados</string>
-    <string name="sound_presets_sub">Toca un sonido para escucharlo</string>
+    <string name="sound_presets_sub">Toca para elegir · mantén pulsado para escuchar</string>
+    <string name="sound_selected_badge">Elegido</string>
     <string name="a11y_play">Escuchar</string>
     <string name="a11y_play_short">Reproducir</string>
+    <string name="a11y_sound_off">Sonido silenciado</string>
+    <string name="fab_preview">Escuchar</string>
+    <string name="fab_stop_preview">Detener</string>
+    <string name="fab_unmute">Activar sonido</string>
     <string name="a11y_delete">Eliminar</string>
     <string name="a11y_close">Cerrar</string>
 
@@ -655,5 +660,10 @@
 <string name="widget_text_color">Color del texto</string>
 <string name="widget_skin_style_label">Estilo</string>
 <string name="widget_skin_hint">Los colores se aplican a todos los tamaños del widget en la pantalla de inicio.</string>
+    <string name="widget_skin_preview_label">Vista previa en vivo</string>
+    <string name="widget_preview_status">Cargando</string>
+    <string name="widget_preview_charging">Carga rápida</string>
+    <string name="widget_preview_power">Potencia</string>
+    <string name="widget_preview_temp">Temp</string>
 
 </resources>

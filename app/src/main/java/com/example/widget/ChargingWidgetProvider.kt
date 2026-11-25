@@ -121,13 +121,11 @@ class ChargingWidgetProvider : AppWidgetProvider() {
         // 위젯은 RemoteViews라 Compose 설정을 바로 관찰할 수 없습니다.
         // 갱신 시 저장된 스킨을 읽어 링·글자·배경에 반영합니다.
         val widgetSettings = runBlocking { com.example.data.SettingsRepository(context.applicationContext).settingsFlow.first() }
-        var palette = WidgetPalette.of(isSystemInDarkTheme(context))
-        widgetSettings.widgetTextColor?.let { color ->
-            palette = palette.copy(
-                accent = color.toInt(), textPrimary = color.toInt(),
-                textSecondary = color.toInt(), textDim = color.toInt()
-            )
-        }
+        val palette = WidgetPalette.of(
+            isDark = isSystemInDarkTheme(context),
+            skinStyle = widgetSettings.widgetSkinStyle,
+            textColorOverride = widgetSettings.widgetTextColor
+        )
 
         val isCharging = info.isCharging
         val plugName = context.getString(info.plugType.displayNameRes)
@@ -140,9 +138,13 @@ class ChargingWidgetProvider : AppWidgetProvider() {
         val views = RemoteViews(context.packageName, layoutRes)
 
         // ── 배경 ──────────────────────────────────────────────
-        views.setInt(R.id.widget_root, "setBackgroundResource", palette.background)
-        widgetSettings.widgetBackgroundColor?.let { color ->
-            views.setInt(R.id.widget_root, "setBackgroundColor", color.toInt())
+        // 사용자 지정 색은 setBackgroundColor 로 넣으면 라운드 코너가 사라지므로,
+        // 스와치 색과 일치하는 둥근 drawable 로 매핑합니다.
+        val customBgDrawable = bgDrawableFor(widgetSettings.widgetBackgroundColor)
+        if (customBgDrawable != null) {
+            views.setInt(R.id.widget_root, "setBackgroundResource", customBgDrawable)
+        } else {
+            views.setInt(R.id.widget_root, "setBackgroundResource", palette.background)
         }
 
         // ── 링 게이지 ─────────────────────────────────────────
@@ -370,10 +372,13 @@ class ChargingWidgetProvider : AppWidgetProvider() {
 }
 
 /**
- * 위젯 색 팔레트 — 다크/라이트 두 벌만 있으면 됩니다.
+ * 위젯 색 팔레트 — 다크/라이트 + 스킨 스타일 + 사용자 지정 색을 반영합니다.
  *
  * 강조색은 라이트에서 시안(#00E5FF)을 그대로 쓰면 흰 배경에서 읽히지 않아
  * 한 단계 진한 청록(#0891B2)으로 낮춥니다.
+ *
+ * @param skinStyle 스킨 스타일 ("default", "minimal", "glass", "neon")
+ * @param textColorOverride 사용자 지정 글자색(ARGB). null 이면 기본 글자색 사용
  */
 private data class WidgetPalette(
     val background: Int,
@@ -385,28 +390,98 @@ private data class WidgetPalette(
     val textDim: Int
 ) {
     companion object {
-        fun of(isDark: Boolean): WidgetPalette = if (isDark) {
-            WidgetPalette(
-                background = R.drawable.widget_bg_dark,
-                pill = R.drawable.widget_pill_dark,
-                accent = 0xFF00E5FF.toInt(),
-                track = 0xFF1E293B.toInt(),
-                textPrimary = 0xFFFFFFFF.toInt(),
-                textSecondary = 0xFF94A3B8.toInt(),
-                textDim = 0xFF64748B.toInt()
-            )
-        } else {
-            WidgetPalette(
-                background = R.drawable.widget_bg_light,
-                pill = R.drawable.widget_pill_light,
-                accent = 0xFF0891B2.toInt(),
-                track = 0xFFDDE6F2.toInt(),
-                textPrimary = 0xFF0F172A.toInt(),
-                textSecondary = 0xFF64748B.toInt(),
-                textDim = 0xFF94A3B8.toInt()
+        fun of(
+            isDark: Boolean,
+            skinStyle: String = "default",
+            textColorOverride: Long? = null
+        ): WidgetPalette {
+            val base = if (isDark) {
+                WidgetPalette(
+                    background = R.drawable.widget_bg_dark,
+                    pill = R.drawable.widget_pill_dark,
+                    accent = 0xFF00E5FF.toInt(),
+                    track = 0xFF1E293B.toInt(),
+                    textPrimary = 0xFFFFFFFF.toInt(),
+                    textSecondary = 0xFF94A3B8.toInt(),
+                    textDim = 0xFF64748B.toInt()
+                )
+            } else {
+                WidgetPalette(
+                    background = R.drawable.widget_bg_light,
+                    pill = R.drawable.widget_pill_light,
+                    accent = 0xFF0891B2.toInt(),
+                    track = 0xFFDDE6F2.toInt(),
+                    textPrimary = 0xFF0F172A.toInt(),
+                    textSecondary = 0xFF64748B.toInt(),
+                    textDim = 0xFF94A3B8.toInt()
+                )
+            }
+
+            // 스킨 스타일 — 글래스/네온은 어두운 배경이 전제라 다크 팔레트 위에 적용
+            val styled = when (skinStyle) {
+                "minimal" -> base.copy(
+                    pill = R.drawable.widget_pill_minimal,
+                    track = if (isDark) 0xFF1E293B.toInt() else 0xFFE2E8F0.toInt()
+                )
+                "glass" -> base.copy(
+                    background = R.drawable.widget_bg_glass,
+                    pill = R.drawable.widget_pill_glass,
+                    accent = 0xFF7DD3FC.toInt(),
+                    track = 0x33FFFFFF,
+                    textPrimary = 0xFFFFFFFF.toInt(),
+                    textSecondary = 0xFFCBD5E1.toInt(),
+                    textDim = 0xFF94A3B8.toInt()
+                )
+                "neon" -> base.copy(
+                    background = R.drawable.widget_bg_neon,
+                    pill = R.drawable.widget_pill_neon,
+                    accent = 0xFF39FF14.toInt(),
+                    track = 0xFF14532D.toInt(),
+                    textPrimary = 0xFFFFFFFF.toInt(),
+                    textSecondary = 0xFF86EFAC.toInt(),
+                    textDim = 0xFF4ADE80.toInt()
+                )
+                else -> base
+            }
+
+            val primary = textColorOverride?.toInt() ?: styled.textPrimary
+            val secondary = textColorOverride?.toInt() ?: styled.textSecondary
+            val dim = textColorOverride?.let { dimColor(it) } ?: styled.textDim
+
+            return styled.copy(
+                // 글자색을 지정하면 링 accent 도 같은 색으로 맞춥니다 (기존 동작 유지).
+                accent = textColorOverride?.toInt() ?: styled.accent,
+                textPrimary = primary,
+                textSecondary = secondary,
+                textDim = dim
             )
         }
+
+        /** 글자색보다 어둡고 채도를 낮춘 보조 색 (대비 확보용). */
+        private fun dimColor(argb: Long): Int {
+            val c = argb.toInt()
+            val r = (c shr 16 and 0xFF) * 3 / 4
+            val g = (c shr 8 and 0xFF) * 3 / 4
+            val b = (c and 0xFF) * 3 / 4
+            val a = (c shr 24 and 0xFF).let { if (it == 0) 0xFF else it }
+            return (a shl 24) or (r shl 16) or (g shl 8) or b
+        }
     }
+}
+
+/**
+ * 사용자 지정 배경색(ARGB) → 라운드 코너 drawable.
+ *
+ * RemoteViews 의 `setBackgroundColor` 는 ColorDrawable 로 덮어 라운드가 사라지므로,
+ * 설정 화면의 스와치 색과 일치하는 drawable 로 매핑합니다.
+ * 매핑에 없던 색(외부에서 유입)이면 null → 기본 팔레트 배경을 씁니다.
+ */
+private fun bgDrawableFor(color: Long?): Int? = when (color) {
+    0xFF101828L -> R.drawable.widget_bg_user_ink      // 잉크
+    0xFF0B3B36L -> R.drawable.widget_bg_user_forest   // 포레스트
+    0xFF2B2140L -> R.drawable.widget_bg_user_violet   // 바이올렛
+    0xFFFDF6ECL -> R.drawable.widget_bg_user_cream    // 크림
+    else -> null
 }
 
 /** 위젯 크기 설정 액티비티 (앱 설정에서 호출) */

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 위젯 배경 — 사용자 지정 "바이올렛" (#2B2140). 라운드 코너 유지용. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FF2B2140" />
+    <corners android:radius="22dp" />
+    <stroke
+        android:width="1dp"
+        android:color="#3D3159" />
+</shape>

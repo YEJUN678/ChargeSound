@@ -300,7 +300,7 @@ class ChargingBroadcastReceiver : BroadcastReceiver() {
         SoundManager.fadeOutAndStop(400L)
         if (settings.playOnDisconnect) {
             val disconnectTone = SoundManager.getPresetFile(context, "gentle_ding").absolutePath
-            SoundManager.playSound(context, disconnectTone, settings.volume * 0.7f, 2)
+            SoundManager.playSound(context, disconnectTone, settings.volume * 0.7f, 0f, 2)
         }
     }
 

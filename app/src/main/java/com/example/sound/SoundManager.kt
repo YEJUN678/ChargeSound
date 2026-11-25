@@ -17,6 +17,7 @@ import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.max
 import kotlin.math.sin
@@ -168,7 +169,7 @@ object SoundManager {
             val clampedVolume = volume.coerceIn(0f, 1f)
             // 팬 균형: -1(left) ~ 0(center) ~ 1(right). MediaPlayer setVolume balance 파라미터 사용.
             // setVolume(balance)에서 balance는 -1.0~1.0이며, left/right 볼륨 비율입니다.
-            val balance = if (pan.abs() < 0.01f) 0f else pan.coerceIn(-1f, 1f)
+            val balance = if (abs(pan) < 0.01f) 0f else pan.coerceIn(-1f, 1f)
 
             val eq = EQ_PRESETS[eqPreset] ?: EQ_PRESETS["flat"]!!
             // EQ는 재생 전 WAV 데이터를 조정하기보다, 간단한 IIR 필터 계수를 적용합니다.
@@ -319,7 +320,7 @@ object SoundManager {
         rangeJob?.cancel()
         activeMediaPlayer?.let { player ->
             val clampedVolume = volume.coerceIn(0f, 1f)
-            val balance = if (pan.abs() < 0.01f) 0f else pan.coerceIn(-1f, 1f)
+            val balance = if (abs(pan) < 0.01f) 0f else pan.coerceIn(-1f, 1f)
             // setVolume(balance)에서 balance는 -1.0~1.0, left/right 비율입니다.
             player.setVolume(
                 clampedVolume * (1f - balance * 0.5f).coerceIn(0f, 1f),

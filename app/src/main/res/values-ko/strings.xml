@@ -50,9 +50,14 @@
     <string name="record_seconds">%1$d / %2$d초</string>
     <string name="record_failed">녹음에 실패했습니다. 마이크 권한을 확인하고 다시 시도해 주세요.</string>
     <string name="sound_presets_title">기본 제공 프리셋 사운드</string>
-    <string name="sound_presets_sub">사운드를 터치하면 미리듣기 후 설정됩니다</string>
+    <string name="sound_presets_sub">선택은탭, 미리듣기는 길게 누르기</string>
+    <string name="sound_selected_badge">선택됨</string>
     <string name="a11y_play">미리듣기</string>
     <string name="a11y_play_short">재생</string>
+    <string name="a11y_sound_off">음소거 상태</string>
+    <string name="fab_preview">미리듣기</string>
+    <string name="fab_stop_preview">정지</string>
+    <string name="fab_unmute">소리 켜기</string>
     <string name="a11y_delete">삭제</string>
     <string name="a11y_close">닫기</string>
 
@@ -687,5 +692,10 @@
 <string name="widget_text_color">글자색</string>
 <string name="widget_skin_style_label">스타일</string>
 <string name="widget_skin_hint">색상은 홈 화면의 모든 위젯 크기에 적용됩니다.</string>
+    <string name="widget_skin_preview_label">실시간 미리보기</string>
+    <string name="widget_preview_status">충전 중</string>
+    <string name="widget_preview_charging">고속 충전</string>
+    <string name="widget_preview_power">전력</string>
+    <string name="widget_preview_temp">온도</string>
 
 </resources>
