@@ -24,6 +24,10 @@
     <string name="battery_idle_short">Battery</string>
     <string name="btn_test_charging">Test</string>
     <string name="battery_header_plug">%1$s • %2$.1f°C</string>
+    <string name="hero_stat_eta">Full in</string>
+    <string name="hero_stat_elapsed">Elapsed</string>
+    <string name="hero_stat_power">Power</string>
+    <string name="hero_stat_none">—</string>
 
     <!-- ═══════════════ tabs ═══════════════ -->
     <string name="tab_sound">Sound</string>
@@ -581,6 +585,13 @@
     <string name="onboard_autostart_sub">Toggle anytime in Settings → Sound</string>
     <string name="onboard_next">Next</string>
     <string name="onboard_finish">Get started</string>
+    <string name="onboard_skip">Skip</string>
+    <string name="onboard_sound_title">Hear your charging sound</string>
+    <string name="onboard_sound_body">This is how ChargeSound will alert you when you plug in. Tap play to listen — you can change the sound anytime in Settings.</string>
+    <string name="onboard_sound_play">Play sound</string>
+    <string name="onboard_sound_stop">Stop</string>
+    <string name="onboard_widget_label">Add the widget</string>
+    <string name="onboard_widget_sub">Long-press your home screen → Widgets → ChargeSound to see battery, power and ETA at a glance.</string>
 
 <!-- Widget layout texts -->
     <string name="widget_level_placeholder">85%</string>

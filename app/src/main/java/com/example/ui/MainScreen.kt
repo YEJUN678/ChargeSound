@@ -33,6 +33,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -327,6 +328,21 @@ fun MainScreen(viewModel: MainViewModel) {
         session = ChargingSessionTracker.Snapshot(0L, null, null, false)
     }
 
+    // 히어로 카드용 전력(W) — 충전 중일 때만 샘플링합니다.
+    val powerTracker = remember { PowerTracker.get(context) }
+    var heroWatts by remember { mutableStateOf<Float?>(null) }
+    LaunchedEffect(batteryInfo.isCharging) {
+        if (!batteryInfo.isCharging) {
+            powerTracker.reset()
+            heroWatts = null
+            return@LaunchedEffect
+        }
+        while (true) {
+            heroWatts = powerTracker.sample()
+            delay(6_000L)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -500,6 +516,9 @@ fun MainScreen(viewModel: MainViewModel) {
                 batteryInfo = batteryInfo,
                 isServiceEnabled = settings.isServiceEnabled,
                 chargeRatePerHour = session.percentPerHour,
+                etaMillis = session.etaMillis,
+                elapsedMillis = session.elapsedMillis,
+                watts = heroWatts,
                 rateBadge = {
                     ChargingRateBadge(
                         percentPerHour = session.percentPerHour,
@@ -603,7 +622,27 @@ fun MainScreen(viewModel: MainViewModel) {
             }
 
             // Tab Content
-            Box(modifier = Modifier.weight(1f)) {
+            //
+            // 좌우로 밀면 이전/다음 탭으로 넘어갑니다. 세로 스크롤은 LazyColumn 이,
+            // 가로 드래그는 여기가 각각 소비하므로 충돌하지 않습니다.
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .pointerInput(selectedTabIndex) {
+                        var totalDrag = 0f
+                        detectHorizontalDragGestures(
+                            onDragStart = { totalDrag = 0f },
+                            onHorizontalDrag = { _, amount -> totalDrag += amount },
+                            onDragEnd = {
+                                val threshold = 64.dp.toPx()
+                                when {
+                                    totalDrag < -threshold && selectedTabIndex < 2 -> selectedTabIndex++
+                                    totalDrag > threshold && selectedTabIndex > 0 -> selectedTabIndex--
+                                }
+                            }
+                        )
+                    }
+            ) {
                 AnimatedContent(
                     targetState = selectedTabIndex,
                     transitionSpec = {
@@ -927,6 +966,9 @@ fun BatteryLiveHeaderCard(
     batteryInfo: BatteryInfo,
     isServiceEnabled: Boolean,
     chargeRatePerHour: Float? = null,
+    etaMillis: Long? = null,
+    elapsedMillis: Long = 0L,
+    watts: Float? = null,
     rateBadge: @Composable () -> Unit = {},
     onTestClick: () -> Unit
 ) {
@@ -1119,8 +1161,88 @@ fun BatteryLiveHeaderCard(
                     color = ringColor,
                     trackColor = Slate800
                 )
+
+                // ── 충전 허브 스탯: 완충 예상 · 경과 시간 · 전력 ──
+                Spacer(modifier = Modifier.height(Spacing.md))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                ) {
+                    HeroStat(
+                        label = stringResource(R.string.hero_stat_eta),
+                        value = if (batteryInfo.isCharging && etaMillis != null && etaMillis > 0L) {
+                            formatDurationShort(etaMillis)
+                        } else {
+                            stringResource(R.string.hero_stat_none)
+                        },
+                        tint = if (batteryInfo.isCharging) ringColor else Slate400,
+                        modifier = Modifier.weight(1f)
+                    )
+                    HeroStat(
+                        label = stringResource(R.string.hero_stat_elapsed),
+                        value = if (batteryInfo.isCharging && elapsedMillis > 0L) {
+                            formatDurationShort(elapsedMillis)
+                        } else {
+                            stringResource(R.string.hero_stat_none)
+                        },
+                        tint = ElectricCyan,
+                        modifier = Modifier.weight(1f)
+                    )
+                    HeroStat(
+                        label = stringResource(R.string.hero_stat_power),
+                        value = watts?.let { stringResource(R.string.widget_watts_fmt, it) }
+                            ?: stringResource(R.string.hero_stat_none),
+                        tint = ElectricPurple,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
+    }
+}
+
+/** 히어로 카드의 스탯 한 칸 — 큰 값 + 작은 라벨. */
+@Composable
+private fun HeroStat(
+    label: String,
+    value: String,
+    tint: Color,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.46f),
+        shape = AppShapes.md,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
+        modifier = modifier
+    ) {
+        Column(modifier = Modifier.padding(horizontal = Spacing.sm, vertical = Spacing.xs)) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = tint,
+                maxLines = 1
+            )
+            Text(
+                text = label,
+                style = AppText.Badge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+/** 밀리초를 "2 h" / "45 min" 형태로 줄여 씁니다. */
+@Composable
+private fun formatDurationShort(millis: Long): String {
+    val totalMinutes = (millis / 60_000L).coerceAtLeast(0L)
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    return if (hours > 0) {
+        stringResource(R.string.duration_hours, hours.toInt())
+    } else {
+        stringResource(R.string.duration_minutes, minutes.toInt())
     }
 }
 

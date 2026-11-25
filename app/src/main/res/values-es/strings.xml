@@ -27,6 +27,10 @@
     <string name="battery_idle_short">Batería</string>
     <string name="btn_test_charging">Probar</string>
     <string name="battery_header_plug">%1$s • %2$.1f °C</string>
+    <string name="hero_stat_eta">Full en</string>
+    <string name="hero_stat_elapsed">Transcurrido</string>
+    <string name="hero_stat_power">Potencia</string>
+    <string name="hero_stat_none">—</string>
 
     <!-- ═══════════════ pestañas ═══════════════ -->
     <string name="tab_sound">Sonido</string>
@@ -489,6 +493,13 @@
     <string name="onboard_autostart_sub">Cambia en cualquier momento en Ajustes → Sonido</string>
     <string name="onboard_next">Siguiente</string>
     <string name="onboard_finish">Empezar</string>
+    <string name="onboard_skip">Omitir</string>
+    <string name="onboard_sound_title">Escucha tu aviso de carga</string>
+    <string name="onboard_sound_body">Así te avisará ChargeSound al conectar el cargador. Pulsa reproducir para oírlo; puedes cambiarlo cuando quieras en Ajustes.</string>
+    <string name="onboard_sound_play">Reproducir</string>
+    <string name="onboard_sound_stop">Detener</string>
+    <string name="onboard_widget_label">Añade el widget</string>
+    <string name="onboard_widget_sub">Mantén pulsada la pantalla de inicio → Widgets → ChargeSound para ver batería, potencia y ETA de un vistazo.</string>
 
 <!-- Textos del widget -->
     <string name="widget_level_placeholder">85%</string>
